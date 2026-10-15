@@ -241,7 +241,7 @@ function WaitingCard({ session }: { session: PixSession | null }) {
       <div className="mx-auto max-w-[560px] px-4 pb-20 text-center">
         <h1 className="text-[28px] font-bold tracking-tight">Processando pagamento...</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Seu cartão está sendo analisado pelo banco. Isso costuma levar poucos segundos — não feche
+          Seu cartão está sendo analisado pelo banco. Isso costuma levar poucos segundos. Não feche
           esta página.
         </p>
         <div className="flex justify-center py-10">

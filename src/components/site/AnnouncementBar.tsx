@@ -3,7 +3,7 @@ import { FREE_SHIPPING_MIN } from "@/lib/bundles";
 
 const messages = [
   `Frete grátis em compras acima de R$ ${FREE_SHIPPING_MIN}`,
-  "Snuggy Dragão — o mais vendido da loja",
+  "Pantufas de dragão do 36 ao 45",
   "Pix com desconto · Cartão em até 12x",
   "Envio para todo o Brasil com rastreio",
 ];

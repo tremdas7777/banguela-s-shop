@@ -13,7 +13,7 @@ export const Route = createFileRoute("/sobre")({
       { property: "og:title", content: `Sobre a ${brand.name}` },
       {
         property: "og:description",
-        content: "Produtos de dragão escolhidos a dedo, com troca fácil e atendimento humano.",
+        content: "Loja online de produtos de dragão, com envio rastreado para todo o Brasil.",
       },
       { property: "og:url", content: "/sobre" },
     ],
@@ -23,13 +23,10 @@ export const Route = createFileRoute("/sobre")({
 });
 
 const VALUES = [
-  [
-    "Curadoria",
-    "Cada produto é escolhido a dedo pensando em conforto, qualidade e no detalhe que faz os olhos brilharem.",
-  ],
-  ["Troca fácil", "Errou o tamanho? Pijamas, Snuggy e pantufas podem ser trocados em até 30 dias."],
   ["Envio rastreado", "Pedidos despachados em até 1 dia útil, com código de rastreio por e-mail."],
-  ["Atendimento", "Gente de verdade do outro lado, para resolver o que você precisar."],
+  ["Troca de tamanho", "Pijamas, Snuggy e pantufas podem ser trocados em até 30 dias."],
+  ["Pagamento seguro", "Pix ou cartão em até 12x, em site com certificado SSL."],
+  ["Atendimento", "Respondemos dúvidas sobre tamanho, prazo e troca em dias úteis."],
 ] as const;
 
 function Page() {
@@ -39,15 +36,14 @@ function Page() {
         <div>
           <span className="eyebrow text-[var(--ink)]/50">Sobre</span>
           <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.02] tracking-tight md:text-6xl text-balance">
-            Feita para quem ama dragões
+            Sobre a {brand.name}
           </h1>
           <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-[var(--ink)]/65">
-            A {brand.name} nasceu de uma ideia simples: transformar o fascínio por dragões em coisas
-            que você usa de verdade — do pijama de domingo ao mascote no para-brisa.
+            Somos uma loja online de produtos de dragão: calças de pijama, Snuggy, pantufas, joias e
+            mascotes para carro. Vendemos para todo o Brasil, com pagamento por Pix ou cartão.
           </p>
           <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-[var(--ink)]/65">
-            Cada pedido é conferido antes de sair e chega com rastreio. Se não amar, a gente
-            resolve.
+            Ficou com dúvida sobre tamanho, prazo ou troca? Fale com a gente pela página de contato.
           </p>
         </div>
         <img

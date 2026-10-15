@@ -163,7 +163,7 @@ function Page() {
             </div>
           </div>
           <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-            Leve <b className="text-foreground">mais uma unidade pela metade do preço</b> — para
+            Leve <b className="text-foreground">mais uma unidade pela metade do preço</b>, para
             presentear alguém ou ter uma reserva. Vai no mesmo envio do seu pedido, com frete
             grátis.
           </p>

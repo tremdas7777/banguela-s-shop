@@ -90,7 +90,9 @@ export function Footer() {
           <Link to="/" aria-label={`${brand.name} — início`} className="inline-block">
             <img src={logo} alt={brand.name} className="mx-auto h-10 w-auto" loading="lazy" />
           </Link>
-          <p className="mx-auto mt-3 max-w-sm text-[14px] text-[var(--ink)]/65">{brand.tagline}.</p>
+          <p className="mx-auto mt-3 max-w-sm text-[14px] text-[var(--ink)]/65">
+            Loja online de produtos de dragão. Enviamos para todo o Brasil.
+          </p>
         </div>
 
         <div className="mx-auto mt-8 grid max-w-4xl border-t border-[var(--night)]/10 md:mt-10 md:grid-cols-3 md:gap-10 md:border-0 md:text-center">
