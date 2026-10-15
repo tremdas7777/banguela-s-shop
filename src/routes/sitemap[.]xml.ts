@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { availableBundles, categories } from "@/lib/bundles";
 
 const BASE_URL = "";
 
 const paths = [
   "/",
-  "/produto",
+  ...categories.map((c) => `/colecao/${c.id}`),
+  ...availableBundles.map((b) => `/produto?plano=${b.id}`),
   "/sobre",
   "/contato",
   "/faq",

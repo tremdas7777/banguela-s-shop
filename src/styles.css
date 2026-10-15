@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Work Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Bricolage Grotesque", "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Nunito Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -42,9 +42,14 @@
   --radius: 0.875rem;
 
   /* Paleta — Loja do Banguela */
-  --paper: #f6f8f5;
+  --paper: #ffffff;
   --surface: #ffffff;
-  --ink: #0d0d0d;
+  --ink: #13241b;
+  /* Verde-noite dos botões e títulos; menta das faixas, rodapé e selos. */
+  --night: #173f2a;
+  --mint: #e2f3e6;
+  --mint-strong: #cdebd5;
+  --tile: #f2f5f1;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -125,8 +130,8 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
   h4, h5, h6 {
     font-family: var(--font-sans);
@@ -134,16 +139,7 @@
   }
 }
 
-@keyframes bshop-marquee {
-  to { transform: translateX(-50%); }
-}
-
 @layer utilities {
-  /* Faixa de benefícios da home (conteúdo duplicado → laço contínuo). */
-  .animate-marquee { animation: bshop-marquee 32s linear infinite; }
-  @media (prefers-reduced-motion: reduce) {
-    .animate-marquee { animation: none; }
-  }
   .font-display { font-family: var(--font-display); }
   .font-sans { font-family: var(--font-sans); }
 

@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Shelf } from "@/components/shop/Shelf";
 import { brand } from "@/lib/brand";
+import { FAQ } from "@/lib/faq";
 import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
@@ -107,34 +108,50 @@ function Page() {
     });
   };
 
-  const buyLabel = complete ? `Comprar agora · ${brl(p.price)}` : `Escolha ${missing.join(" e ")}`;
+  const buyLabel = complete ? "Comprar agora" : `Escolha ${missing.join(" e ")}`;
   const related = availableBundles.filter((b) => b.id !== p.id);
+
+  const info = [
+    {
+      title: "Descrição",
+      body: `${p.checkoutProductDescription} ${p.benefits.join(". ")}.`,
+    },
+    { title: "Entrega e frete", body: `${FAQ[0]!.a} ${bundleShippingLabel(p)}.` },
+    {
+      title: "Trocas e devoluções",
+      body:
+        p.category === "conforto"
+          ? "Você tem 7 dias para desistir da compra e até 30 dias para trocar por outro tamanho ou cor, sem uso e com a etiqueta."
+          : "Você tem 7 dias após o recebimento para desistir da compra, com o produto sem uso e na embalagem original.",
+    },
+    { title: "Pagamento seguro", body: FAQ[2]!.a },
+  ];
 
   return (
     <SiteLayout>
-      <div className="container-edge pb-28 pt-6 md:pb-20 md:pt-10">
+      <div className="container-edge pb-28 pt-4 md:pb-20 md:pt-8">
         <nav
           aria-label="Navegação"
-          className="mb-6 flex flex-wrap items-center gap-1 text-[13px] text-[var(--ink)]/50"
+          className="mb-4 flex flex-wrap items-center gap-1 text-[12.5px] text-[var(--ink)]/50"
         >
-          <Link to="/" className="hover:text-[var(--primary)]">
+          <Link to="/" className="hover:text-[var(--night)]">
             Início
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <a href={`/#cat-${p.category}`} className="hover:text-[var(--primary)]">
+          <Link to="/colecao/$id" params={{ id: p.category }} className="hover:text-[var(--night)]">
             {category?.name}
-          </a>
+          </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className="text-[var(--ink)]/80">{p.name}</span>
         </nav>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:gap-14">
+        <div className="grid gap-7 md:grid-cols-2 lg:gap-14">
           <div className="md:sticky md:top-[calc(var(--site-chrome-h,7rem)+1.5rem)] md:self-start">
-            <div className="relative aspect-square overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--muted)]">
+            <div className="relative -mx-6 aspect-square overflow-hidden bg-[var(--tile)] md:mx-0 md:rounded-[24px]">
               <img src={img} alt={p.name} className="h-full w-full object-cover" />
-              {off > 0 && (
-                <span className="absolute left-4 top-4 rounded-md bg-[var(--sale)] px-2.5 py-1 text-[12px] font-bold text-white">
-                  -{off}%
+              {p.badge && (
+                <span className="absolute left-4 top-4 rounded-full bg-[var(--night)] px-3 py-1 text-[12px] font-bold text-white">
+                  {p.badge}
                 </span>
               )}
             </div>
@@ -145,48 +162,56 @@ function Page() {
                   type="button"
                   onClick={() => setImg(src)}
                   aria-label="Ver foto"
-                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                    img === src
-                      ? "border-[var(--primary)]"
-                      : "border-transparent opacity-75 hover:opacity-100"
-                  }`}
+                  aria-current={img === src}
+                  className="shrink-0 pb-1.5"
                 >
-                  <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    className={`h-16 w-16 rounded-xl object-cover transition md:h-[72px] md:w-[72px] ${
+                      img === src ? "" : "opacity-60 hover:opacity-100"
+                    }`}
+                  />
+                  <i
+                    className={`mx-auto mt-1.5 block h-[3px] rounded-full transition-all ${
+                      img === src ? "w-8 bg-[var(--night)]" : "w-0"
+                    }`}
+                  />
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <span className="eyebrow text-[var(--ink)]/50">{category?.name}</span>
-            <h1 className="mt-2 font-display text-3xl font-extrabold leading-[1.05] tracking-tight md:text-[2.6rem] text-balance">
+            <h1 className="text-[26px] font-bold leading-tight text-[var(--night)] md:text-[34px] text-balance">
               {p.name}
             </h1>
-            <p className="mt-2 text-[15px] text-[var(--ink)]/60">{p.tag}</p>
+            <p className="mt-1 text-[15px] text-[var(--ink)]/60">{p.tag}</p>
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="font-display text-[2rem] font-extrabold leading-none">
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-[26px] font-extrabold leading-none text-[var(--night)]">
                 {brl(p.price)}
               </span>
               {p.compareAtPrice && (
                 <>
-                  <span className="text-[15px] text-[var(--ink)]/45 line-through">
-                    {brl(p.compareAtPrice)}
-                  </span>
-                  <span className="rounded-full bg-[var(--sale)]/10 px-3 py-1 text-[12px] font-bold text-[var(--sale)]">
-                    Economize {brl(p.compareAtPrice - p.price)}
+                  <s className="text-[15px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
+                  <span className="rounded-full bg-[var(--mint-strong)] px-3 py-1 text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[var(--night)]">
+                    {off}% de desconto
                   </span>
                 </>
               )}
             </div>
-            <p className="mt-2 text-[13px] text-[var(--ink)]/60">
-              Pix com desconto ou até {CARD_MAX_INSTALLMENTS}x no cartão · {bundleShippingLabel(p)}
+            <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">
+              Pix com desconto ou até {CARD_MAX_INSTALLMENTS}x no cartão
             </p>
 
-            <ul className="mt-6 space-y-2.5">
+            <ul className="mt-5 space-y-2.5">
               {p.benefits.map((b) => (
-                <li key={b} className="flex gap-2.5 text-[15px] text-[var(--ink)]/85">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+                <li key={b} className="flex items-start gap-2.5 text-[15px] text-[var(--ink)]/85">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--mint)] text-[var(--night)]">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
                   {b}
                 </li>
               ))}
@@ -195,16 +220,14 @@ function Page() {
             {p.options.length > 0 && (
               <div
                 ref={optionsRef}
-                className={`mt-7 space-y-5 rounded-2xl transition ${nudge ? "bg-[var(--sale)]/5 p-4 ring-2 ring-[var(--sale)]/40" : ""}`}
+                className={`mt-6 space-y-5 rounded-2xl transition ${nudge ? "bg-[var(--sale)]/5 p-4 ring-2 ring-[var(--sale)]/40" : ""}`}
               >
                 {p.options.map((o) => (
                   <div key={o.name}>
-                    <div className="mb-2.5 text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/55">
+                    <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
                       {o.name}
                       {sel[o.name] && (
-                        <span className="ml-1 normal-case tracking-normal text-[var(--ink)]">
-                          : {sel[o.name]}
-                        </span>
+                        <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -216,10 +239,10 @@ function Page() {
                             type="button"
                             onClick={() => choose(o.name, v)}
                             aria-pressed={on}
-                            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border-2 px-4 text-[14px] font-semibold transition ${
+                            className={`inline-flex h-11 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition ${
                               on
-                                ? "border-[var(--primary)] bg-[var(--brand-tint)]"
-                                : "border-[var(--ink)]/12 bg-white hover:border-[var(--ink)]/35"
+                                ? "border-[var(--night)] bg-[var(--night)] text-white"
+                                : "border-[var(--ink)]/20 bg-white text-[var(--night)] hover:border-[var(--night)]"
                             }`}
                           >
                             <Swatch value={v} />
@@ -241,32 +264,48 @@ function Page() {
             <button
               type="button"
               onClick={buy}
-              className={`mt-7 hidden w-full rounded-full py-4 text-[15px] font-bold text-white transition md:block ${
+              className={`mt-7 hidden w-full rounded-full py-4 text-[14px] font-extrabold uppercase tracking-[0.08em] text-white transition md:block ${
                 complete
-                  ? "bg-[var(--primary)] hover:opacity-90"
-                  : "bg-[var(--ink)]/80 hover:bg-[var(--ink)]"
+                  ? "bg-[var(--night)] hover:opacity-90"
+                  : "bg-[var(--night)]/75 hover:bg-[var(--night)]"
               }`}
             >
               {buyLabel}
             </button>
 
-            <div className="mt-6 grid grid-cols-3 gap-2 border-t border-[var(--border)] pt-6 text-center text-[12px] text-[var(--ink)]/65">
-              <div className="flex flex-col items-center gap-1.5">
-                <Truck className="h-5 w-5 text-[var(--primary)]" /> Envio rastreado
-              </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <Lock className="h-5 w-5 text-[var(--primary)]" /> Pagamento seguro
-              </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <RefreshCw className="h-5 w-5 text-[var(--primary)]" /> Troca em 30 dias
-              </div>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px] text-[var(--ink)]/65 md:justify-start">
+              <span className="inline-flex items-center gap-1.5">
+                <Truck className="h-4 w-4 text-[var(--night)]" /> Envio rastreado
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Lock className="h-4 w-4 text-[var(--night)]" /> Pagamento seguro
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <RefreshCw className="h-4 w-4 text-[var(--night)]" /> Troca fácil
+              </span>
+            </div>
+
+            <div className="mt-7 border-t border-[var(--border)]">
+              {info.map((it, i) => (
+                <details
+                  key={it.title}
+                  open={i === 0}
+                  className="group border-b border-[var(--border)] py-4"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-bold text-[var(--night)] [&::-webkit-details-marker]:hidden">
+                    {it.title}
+                    <ChevronDown className="h-4 w-4 shrink-0 transition group-open:rotate-180" />
+                  </summary>
+                  <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/70">{it.body}</p>
+                </details>
+              ))}
             </div>
           </div>
         </div>
 
-        <section className="mt-16">
-          <h2 className="mb-5 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-            Você também vai amar
+        <section className="mt-14">
+          <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+            Complete o visual
           </h2>
           <Shelf label="Relacionados">
             {related.map((b) => (
@@ -280,18 +319,16 @@ function Page() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)] bg-white/95 px-4 py-3 backdrop-blur md:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3">
           <div className="leading-tight">
-            <div className="font-display text-lg font-extrabold">{brl(p.price)}</div>
+            <div className="text-[18px] font-extrabold text-[var(--night)]">{brl(p.price)}</div>
             {p.compareAtPrice && (
-              <div className="text-[12px] text-[var(--ink)]/45 line-through">
-                {brl(p.compareAtPrice)}
-              </div>
+              <s className="text-[12px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
             )}
           </div>
           <button
             type="button"
             onClick={buy}
-            className={`flex-1 rounded-full py-3.5 text-[14px] font-bold text-white ${
-              complete ? "bg-[var(--primary)]" : "bg-[var(--ink)]/80"
+            className={`flex-1 rounded-full py-3.5 text-[13px] font-extrabold uppercase tracking-[0.06em] text-white ${
+              complete ? "bg-[var(--night)]" : "bg-[var(--night)]/75"
             }`}
           >
             {complete ? "Comprar agora" : buyLabel}

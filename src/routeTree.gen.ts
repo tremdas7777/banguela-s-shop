@@ -21,6 +21,7 @@ import { Route as ProdutoRouteImport } from './routes/produto'
 import { Route as RastreioRouteImport } from './routes/rastreio'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as ColecaoIdRouteImport } from './routes/colecao.$id'
 import { Route as ExpressoIdRouteImport } from './routes/expresso.$id'
 import { Route as ObrigadoIdRouteImport } from './routes/obrigado.$id'
 import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
@@ -87,6 +88,11 @@ const SobreRoute = SobreRouteImport.update({
   path: '/sobre',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ColecaoIdRoute = ColecaoIdRouteImport.update({
+  id: '/colecao/$id',
+  path: '/colecao/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExpressoIdRoute = ExpressoIdRouteImport.update({
   id: '/expresso/$id',
   path: '/expresso/$id',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/rastreio': typeof RastreioRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
+  '/colecao/$id': typeof ColecaoIdRoute
   '/expresso/$id': typeof ExpressoIdRoute
   '/obrigado/$id': typeof ObrigadoIdRoute
   '/pedido/$id': typeof PedidoIdRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/rastreio': typeof RastreioRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
+  '/colecao/$id': typeof ColecaoIdRoute
   '/expresso/$id': typeof ExpressoIdRoute
   '/obrigado/$id': typeof ObrigadoIdRoute
   '/pedido/$id': typeof PedidoIdRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/rastreio': typeof RastreioRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
+  '/colecao/$id': typeof ColecaoIdRoute
   '/expresso/$id': typeof ExpressoIdRoute
   '/obrigado/$id': typeof ObrigadoIdRoute
   '/pedido/$id': typeof PedidoIdRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/rastreio'
     | '/sitemap.xml'
     | '/sobre'
+    | '/colecao/$id'
     | '/expresso/$id'
     | '/obrigado/$id'
     | '/pedido/$id'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/rastreio'
     | '/sitemap.xml'
     | '/sobre'
+    | '/colecao/$id'
     | '/expresso/$id'
     | '/obrigado/$id'
     | '/pedido/$id'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/rastreio'
     | '/sitemap.xml'
     | '/sobre'
+    | '/colecao/$id'
     | '/expresso/$id'
     | '/obrigado/$id'
     | '/pedido/$id'
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   RastreioRoute: typeof RastreioRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
+  ColecaoIdRoute: typeof ColecaoIdRoute
   ExpressoIdRoute: typeof ExpressoIdRoute
   ObrigadoIdRoute: typeof ObrigadoIdRoute
   PedidoIdRoute: typeof PedidoIdRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SobreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/colecao/$id': {
+      id: '/colecao/$id'
+      path: '/colecao/$id'
+      fullPath: '/colecao/$id'
+      preLoaderRoute: typeof ColecaoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/expresso/$id': {
       id: '/expresso/$id'
       path: '/expresso/$id'
@@ -388,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   RastreioRoute: RastreioRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,
+  ColecaoIdRoute: ColecaoIdRoute,
   ExpressoIdRoute: ExpressoIdRoute,
   ObrigadoIdRoute: ObrigadoIdRoute,
   PedidoIdRoute: PedidoIdRoute,

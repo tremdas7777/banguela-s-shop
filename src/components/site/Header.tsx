@@ -1,94 +1,257 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronRight, CircleHelp, Menu, Search, Truck, X } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { brand } from "@/lib/brand";
+import { availableBundles, brl, categories, type BundleId } from "@/lib/bundles";
 
-const nav = [
-  { href: "/#colecoes", label: "Coleções" },
-  { href: "/#produtos", label: "Produtos" },
-  { href: "/sobre", label: "Sobre" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/rastreio", label: "Rastrear" },
-  { href: "/contato", label: "Contato" },
+/** Menu principal: um atalho por tipo de produto, como numa loja de roupa. */
+const nav: { id: BundleId; label: string }[] = [
+  { id: "pijama", label: "Pijamas" },
+  { id: "snuggy", label: "Snuggy" },
+  { id: "pantufa", label: "Pantufas" },
+  { id: "aneis", label: "Anéis" },
+  { id: "colares", label: "Colares" },
+  { id: "carro", label: "Para o carro" },
 ];
 
-export function Header() {
-  const [open, setOpen] = useState(false);
+const help = [
+  { href: "/rastreio", label: "Rastrear pedido" },
+  { href: "/faq", label: "Dúvidas frequentes" },
+  { href: "/contato", label: "Contato" },
+  { href: "/sobre", label: "Sobre a loja" },
+];
+
+const iconBtn =
+  "grid h-10 w-10 place-items-center rounded-full text-[var(--night)] transition hover:bg-[var(--mint)]";
+
+const normalize = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function SearchPanel({ onClose }: { onClose: () => void }) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const term = normalize(q.trim());
+  const results = availableBundles.filter((b) => {
+    if (!term) return true;
+    const cat = categories.find((c) => c.id === b.category)?.name ?? "";
+    return normalize(`${b.name} ${b.tag} ${cat}`).includes(term);
+  });
 
   return (
-    <header className="bg-white border-b border-[rgba(13,13,13,0.06)]">
-      <div className="container-edge flex items-center justify-between gap-4 py-3 md:py-3.5">
-        <Link
-          to="/"
-          aria-label={`${brand.name} — início`}
-          className="flex shrink-0 items-center pl-1 md:pl-2"
-        >
-          <img
-            src={logo}
-            alt={brand.name}
-            className="h-9 w-auto max-w-[13rem] md:h-11 md:max-w-[15rem] object-contain object-left"
-          />
+    <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose}>
+      <div
+        className="bg-white pb-6 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.35)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="container-edge flex items-center gap-3 py-3">
+          <label className="flex flex-1 items-center gap-2 rounded-full bg-[var(--tile)] px-4">
+            <Search className="h-4 w-4 shrink-0 text-[var(--ink)]/50" />
+            <input
+              ref={inputRef}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="O que você procura?"
+              aria-label="Buscar produtos"
+              className="h-11 w-full bg-transparent text-[15px] outline-none placeholder:text-[var(--ink)]/45"
+            />
+          </label>
+          <button type="button" aria-label="Fechar busca" className={iconBtn} onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="container-edge">
+          <p className="mb-2 text-[12px] font-semibold text-[var(--ink)]/50">
+            {term ? `${results.length} resultado${results.length === 1 ? "" : "s"}` : "Produtos"}
+          </p>
+          {results.length === 0 ? (
+            <p className="py-6 text-center text-[14px] text-[var(--ink)]/60">
+              Nada encontrado para “{q}”.
+            </p>
+          ) : (
+            <ul className="grid gap-1 sm:grid-cols-2">
+              {results.map((b) => (
+                <li key={b.id}>
+                  <Link
+                    to="/produto"
+                    search={{ plano: b.id }}
+                    onClick={onClose}
+                    className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-[var(--tile)]"
+                  >
+                    <img src={b.img} alt="" className="h-14 w-14 rounded-xl object-cover" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-semibold">{b.name}</span>
+                      <span className="text-[13px] font-bold text-[var(--night)]">
+                        {brl(b.price)}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Drawer({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/35 md:hidden" onClick={onClose}>
+      <aside
+        className="flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-white animate-in slide-in-from-left duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3">
+          <img src={logo} alt={brand.name} className="h-8 w-auto" />
+          <button type="button" aria-label="Fechar menu" className={iconBtn} onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <nav className="px-5 pt-2">
+          <p className="mb-2 text-[12px] font-bold text-[var(--ink)]/45">Produtos</p>
+          <ul className="space-y-1">
+            {nav.map((item) => {
+              const b = availableBundles.find((x) => x.id === item.id);
+              return (
+                <li key={item.id}>
+                  <Link
+                    to="/produto"
+                    search={{ plano: item.id }}
+                    onClick={onClose}
+                    className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+                  >
+                    {b && <img src={b.img} alt="" className="h-12 w-12 rounded-xl object-cover" />}
+                    <span className="flex-1 text-[15px] font-semibold">{item.label}</span>
+                    <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mb-2 mt-6 text-[12px] font-bold text-[var(--ink)]/45">Coleções</p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                to="/colecao/$id"
+                params={{ id: c.id }}
+                onClick={onClose}
+                className="rounded-full bg-[var(--mint)] px-4 py-2 text-[13px] font-semibold text-[var(--night)]"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+          <p className="mb-1 mt-6 text-[12px] font-bold text-[var(--ink)]/45">Ajuda</p>
+          <ul className="pb-8">
+            {help.map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  onClick={onClose}
+                  className="block border-b border-[var(--border)] py-3.5 text-[15px]"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+    </div>
+  );
+}
+
+export function Header() {
+  const [menu, setMenu] = useState(false);
+  const [search, setSearch] = useState(false);
+  const closeMenu = useCallback(() => setMenu(false), []);
+  const closeSearch = useCallback(() => setSearch(false), []);
+
+  // Trava a rolagem da página com o menu ou a busca abertos.
+  useEffect(() => {
+    if (!menu && !search) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menu, search]);
+
+  return (
+    <header className="border-b border-[var(--border)] bg-white">
+      <div className="container-edge grid grid-cols-[1fr_auto_1fr] items-center py-2 md:flex md:gap-8 md:py-3">
+        <div className="-ml-2 flex items-center md:hidden">
+          <button
+            type="button"
+            aria-label="Abrir menu"
+            className={iconBtn}
+            onClick={() => setMenu(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Buscar"
+            className={iconBtn}
+            onClick={() => setSearch(true)}
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
+
+        <Link to="/" aria-label={`${brand.name} — início`} className="flex shrink-0 justify-center">
+          <img src={logo} alt={brand.name} className="h-8 w-auto md:h-10" />
         </Link>
 
-        <nav className="hidden md:flex flex-1 justify-center gap-7 lg:gap-9 text-xs font-medium uppercase tracking-[0.16em]">
+        <nav className="hidden flex-1 justify-center gap-6 text-[14px] font-semibold text-[var(--night)] md:flex lg:gap-8">
           {nav.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="text-[var(--ink)] hover:text-[var(--primary)] transition-colors"
+            <Link
+              key={item.id}
+              to="/produto"
+              search={{ plano: item.id }}
+              className="py-2 transition-colors hover:text-[var(--primary)]"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 md:gap-3">
-          <a
-            href="/#produtos"
-            className="hidden sm:inline-flex bg-[var(--primary)] text-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] rounded-xl hover:opacity-90 transition-colors"
+        <div className="-mr-2 flex items-center justify-end">
+          <button
+            type="button"
+            aria-label="Buscar"
+            className={`${iconBtn} hidden md:grid`}
+            onClick={() => setSearch(true)}
           >
-            Comprar agora
-          </a>
-          <button aria-label="Abrir menu" className="md:hidden p-2" onClick={() => setOpen(true)}>
-            <Menu className="w-5 h-5" />
+            <Search className="h-5 w-5" />
           </button>
+          <a href="/faq" aria-label="Dúvidas" className={iconBtn}>
+            <CircleHelp className="h-5 w-5" />
+          </a>
+          <a href="/rastreio" aria-label="Rastrear pedido" className={iconBtn}>
+            <Truck className="h-5 w-5" />
+          </a>
         </div>
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-50 bg-white md:hidden">
-          <div className="container-edge flex items-center justify-between py-3 pl-1">
-            <img
-              src={logo}
-              alt={brand.name}
-              className="h-9 w-auto max-w-[13rem] object-contain object-left"
-            />
-            <button aria-label="Fechar" className="p-2" onClick={() => setOpen(false)}>
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <nav className="container-edge mt-8 flex flex-col gap-1">
-            {nav.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="py-5 text-xs font-bold uppercase tracking-[0.2em] border-b border-[rgba(13,13,13,0.08)]"
-              >
-                {item.label}
-              </a>
-            ))}
-            <a
-              href="/#produtos"
-              onClick={() => setOpen(false)}
-              className="mt-10 bg-[var(--primary)] text-white py-4 text-center text-xs font-bold uppercase tracking-[0.2em] rounded-xl"
-            >
-              Comprar agora
-            </a>
-          </nav>
-        </div>
-      )}
+      {menu && <Drawer onClose={closeMenu} />}
+      {search && <SearchPanel onClose={closeSearch} />}
     </header>
   );
 }
