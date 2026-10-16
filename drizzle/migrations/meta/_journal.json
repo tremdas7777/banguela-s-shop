@@ -15,6 +15,13 @@
       "when": 1792116081843,
       "tag": "0001_existing_site_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792116102795,
+      "tag": "0002_existing_rastreios",
+      "breakpoints": true
     }
   ]
 }
