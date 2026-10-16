@@ -43,7 +43,7 @@ export const categories: readonly {
 }[] = [
   {
     id: "moletons",
-    name: "Moletons Dragão",
+    name: "Sleepo Dragão",
     desc: "Cobertor vestível com capuz de dragão",
     img: "/produtos/md-preto.jpg",
   },
@@ -95,7 +95,7 @@ export type Bundle = {
 
 const img = (f: string) => `/produtos/${f}`;
 
-/** Linha de moletons-cobertor de dragão: mesmo modelo, uma estampa por produto. */
+/** Linha Sleepo Dragão (cobertor vestível): mesmo modelo, uma estampa por produto. */
 const MOLETONS: { id: BundleId; estampa: string; slug: string }[] = [
   { id: "mdpreto", estampa: "Preto", slug: "preto" },
   { id: "mdbranco", estampa: "Branco", slug: "branco" },
@@ -109,8 +109,8 @@ const MOLETONS: { id: BundleId; estampa: string; slug: string }[] = [
 
 const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   id,
-  name: `Moletom Dragão ${estampa}`,
-  tag: "Cobertor vestível com sherpa por dentro",
+  name: `Sleepo Dragão ${estampa}`,
+  tag: "Cobertor vestível de dragão com sherpa por dentro",
   price: 199.9,
   compareAtPrice: 279.9,
   img: img(`md-${slug}.jpg`),
@@ -122,9 +122,9 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
     "Bolso canguru e comprimento do pescoço aos joelhos",
   ],
   category: "moletons",
-  checkoutProductName: `Moletom Dragão ${estampa}`,
+  checkoutProductName: `Sleepo Dragão ${estampa}`,
   checkoutProductDescription:
-    "Moletom-cobertor de flanela com sherpa, capuz de dragão com chifres e asinhas.",
+    "Cobertor vestível de flanela com sherpa, capuz de dragão com chifres e asinhas.",
   checkoutUrl: `/checkout?plano=${id}`,
   estampa,
 }));

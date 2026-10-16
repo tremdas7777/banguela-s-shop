@@ -137,7 +137,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
                   alt=""
                   className="h-12 w-12 rounded-xl object-cover"
                 />
-                <span className="flex-1 text-[15px] font-semibold">Moletons Dragão</span>
+                <span className="flex-1 text-[15px] font-semibold">Sleepo Dragão</span>
                 <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
               </Link>
             </li>
@@ -241,7 +241,7 @@ export function Header() {
             params={{ id: "moletons" }}
             className="py-2 transition-colors hover:text-[var(--primary)]"
           >
-            Moletons
+            Sleepo Dragão
           </Link>
           {nav.map((item) => (
             <Link

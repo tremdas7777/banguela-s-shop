@@ -211,7 +211,7 @@ function Shelves() {
 }
 
 const TYPES: { id: BundleId; label: string; img: string }[] = [
-  { id: "mdpreto", label: "Moletons", img: img("md-preto.jpg") },
+  { id: "mdpreto", label: "Sleepo", img: img("md-preto.jpg") },
   { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg") },
   { id: "snuggy", label: "Snuggy", img: img("p2_snuggy.jpg") },
   { id: "pantufa", label: "Pantufas", img: img("p3b.jpg") },
