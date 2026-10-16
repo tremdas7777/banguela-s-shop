@@ -4,7 +4,22 @@
  * sempre recalculado no servidor a partir daqui — o cliente só exibe.
  */
 
-export const BUNDLE_IDS = ["pijama", "snuggy", "pantufa", "carro", "aneis", "colares"] as const;
+export const BUNDLE_IDS = [
+  "mdpreto",
+  "mdbranco",
+  "mdverde",
+  "mdgalaxia",
+  "mdbrilha",
+  "mdrosa",
+  "mdfogo",
+  "mdazul",
+  "pijama",
+  "snuggy",
+  "pantufa",
+  "carro",
+  "aneis",
+  "colares",
+] as const;
 export type BundleId = (typeof BUNDLE_IDS)[number];
 export const DEFAULT_BUNDLE_ID: BundleId = "pijama";
 
@@ -18,7 +33,7 @@ export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHI
 export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
-export type CategoryId = "conforto" | "joias" | "auto";
+export type CategoryId = "moletons" | "conforto" | "joias" | "auto";
 
 export const categories: readonly {
   id: CategoryId;
@@ -26,6 +41,12 @@ export const categories: readonly {
   desc: string;
   img: string;
 }[] = [
+  {
+    id: "moletons",
+    name: "Moletons Dragão",
+    desc: "Cobertor vestível com capuz de dragão",
+    img: "/produtos/md-preto.jpg",
+  },
   {
     id: "conforto",
     name: "Conforto & Dormir",
@@ -68,11 +89,48 @@ export type Bundle = {
   checkoutUrl: string;
   featured?: boolean;
   badge?: string;
+  /** Nome curto da estampa (linha de moletons: "Preto", "Galáxia"...). */
+  estampa?: string;
 };
 
 const img = (f: string) => `/produtos/${f}`;
 
+/** Linha de moletons-cobertor de dragão: mesmo modelo, uma estampa por produto. */
+const MOLETONS: { id: BundleId; estampa: string; slug: string }[] = [
+  { id: "mdpreto", estampa: "Preto", slug: "preto" },
+  { id: "mdbranco", estampa: "Branco", slug: "branco" },
+  { id: "mdverde", estampa: "Verde", slug: "verde" },
+  { id: "mdgalaxia", estampa: "Galáxia", slug: "galaxia" },
+  { id: "mdbrilha", estampa: "Brilha no Escuro", slug: "brilha" },
+  { id: "mdrosa", estampa: "Rosa", slug: "rosa" },
+  { id: "mdfogo", estampa: "Fogo", slug: "fogo" },
+  { id: "mdazul", estampa: "Azul", slug: "azul" },
+];
+
+const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
+  id,
+  name: `Moletom Dragão ${estampa}`,
+  tag: "Cobertor vestível com sherpa por dentro",
+  price: 199.9,
+  compareAtPrice: 279.9,
+  img: img(`md-${slug}.jpg`),
+  images: [img(`md-${slug}.jpg`), img(`md-${slug}-uso.jpg`)],
+  options: [{ name: "Tamanho", values: ["Único (adulto)", "Infantil"] }],
+  benefits: [
+    "Flanela macia por fora e sherpa quentinha por dentro",
+    "Capuz gigante com chifres e asinhas de dragão",
+    "Bolso canguru e comprimento do pescoço aos joelhos",
+  ],
+  category: "moletons",
+  checkoutProductName: `Moletom Dragão ${estampa}`,
+  checkoutProductDescription:
+    "Moletom-cobertor de flanela com sherpa, capuz de dragão com chifres e asinhas.",
+  checkoutUrl: `/checkout?plano=${id}`,
+  estampa,
+}));
+
 export const bundles: Bundle[] = [
+  ...moletons,
   {
     id: "pijama",
     name: "Calça Pijama de Dragão",

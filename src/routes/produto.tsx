@@ -13,6 +13,7 @@ import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import {
   availableBundles,
   brl,
+  bundlesByCategory,
   bundleShippingLabel,
   categories,
   discountPct,
@@ -216,6 +217,37 @@ function Page() {
                 </li>
               ))}
             </ul>
+
+            {p.estampa && (
+              <div className="mt-6">
+                <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
+                  Estampa<span className="font-normal text-[var(--ink)]/70">: {p.estampa}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
+                  {bundlesByCategory(p.category).map((b) => (
+                    <Link
+                      key={b.id}
+                      to="/produto"
+                      search={{ plano: b.id }}
+                      aria-label={b.estampa}
+                      title={b.estampa}
+                      className={`overflow-hidden rounded-xl border-2 bg-[var(--tile)] transition ${
+                        b.id === p.id
+                          ? "border-[var(--night)]"
+                          : "border-transparent hover:border-[var(--ink)]/25"
+                      }`}
+                    >
+                      <img
+                        src={b.img}
+                        alt=""
+                        loading="lazy"
+                        className="aspect-square w-full object-cover"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {p.options.length > 0 && (
               <div

@@ -125,6 +125,22 @@ function Drawer({ onClose }: { onClose: () => void }) {
         <nav className="px-5 pt-2">
           <p className="mb-2 text-[12px] font-bold text-[var(--ink)]/45">Produtos</p>
           <ul className="space-y-1">
+            <li>
+              <Link
+                to="/colecao/$id"
+                params={{ id: "moletons" }}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+              >
+                <img
+                  src="/produtos/md-preto.jpg"
+                  alt=""
+                  className="h-12 w-12 rounded-xl object-cover"
+                />
+                <span className="flex-1 text-[15px] font-semibold">Moletons Dragão</span>
+                <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+              </Link>
+            </li>
             {nav.map((item) => {
               const b = availableBundles.find((x) => x.id === item.id);
               return (
@@ -220,6 +236,13 @@ export function Header() {
         </Link>
 
         <nav className="hidden flex-1 justify-center gap-6 text-[14px] font-semibold text-[var(--night)] md:flex lg:gap-8">
+          <Link
+            to="/colecao/$id"
+            params={{ id: "moletons" }}
+            className="py-2 transition-colors hover:text-[var(--primary)]"
+          >
+            Moletons
+          </Link>
           {nav.map((item) => (
             <Link
               key={item.id}
