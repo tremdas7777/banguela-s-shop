@@ -13,7 +13,16 @@ export const BUNDLE_IDS = [
   "mdrosa",
   "mdfogo",
   "mdazul",
+  "mdpretoi",
+  "mdbrancoi",
+  "mdverdei",
+  "mdgalaxiai",
+  "mdbrilhai",
+  "mdrosai",
+  "mdfogoi",
+  "mdazuli",
   "pijama",
+  "pijamai",
   "kitcasal",
   "kitshortf",
   "kitshortm",
@@ -23,7 +32,9 @@ export const BUNDLE_IDS = [
   "kitcalcam",
   "kitcalcai",
   "snuggy",
+  "snuggyi",
   "pantufa",
+  "pantufai",
   "carro",
   "aneis",
   "colares",
@@ -109,6 +120,13 @@ export type Bundle = {
   groupLabel?: string;
   /** false = não aparece nas vitrines (só pela página do grupo). */
   listed?: boolean;
+  /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
+  kids?: {
+    id: BundleId;
+    price: number;
+    compareAtPrice?: number;
+    options: readonly ProductOption[];
+  };
 };
 
 const img = (f: string) => `/produtos/${f}`;
@@ -127,15 +145,19 @@ const MOLETONS: { id: BundleId; estampa: string; slug: string }[] = [
 
 const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   id,
+  kids: {
+    id: `${id}i` as BundleId,
+    price: 169.9,
+    compareAtPrice: 239.9,
+    options: [{ name: "Idade", values: ["4 a 8 anos", "9 a 14 anos"] }],
+  },
   name: `Sleepo Dragão ${estampa}`,
   tag: "Cobertor vestível de dragão com sherpa por dentro",
   price: 199.9,
   compareAtPrice: 279.9,
   img: img(`md-${slug}.jpg`),
   images: [img(`md-${slug}.jpg`), img(`md-${slug}-uso.jpg`)],
-  options: [
-    { name: "Tamanho", values: ["Infantil 4-8 anos", "Infantil 9-14 anos", "Adulto (único)"] },
-  ],
+  options: [],
   benefits: [
     "Flanela macia por fora e sherpa quentinha por dentro",
     "Capuz gigante com chifres e asinhas de dragão",
@@ -151,7 +173,7 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
     ["Tecido", "Flanela por fora e sherpa por dentro"],
     ["Comprimento", "Do pescoço até a altura dos joelhos"],
     ["Detalhes", "Capuz com chifres e olhos bordados, asinhas nas costas, bolso canguru"],
-    ["Tamanhos", "Infantil 4 a 8 anos, infantil 9 a 14 anos e adulto (tamanho único oversized)"],
+    ["Tamanhos", "Adulto: tamanho único oversized. Infantil: 4 a 8 anos e 9 a 14 anos"],
     [
       "Cuidados",
       "Lavar na máquina no ciclo delicado, com água fria, do avesso. Não usar secadora.",
@@ -355,6 +377,15 @@ export const bundles: Bundle[] = [
   ...moletons,
   {
     id: "pijama",
+    kids: {
+      id: "pijamai",
+      price: 109.9,
+      compareAtPrice: 149.9,
+      options: [
+        { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
+        { name: "Idade", values: ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"] },
+      ],
+    },
     name: "Calça Pijama de Dragão",
     tag: "Do infantil 4 ao XGG",
     price: 129.9,
@@ -363,21 +394,7 @@ export const bundles: Bundle[] = [
     images: [img("p1_pijama.jpg"), img("p1_branco.jpg"), img("p1_preto.jpg"), img("p1_casal.jpg")],
     options: [
       { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
-      {
-        name: "Tamanho",
-        values: [
-          "Infantil 4",
-          "Infantil 6",
-          "Infantil 8",
-          "Infantil 10",
-          "Infantil 12",
-          "P",
-          "M",
-          "G",
-          "GG",
-          "XGG",
-        ],
-      },
+      { name: "Tamanho", values: ["P", "M", "G", "GG", "XGG"] },
     ],
     optionImages: { "Dragão Branco": img("p1_branco.jpg"), "Dragão Preto": img("p1_preto.jpg") },
     benefits: [
@@ -409,6 +426,15 @@ export const bundles: Bundle[] = [
   ...kits,
   {
     id: "snuggy",
+    kids: {
+      id: "snuggyi",
+      price: 169.9,
+      compareAtPrice: 239.9,
+      options: [
+        { name: "Cor", values: ["Preto", "Branco"] },
+        { name: "Idade", values: ["4 a 8 anos", "9 a 14 anos"] },
+      ],
+    },
     name: "Snuggy Dragão",
     tag: "Cobertor vestível com capuz",
     price: 199.9,
@@ -417,10 +443,7 @@ export const bundles: Bundle[] = [
     images: [img("p2_snuggy.jpg"), img("p2b.jpg"), img("p2c.jpg")],
     options: [
       { name: "Cor", values: ["Preto", "Branco"] },
-      {
-        name: "Tamanho",
-        values: ["Infantil 4-8 anos", "Infantil 9-14 anos", "P", "Padrão", "G", "GG"],
-      },
+      { name: "Tamanho", values: ["P", "Padrão", "G", "GG"] },
     ],
     benefits: [
       "Cobertor e moletom ao mesmo tempo",
@@ -452,6 +475,15 @@ export const bundles: Bundle[] = [
   },
   {
     id: "pantufa",
+    kids: {
+      id: "pantufai",
+      price: 89.9,
+      compareAtPrice: 119.9,
+      options: [
+        { name: "Cor", values: ["Branco", "Preto"] },
+        { name: "Tamanho", values: ["28-29", "30-31", "32-33", "34-35"] },
+      ],
+    },
     name: "Pantufas de Dragão",
     tag: "Quentinhas e antiderrapantes",
     price: 99.9,
@@ -460,10 +492,7 @@ export const bundles: Bundle[] = [
     images: [img("p3_pantufas.jpg"), img("p3b.jpg"), img("p3c.jpg")],
     options: [
       { name: "Cor", values: ["Branco", "Preto"] },
-      {
-        name: "Tamanho",
-        values: ["28-29", "30-31", "32-33", "34-35", "36-37", "38-39", "40-41", "42-43", "44-45"],
-      },
+      { name: "Tamanho", values: ["36-37", "38-39", "40-41", "42-43", "44-45"] },
     ],
     optionImages: { Branco: img("p3_pantufas.jpg"), Preto: img("p3c.jpg") },
     benefits: [
@@ -584,8 +613,37 @@ export const bundles: Bundle[] = [
   },
 ];
 
+/**
+ * Produto com versão infantil vira dois irmãos do mesmo grupo: "Adulto" (aparece nas vitrines)
+ * e "Infantil" (só pela página, no seletor de versão), cada um com preço e tamanhos próprios.
+ */
+function expandKids(list: Bundle[]): Bundle[] {
+  return list.flatMap((b) => {
+    if (!b.kids) return [b];
+    const { kids, ...adult } = b;
+    const group = b.group ?? `v-${b.id}`;
+    return [
+      { ...adult, group, groupLabel: "Adulto" },
+      {
+        ...adult,
+        id: kids.id,
+        name: `${b.name} Infantil`,
+        group,
+        groupLabel: "Infantil",
+        price: kids.price,
+        compareAtPrice: kids.compareAtPrice,
+        options: kids.options,
+        checkoutProductName: `${b.checkoutProductName} Infantil`,
+        checkoutUrl: `/checkout?plano=${kids.id}`,
+        badge: undefined,
+        listed: false,
+      },
+    ];
+  });
+}
+
 /** Produtos visíveis na loja. */
-export const availableBundles = bundles;
+export const availableBundles = expandKids(bundles);
 
 export function parseBundleId(raw: string | undefined | null): BundleId | undefined {
   return (BUNDLE_IDS as readonly string[]).includes(raw ?? "") ? (raw as BundleId) : undefined;

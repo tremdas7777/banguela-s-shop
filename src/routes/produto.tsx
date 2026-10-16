@@ -11,10 +11,10 @@ import { trackCheckoutClick } from "@/lib/analytics";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import {
+  availableBundles,
   groupBundles,
   listedBundles,
   brl,
-  bundlesByCategory,
   bundleShippingLabel,
   categories,
   discountPct,
@@ -123,6 +123,10 @@ function Page() {
       : "Escolha as opções";
   const related = listedBundles.filter((b) => b.id !== p.id && (!p.group || b.group !== p.group));
   const group = groupBundles(p);
+  // Estampas da mesma versão (adulto com adulto, infantil com infantil).
+  const estampas = availableBundles.filter(
+    (b) => b.category === p.category && b.estampa && b.groupLabel === p.groupLabel,
+  );
 
   const info: { title: string; body: ReactNode }[] = [
     {
@@ -260,10 +264,10 @@ function Page() {
             {group.length > 1 && (
               <div className="mt-6">
                 <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
-                  Escolha o kit
+                  {group.some((g) => g.groupLabel === "Combo casal") ? "Escolha o kit" : "Versão"}
                 </div>
                 <div
-                  className={`grid gap-2 ${group.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+                  className={`grid gap-2 ${group.length > 3 ? "grid-cols-2 sm:grid-cols-4" : group.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}
                 >
                   {group.map((g) => {
                     const on = g.id === p.id;
@@ -310,7 +314,7 @@ function Page() {
                   Estampa<span className="font-normal text-[var(--ink)]/70">: {p.estampa}</span>
                 </div>
                 <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
-                  {bundlesByCategory(p.category).map((b) => (
+                  {estampas.map((b) => (
                     <Link
                       key={b.id}
                       to="/produto"
