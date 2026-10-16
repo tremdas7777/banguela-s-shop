@@ -20,7 +20,7 @@ import appCss from "../styles.css?url";
 
 const TITLE = `${brand.name} | Pijamas, pantufas, joias e mascotes de dragão`;
 const DESCRIPTION =
-  "Produtos de dragão para vestir, presentear e levar na estrada: pijamas, pantufas, Snuggy, joias e mascotes para carro. Frete grátis acima de R$ 199.";
+  "Produtos de dragão para vestir, presentear e levar na estrada: pijamas, pantufas, Snuggy, joias e mascotes para carro. Frete grátis acima de R$ 139.";
 
 function NotFoundComponent() {
   return (

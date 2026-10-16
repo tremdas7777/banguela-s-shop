@@ -53,7 +53,7 @@ export type BundleId = (typeof BUNDLE_IDS)[number];
 export const DEFAULT_BUNDLE_ID: BundleId = "pijama";
 
 /** Valor mínimo (produtos, sem frete) para liberar o frete grátis. */
-export const FREE_SHIPPING_MIN = 199;
+export const FREE_SHIPPING_MIN = 139;
 export const FREE_SHIPPING_LABEL = `Frete grátis em compras acima de R$ ${FREE_SHIPPING_MIN}`;
 
 export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHIPPING_MIN;
