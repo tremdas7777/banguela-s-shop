@@ -48,16 +48,16 @@ export const categories: readonly {
   img: string;
 }[] = [
   {
-    id: "moletons",
-    name: "Sleepo Dragão",
-    desc: "Cobertor vestível com capuz de dragão",
-    img: "/produtos/md-preto.jpg",
-  },
-  {
     id: "conforto",
     name: "Conforto & Dormir",
     desc: "Pijama, pantufas e o Snuggy",
     img: "/produtos/p2_snuggy.jpg",
+  },
+  {
+    id: "moletons",
+    name: "Sleepo Dragão",
+    desc: "Cobertor vestível com capuz de dragão",
+    img: "/produtos/md-preto.jpg",
   },
   {
     id: "joias",
