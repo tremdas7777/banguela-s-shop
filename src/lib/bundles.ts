@@ -91,6 +91,10 @@ export type Bundle = {
   badge?: string;
   /** Nome curto da estampa (linha de moletons: "Preto", "Galáxia"...). */
   estampa?: string;
+  /** Texto da aba "Descrição" (um parágrafo por item). */
+  description?: readonly string[];
+  /** Aba "Detalhes e medidas": pares rótulo/valor. */
+  specs?: readonly (readonly [string, string])[];
 };
 
 const img = (f: string) => `/produtos/${f}`;
@@ -115,11 +119,29 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   compareAtPrice: 279.9,
   img: img(`md-${slug}.jpg`),
   images: [img(`md-${slug}.jpg`), img(`md-${slug}-uso.jpg`)],
-  options: [{ name: "Tamanho", values: ["Único (adulto)", "Infantil"] }],
+  options: [
+    { name: "Tamanho", values: ["Infantil 4-8 anos", "Infantil 9-14 anos", "Adulto (único)"] },
+  ],
   benefits: [
     "Flanela macia por fora e sherpa quentinha por dentro",
     "Capuz gigante com chifres e asinhas de dragão",
     "Bolso canguru e comprimento do pescoço aos joelhos",
+  ],
+  description: [
+    `O Sleepo Dragão ${estampa} é o abraço quentinho que você veste: um cobertor de flanela macia com sherpa felpuda por dentro, em formato de moletom gigante que cobre do pescoço até os joelhos.`,
+    "O capuz é de dragão, com chifrinhos, olhos bordados e espinhos macios, e nas costas tem asinhas de tecido. Mangas largas e bolso canguru deixam as mãos quentes, e o tamanho oversized serve para usar no sofá, na cama ou em casa o dia todo.",
+    "Tem versão adulta e infantil, para a família inteira virar dragão junto.",
+  ],
+  specs: [
+    ["Estampa", estampa],
+    ["Tecido", "Flanela por fora e sherpa por dentro"],
+    ["Comprimento", "Do pescoço até a altura dos joelhos"],
+    ["Detalhes", "Capuz com chifres e olhos bordados, asinhas nas costas, bolso canguru"],
+    ["Tamanhos", "Infantil 4 a 8 anos, infantil 9 a 14 anos e adulto (tamanho único oversized)"],
+    [
+      "Cuidados",
+      "Lavar na máquina no ciclo delicado, com água fria, do avesso. Não usar secadora.",
+    ],
   ],
   category: "moletons",
   checkoutProductName: `Sleepo Dragão ${estampa}`,
@@ -134,20 +156,49 @@ export const bundles: Bundle[] = [
   {
     id: "pijama",
     name: "Calça Pijama de Dragão",
-    tag: "Conforto do P ao XGG",
+    tag: "Do infantil 4 ao XGG",
     price: 129.9,
     compareAtPrice: 179.9,
     img: img("p1_pijama.jpg"),
     images: [img("p1_pijama.jpg"), img("p1_branco.jpg"), img("p1_preto.jpg"), img("p1_casal.jpg")],
     options: [
       { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
-      { name: "Tamanho", values: ["P", "M", "G", "GG", "XGG"] },
+      {
+        name: "Tamanho",
+        values: [
+          "Infantil 4",
+          "Infantil 6",
+          "Infantil 8",
+          "Infantil 10",
+          "Infantil 12",
+          "P",
+          "M",
+          "G",
+          "GG",
+          "XGG",
+        ],
+      },
     ],
     optionImages: { "Dragão Branco": img("p1_branco.jpg"), "Dragão Preto": img("p1_preto.jpg") },
     benefits: [
-      "Modelagem relaxada que veste do P ao XGG",
+      "Tamanhos do infantil 4 ao adulto XGG",
       "Algodão felpudo, macio e durável",
       "Cós com elástico e cordão ajustável",
+    ],
+    description: [
+      "A calça de pijama que dá vontade de ficar em casa. Estampa de dragão, tecido felpudo e macio por dentro e caimento solto, do jeito que um pijama tem que ser.",
+      "O cós tem elástico e cordão para ajustar na cintura, e a modelagem relaxada não aperta nem para dormir nem para ficar no sofá. Tem versão adulta e infantil, para combinar com a família inteira.",
+    ],
+    specs: [
+      ["Modelos", "Dragão Branco e Dragão Preto"],
+      ["Tecido", "Algodão felpudo, macio por dentro"],
+      ["Cintura", "Elástico com cordão de ajuste"],
+      ["Tamanhos infantis", "4, 6, 8, 10 e 12 (idade aproximada em anos)"],
+      ["Tamanhos adultos", "P, M, G, GG e XGG"],
+      [
+        "Cuidados",
+        "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
+      ],
     ],
     category: "conforto",
     checkoutProductName: "Calça Pijama de Dragão",
@@ -165,12 +216,30 @@ export const bundles: Bundle[] = [
     images: [img("p2_snuggy.jpg"), img("p2b.jpg"), img("p2c.jpg")],
     options: [
       { name: "Cor", values: ["Preto", "Branco"] },
-      { name: "Tamanho", values: ["P", "Padrão", "G", "GG", "Infantil"] },
+      {
+        name: "Tamanho",
+        values: ["Infantil 4-8 anos", "Infantil 9-14 anos", "P", "Padrão", "G", "GG"],
+      },
     ],
     benefits: [
       "Cobertor e moletom ao mesmo tempo",
       "Capuz amplo e mangas largas",
-      "Tamanho generoso, também em versão infantil",
+      "Tamanhos adulto e infantil (4 a 14 anos)",
+    ],
+    description: [
+      "O Snuggy Dragão é cobertor e moletom ao mesmo tempo: você veste e fica quentinho do pescoço aos joelhos, com as mãos livres para o celular, o livro ou o controle.",
+      "Capuz amplo de dragão, mangas largas e bolso canguru. É o presente certo para quem sente frio e ama dragões, em tamanho adulto e infantil.",
+    ],
+    specs: [
+      ["Cores", "Preto e Branco"],
+      ["Tecido", "Flanela ultramacia"],
+      ["Detalhes", "Capuz de dragão, mangas largas e bolso canguru"],
+      ["Tamanhos infantis", "4 a 8 anos e 9 a 14 anos"],
+      ["Tamanhos adultos", "P, Padrão, G e GG"],
+      [
+        "Cuidados",
+        "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
+      ],
     ],
     category: "conforto",
     checkoutProductName: "Snuggy Dragão",
@@ -190,13 +259,29 @@ export const bundles: Bundle[] = [
     images: [img("p3_pantufas.jpg"), img("p3b.jpg"), img("p3c.jpg")],
     options: [
       { name: "Cor", values: ["Branco", "Preto"] },
-      { name: "Tamanho", values: ["36-37", "38-39", "40-41", "42-43", "44-45"] },
+      {
+        name: "Tamanho",
+        values: ["28-29", "30-31", "32-33", "34-35", "36-37", "38-39", "40-41", "42-43", "44-45"],
+      },
     ],
     optionImages: { Branco: img("p3_pantufas.jpg"), Preto: img("p3c.jpg") },
     benefits: [
       "Solado antiderrapante para piso frio",
       "Forro em pelúcia que segura o calor",
-      "Numeração do 36 ao 45",
+      "Numeração infantil e adulta, do 28 ao 45",
+    ],
+    description: [
+      "Pantufas de dragão fofinhas, com olhinhos bordados e forro de pelúcia que segura o calor nos dias frios.",
+      "O solado é antiderrapante, então dá para andar tranquilo no piso frio da cozinha ou do banheiro. Tem numeração infantil e adulta, para a família toda andar de dragão pela casa.",
+    ],
+    specs: [
+      ["Cores", "Branco e Preto"],
+      ["Forro", "Pelúcia macia"],
+      ["Solado", "Antiderrapante"],
+      ["Numeração infantil", "28-29, 30-31, 32-33 e 34-35"],
+      ["Numeração adulta", "36-37, 38-39, 40-41, 42-43 e 44-45"],
+      ["Dica", "Se estiver entre dois números, escolha o maior"],
+      ["Cuidados", "Lavar à mão com água fria e secar à sombra"],
     ],
     category: "conforto",
     checkoutProductName: "Pantufas de Dragão",
@@ -220,6 +305,17 @@ export const bundles: Bundle[] = [
       "Fixação por adesivo 3M, ventosa ou engate rápido",
       "Fácil de remover e de limpar",
     ],
+    description: [
+      "Um dragãozinho de pelúcia para acompanhar você no trânsito. Fica no painel, no retrovisor ou no guidão da moto e chama atenção por onde passa.",
+      "Você escolhe a cor e o tipo de fixação: adesivo 3M para o painel, ventosa para o vidro ou engate rápido para tirar e colocar quando quiser.",
+    ],
+    specs: [
+      ["Cores", "Preto e Branco"],
+      ["Material", "Pelúcia resistente"],
+      ["Fixação", "Adesivo 3M, ventosa ou engate rápido"],
+      ["Uso", "Carro e moto"],
+      ["Cuidados", "Limpar com pano úmido"],
+    ],
     category: "auto",
     checkoutProductName: "Dragão de Carro",
     checkoutProductDescription:
@@ -240,6 +336,16 @@ export const bundles: Bundle[] = [
       "Ajuste livre, serve em qualquer dedo",
       "Acompanha estojo de presente",
     ],
+    description: [
+      "Um par de anéis de dragão para casais: um dragão escuro e um prateado, que formam par quando as mãos se encontram.",
+      "São em prata 925 e têm ajuste livre, então servem em qualquer dedo sem precisar saber a medida. Chegam em estojo de presente, prontos para entregar.",
+    ],
+    specs: [
+      ["Material", "Prata 925"],
+      ["Tamanho", "Ajustável, serve em qualquer dedo"],
+      ["Vem com", "2 anéis e estojo de presente"],
+      ["Cuidados", "Evite contato com perfume e água do mar; guarde no estojo"],
+    ],
     category: "joias",
     checkoutProductName: "Anéis Promessa de Dragão",
     checkoutProductDescription:
@@ -259,6 +365,15 @@ export const bundles: Bundle[] = [
       "Par de colares com pingentes que se encaixam",
       "Corrente banhada e antialérgica",
       "Caixa de presente inclusa",
+    ],
+    description: [
+      "Kit com dois colares de dragão cujos pingentes se encaixam e formam um coração, um para cada pessoa do casal.",
+      "A corrente é banhada e antialérgica, e o kit vem em caixa de presente.",
+    ],
+    specs: [
+      ["Material", "Corrente banhada, antialérgica"],
+      ["Vem com", "2 colares e caixa de presente"],
+      ["Cuidados", "Evite contato com perfume, cremes e água"],
     ],
     category: "joias",
     checkoutProductName: "Kit Colares de Dragão",

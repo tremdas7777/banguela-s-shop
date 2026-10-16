@@ -17,7 +17,7 @@ export const FAQ: readonly { q: string; a: string }[] = [
   },
   {
     q: "Como escolho o tamanho?",
-    a: "Na página de cada produto você escolhe o tamanho e a cor antes de comprar. Pijamas vão do P ao XGG, e as pantufas do 36 ao 45.",
+    a: "Na página de cada produto você escolhe o tamanho e a cor antes de comprar. Os pijamas vão do infantil 4 ao adulto XGG, as pantufas do 28 ao 45, e o Snuggy e os cobertores vestíveis têm tamanhos infantis (4 a 14 anos) e adulto.",
   },
   {
     q: "Posso trocar se não servir?",

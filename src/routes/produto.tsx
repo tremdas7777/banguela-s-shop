@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -112,16 +112,43 @@ function Page() {
   const buyLabel = complete ? "Comprar agora" : `Escolha ${missing.join(" e ")}`;
   const related = availableBundles.filter((b) => b.id !== p.id);
 
-  const info = [
+  const info: { title: string; body: ReactNode }[] = [
     {
       title: "Descrição",
-      body: `${p.checkoutProductDescription} ${p.benefits.join(". ")}.`,
+      body: p.description?.length ? (
+        <span className="block space-y-3">
+          {p.description.map((t) => (
+            <span key={t} className="block">
+              {t}
+            </span>
+          ))}
+        </span>
+      ) : (
+        `${p.checkoutProductDescription} ${p.benefits.join(". ")}.`
+      ),
     },
+    ...(p.specs?.length
+      ? [
+          {
+            title: "Detalhes e medidas",
+            body: (
+              <span className="block divide-y divide-[var(--border)]">
+                {p.specs.map(([k, v]) => (
+                  <span key={k} className="flex gap-4 py-2">
+                    <b className="w-32 shrink-0 font-semibold text-[var(--night)]">{k}</b>
+                    <span>{v}</span>
+                  </span>
+                ))}
+              </span>
+            ),
+          },
+        ]
+      : []),
     { title: "Entrega e frete", body: `${FAQ[0]!.a} ${bundleShippingLabel(p)}.` },
     {
       title: "Trocas e devoluções",
       body:
-        p.category === "conforto"
+        p.category === "conforto" || p.category === "moletons"
           ? "Você tem 7 dias para desistir da compra e até 30 dias para trocar por outro tamanho ou cor, sem uso e com a etiqueta."
           : "Você tem 7 dias após o recebimento para desistir da compra, com o produto sem uso e na embalagem original.",
     },
@@ -328,7 +355,9 @@ function Page() {
                     {it.title}
                     <ChevronDown className="h-4 w-4 shrink-0 transition group-open:rotate-180" />
                   </summary>
-                  <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/70">{it.body}</p>
+                  <div className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/70">
+                    {it.body}
+                  </div>
                 </details>
               ))}
             </div>
