@@ -50,7 +50,13 @@ export const Route = createFileRoute("/produto")({
 
 /** Bolinha de cor para valores como "Preto" / "Branco". */
 function Swatch({ value }: { value: string }) {
-  const color = /preto/i.test(value) ? "#151515" : /branco/i.test(value) ? "#f2f2f2" : null;
+  const color = /pret[oa]|noturno/i.test(value)
+    ? "#151515"
+    : /branc[oa]/i.test(value)
+      ? "#f2f2f2"
+      : /cinza/i.test(value)
+        ? "#8a9097"
+        : null;
   if (!color) return null;
   return (
     <i className="h-3.5 w-3.5 rounded-full border border-black/20" style={{ background: color }} />
@@ -110,7 +116,11 @@ function Page() {
     });
   };
 
-  const buyLabel = complete ? "Comprar agora" : `Escolha ${missing.join(" e ")}`;
+  const buyLabel = complete
+    ? "Comprar agora"
+    : missing.length === 1
+      ? `Escolha ${missing[0]}`
+      : "Escolha as opções";
   const related = listedBundles.filter((b) => b.id !== p.id && (!p.group || b.group !== p.group));
   const group = groupBundles(p);
 
@@ -252,11 +262,15 @@ function Page() {
                 <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
                   Escolha o kit
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div
+                  className={`grid gap-2 ${group.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+                >
                   {group.map((g) => {
                     const on = g.id === p.id;
                     const combo = g.groupLabel === "Combo casal";
-                    const avulsos = group.filter((x) => x.groupLabel !== "Combo casal");
+                    const avulsos = group.filter(
+                      (x) => x.groupLabel === "Só feminino" || x.groupLabel === "Só masculino",
+                    );
                     const saving = combo ? avulsos.reduce((s, x) => s + x.price, 0) - g.price : 0;
                     return (
                       <Link
@@ -326,37 +340,50 @@ function Page() {
                 ref={optionsRef}
                 className={`mt-6 space-y-5 rounded-2xl transition ${nudge ? "bg-[var(--sale)]/5 p-4 ring-2 ring-[var(--sale)]/40" : ""}`}
               >
-                {p.options.map((o) => (
-                  <div key={o.name}>
-                    <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
-                      {o.name}
-                      {sel[o.name] && (
-                        <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
+                {p.options.map((o, i) => {
+                  // Combo casal: opções "... dela"/"... dele" agrupadas sob um título por pessoa.
+                  const quem = / (dela|dele)$/.exec(o.name)?.[1];
+                  const prev =
+                    i > 0 ? / (dela|dele)$/.exec(p.options[i - 1]!.name)?.[1] : undefined;
+                  return (
+                    <div key={o.name}>
+                      {quem && quem !== prev && (
+                        <div
+                          className={`mb-3 border-b border-[var(--border)] pb-1.5 text-[15px] font-extrabold text-[var(--night)] ${i > 0 ? "pt-3" : ""}`}
+                        >
+                          {quem === "dela" ? "Conjunto dela" : "Conjunto dele"}
+                        </div>
                       )}
+                      <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
+                        {quem ? o.name.replace(/ (dela|dele)$/, "") : o.name}
+                        {sel[o.name] && (
+                          <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {o.values.map((v) => {
+                          const on = sel[o.name] === v;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => choose(o.name, v)}
+                              aria-pressed={on}
+                              className={`inline-flex h-11 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition ${
+                                on
+                                  ? "border-[var(--night)] bg-[var(--night)] text-white"
+                                  : "border-[var(--ink)]/20 bg-white text-[var(--night)] hover:border-[var(--night)]"
+                              }`}
+                            >
+                              <Swatch value={v} />
+                              {v}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {o.values.map((v) => {
-                        const on = sel[o.name] === v;
-                        return (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => choose(o.name, v)}
-                            aria-pressed={on}
-                            className={`inline-flex h-11 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition ${
-                              on
-                                ? "border-[var(--night)] bg-[var(--night)] text-white"
-                                : "border-[var(--ink)]/20 bg-white text-[var(--night)] hover:border-[var(--night)]"
-                            }`}
-                          >
-                            <Swatch value={v} />
-                            {v}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {nudge && (
                   <p className="text-[13px] font-semibold text-[var(--sale)]">
                     Escolha {missing.join(" e ")} para continuar.

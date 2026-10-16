@@ -17,9 +17,11 @@ export const BUNDLE_IDS = [
   "kitcasal",
   "kitshortf",
   "kitshortm",
+  "kitshorti",
   "kitcalca",
   "kitcalcaf",
   "kitcalcam",
+  "kitcalcai",
   "snuggy",
   "pantufa",
   "carro",
@@ -163,23 +165,32 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   estampa,
 }));
 
-/** Kits de pijama de casal: cada kit tem combo casal (com desconto) e conjuntos avulsos. */
+/**
+ * Kits de pijama de casal. Cada kit vira 4 produtos do mesmo grupo, escolhidos na página:
+ * combo casal (com desconto), só feminino, só masculino e infantil. Cada um tem preço próprio,
+ * calculado no servidor como qualquer produto.
+ */
+type KitModo = "casal" | "f" | "m" | "i";
 type KitDef = {
   group: string;
-  ids: { casal: BundleId; f: BundleId; m: BundleId };
+  ids: Record<KitModo, BundleId>;
   title: string;
   peca: "short" | "calça";
-  prices: { casal: [number, number]; avulso: [number, number] };
+  prices: Record<"casal" | "avulso" | "infantil", [number, number]>;
   imgs: string[];
-  /** Opções extras de cada conjunto (ex.: cor da camiseta). */
-  extra?: (quem: "dela" | "dele") => ProductOption[];
-  description: (modo: "casal" | "f" | "m") => string[];
-  specs: (modo: "casal" | "f" | "m") => (readonly [string, string])[];
+  /** Cores/modelo de um conjunto, escolhidos antes do tamanho. */
+  cores: (quem: "dela" | "dele" | "infantil") => ProductOption[];
+  /** Texto do modelo/cores, usado na descrição. */
+  coresTexto: string;
+  material: string;
+  clima: string;
+  specsPeca: (readonly [string, string])[];
 };
 
-const TAM_INF = ["Infantil 4", "Infantil 6", "Infantil 8", "Infantil 10", "Infantil 12"];
-const TAM_F = [...TAM_INF, "PP", "P", "M", "G", "GG"];
-const TAM_M = [...TAM_INF, "P", "M", "G", "GG"];
+const TAM_INF = ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"];
+const TAM_F = ["PP", "P", "M", "G", "GG"];
+const TAM_M = ["P", "M", "G", "GG"];
+const CUIDADOS = "Lavar na máquina com água fria, do avesso. Não usar alvejante nem secadora.";
 
 function kit(k: KitDef): Bundle[] {
   const pecas = k.peca === "short" ? "shorts" : "calças";
@@ -189,154 +200,153 @@ function kit(k: KitDef): Bundle[] {
     category: "conforto" as const,
     group: k.group,
   };
-  const casal: Bundle = {
-    ...base,
-    id: k.ids.casal,
-    name: `${k.title} · Combo casal`,
-    groupLabel: "Combo casal",
-    tag: `2 camisetas + 2 ${pecas}, para ela e para ele`,
-    price: k.prices.casal[0],
-    compareAtPrice: k.prices.casal[1],
-    options: [
-      { name: "Tamanho dela", values: TAM_F },
-      ...(k.extra?.("dela") ?? []),
-      { name: "Tamanho dele", values: TAM_M },
-      ...(k.extra?.("dele") ?? []),
-    ],
-    benefits: [
-      `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
-      "Sai mais barato que comprar os dois conjuntos separados",
-      "Tamanhos dela e dele escolhidos separadamente",
-    ],
-    description: k.description("casal"),
-    specs: k.specs("casal"),
-    checkoutProductName: `${k.title} - Combo casal`,
-    checkoutProductDescription: `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`,
-    checkoutUrl: `/checkout?plano=${k.ids.casal}`,
-    badge: "Kit casal",
+  const label: Record<KitModo, string> = {
+    casal: "Combo casal",
+    f: "Só feminino",
+    m: "Só masculino",
+    i: "Infantil",
   };
-  const avulso = (quem: "f" | "m"): Bundle => {
-    const fem = quem === "f";
-    const id = fem ? k.ids.f : k.ids.m;
+  const conjunto: Record<KitModo, string> = {
+    casal: "Combo casal",
+    f: "Conjunto feminino",
+    m: "Conjunto masculino",
+    i: "Conjunto infantil",
+  };
+  const sem = (o: ProductOption): ProductOption => ({
+    ...o,
+    name: o.name.replace(/ (dela|dele|infantil)$/, ""),
+  });
+  const options: Record<KitModo, ProductOption[]> = {
+    casal: [
+      ...k.cores("dela"),
+      { name: "Tamanho dela", values: TAM_F },
+      ...k.cores("dele"),
+      { name: "Tamanho dele", values: TAM_M },
+    ],
+    f: [...k.cores("dela").map(sem), { name: "Tamanho", values: TAM_F }],
+    m: [...k.cores("dele").map(sem), { name: "Tamanho", values: TAM_M }],
+    i: [...k.cores("infantil").map(sem), { name: "Idade", values: TAM_INF }],
+  };
+  const tamanhos: Record<KitModo, (readonly [string, string])[]> = {
+    casal: [
+      ["Tamanhos dela", "PP, P, M, G e GG"],
+      ["Tamanhos dele", "P, M, G e GG"],
+    ],
+    f: [["Tamanhos", "PP, P, M, G e GG"]],
+    m: [["Tamanhos", "P, M, G e GG"]],
+    i: [["Tamanhos", "4, 6, 8, 10 e 12 anos"]],
+  };
+  const make = (modo: KitModo): Bundle => {
+    const casal = modo === "casal";
+    const [price, compareAtPrice] =
+      modo === "casal" ? k.prices.casal : modo === "i" ? k.prices.infantil : k.prices.avulso;
+    const quem = { casal: "", f: "feminino", m: "masculino", i: "infantil" }[modo];
     return {
       ...base,
-      id,
-      name: `${k.title} · Conjunto ${fem ? "feminino" : "masculino"}`,
-      groupLabel: fem ? "Só feminino" : "Só masculino",
-      tag: `1 camiseta + 1 ${k.peca}`,
-      price: k.prices.avulso[0],
-      compareAtPrice: k.prices.avulso[1],
-      options: [
-        { name: "Tamanho", values: fem ? TAM_F : TAM_M },
-        ...(k.extra?.(fem ? "dela" : "dele").map((o) => ({
-          ...o,
-          name: o.name.replace(/ (dela|dele)$/, ""),
-        })) ?? []),
+      id: k.ids[modo],
+      name: `${k.title} · ${conjunto[modo]}`,
+      groupLabel: label[modo],
+      tag: casal ? `2 camisetas + 2 ${pecas}, para ela e para ele` : `1 camiseta + 1 ${k.peca}`,
+      price,
+      compareAtPrice,
+      options: options[modo],
+      benefits: casal
+        ? [
+            `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
+            "Sai mais barato que comprar os dois conjuntos separados",
+            "Cada um escolhe o seu modelo e o seu tamanho",
+          ]
+        : [
+            `${conjunto[modo]}: 1 camiseta e 1 ${k.peca}`,
+            "Camiseta de algodão jersey fio 24/1",
+            modo === "i"
+              ? "Tamanhos de 4 a 12 anos"
+              : "Quer para os dois? O combo casal sai com desconto",
+          ],
+      description: [
+        casal
+          ? `O pijama perfeito para usar junto com aquela pessoa especial: dois conjuntos de dragão, um para cada um. ${k.coresTexto}`
+          : `Conjunto ${quem} de camiseta e ${k.peca} com estampa de dragão. ${k.coresTexto}`,
+        `${k.material} ${k.clima}`,
+        casal
+          ? "Os tamanhos dela e dele são escolhidos separadamente, e o combo sai mais barato que os dois conjuntos avulsos. Um presente lindo para namorados, aniversário de namoro ou casamento."
+          : "Também dá para levar o combo casal, com os dois conjuntos e desconto, ou o conjunto infantil para as crianças combinarem com os pais.",
       ],
-      benefits: [
-        `Conjunto ${fem ? "feminino" : "masculino"}: 1 camiseta e 1 ${k.peca}`,
-        "Camiseta de algodão jersey fio 24/1",
-        `Quer para os dois? O combo casal sai com desconto`,
+      specs: [
+        [
+          "Vem no pedido",
+          casal ? `2 camisetas + 2 ${pecas} (dela e dele)` : `1 camiseta + 1 ${k.peca}`,
+        ],
+        ...k.specsPeca,
+        ...tamanhos[modo],
+        ["Medidas", "Podem variar de 1 a 2 cm"],
+        ["Cuidados", CUIDADOS],
       ],
-      description: k.description(quem),
-      specs: k.specs(quem),
-      checkoutProductName: `${k.title} - Conjunto ${fem ? "feminino" : "masculino"}`,
-      checkoutProductDescription: `Conjunto de pijama ${fem ? "feminino" : "masculino"}: 1 camiseta de algodão e 1 ${k.peca}.`,
-      checkoutUrl: `/checkout?plano=${id}`,
-      listed: false,
+      checkoutProductName: `${k.title} - ${conjunto[modo]}`,
+      checkoutProductDescription: casal
+        ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
+        : `${conjunto[modo]} de pijama: 1 camiseta de algodão e 1 ${k.peca}.`,
+      checkoutUrl: `/checkout?plano=${k.ids[modo]}`,
+      ...(casal ? { badge: "Kit casal" } : { listed: false }),
     };
   };
-  return [casal, avulso("f"), avulso("m")];
+  return (["casal", "f", "m", "i"] as const).map(make);
 }
 
-const CUIDADOS = "Lavar na máquina com água fria, do avesso. Não usar alvejante nem secadora.";
+const MODELOS = ["Dragão branco", "Dragão noturno"];
 
 const kits: Bundle[] = [
   ...kit({
     group: "kitshort",
-    ids: { casal: "kitcasal", f: "kitshortf", m: "kitshortm" },
+    ids: { casal: "kitcasal", f: "kitshortf", m: "kitshortm", i: "kitshorti" },
     title: "Pijama Casal Dragões Short",
     peca: "short",
-    prices: { casal: [179.9, 249.9], avulso: [99.9, 129.9] },
+    prices: { casal: [179.9, 249.9], avulso: [99.9, 129.9], infantil: [89.9, 119.9] },
     imgs: ["kit-casal.jpg", "kit-casal-b.jpg", "kit-casal-c.jpg"],
-    extra: (quem) => [
+    cores: (quem) => [
       {
         name: `Modelo ${quem}`,
-        values:
-          quem === "dela"
-            ? ["Dragão branco", "Dragão noturno"]
-            : ["Dragão noturno", "Dragão branco"],
+        values: quem === "dele" ? [...MODELOS].reverse() : MODELOS,
       },
     ],
-    description: (modo) => [
-      modo === "casal"
-        ? "O pijama perfeito para usar junto com aquela pessoa especial. Cada um escolhe o seu modelo: o dragão branco, de camiseta branca com olhinhos azuis e short branco estampado, ou o dragão noturno, de camiseta preta com olhinhos verdes e short cinza estampado."
-        : `Conjunto ${modo === "f" ? "feminino" : "masculino"} de camiseta e short em dois modelos: o dragão branco, de camiseta branca com olhinhos azuis e short branco estampado, ou o dragão noturno, de camiseta preta com olhinhos verdes e short cinza estampado. Leve e perfeito para as noites quentes.`,
-      "As camisetas são de algodão jersey fio 24/1, um tecido macio e respirável que não esquenta à noite. Os shorts são de algodão leve, com elástico na cintura para ficar confortável a noite toda.",
-      modo === "casal"
-        ? "Você escolhe o tamanho de cada um separadamente, e o combo sai mais barato que os dois conjuntos avulsos. Um presente lindo para namorados, aniversário de namoro ou casamento."
-        : "Também dá para levar o combo casal, com o conjunto do par incluído e desconto.",
-    ],
-    specs: (modo) => [
-      [
-        "Vem no pedido",
-        modo === "casal" ? "2 camisetas + 2 shorts (feminino e masculino)" : "1 camiseta + 1 short",
-      ],
+    coresTexto:
+      "São dois modelos: o dragão branco, de camiseta branca com olhinhos azuis e short branco estampado, e o dragão noturno, de camiseta preta com olhinhos verdes e short cinza estampado.",
+    material:
+      "A camiseta é de algodão jersey fio 24/1, macia e respirável, e o short é de algodão leve com elástico na cintura.",
+    clima: "Perfeito para as noites quentes.",
+    specsPeca: [
       ["Modelo dragão branco", "Camiseta branca com olhos azuis e short branco estampado"],
       ["Modelo dragão noturno", "Camiseta preta com olhos verdes e short cinza estampado"],
       ["Camiseta", "Algodão jersey fio 24/1"],
       ["Short", "Algodão, com elástico na cintura"],
-      ...(modo !== "m"
-        ? [["Tamanhos femininos", "Infantil 4 a 12 e adulto PP, P, M, G e GG"] as const]
-        : []),
-      ...(modo !== "f"
-        ? [["Tamanhos masculinos", "Infantil 4 a 12 e adulto P, M, G e GG"] as const]
-        : []),
-      ["Cuidados", CUIDADOS],
     ],
   }),
   ...kit({
     group: "kitcalca",
-    ids: { casal: "kitcalca", f: "kitcalcaf", m: "kitcalcam" },
+    ids: { casal: "kitcalca", f: "kitcalcaf", m: "kitcalcam", i: "kitcalcai" },
     title: "Pijama Casal Dragões Calça",
     peca: "calça",
-    prices: { casal: [189.9, 259.9], avulso: [104.9, 134.9] },
+    prices: { casal: [189.9, 259.9], avulso: [104.9, 134.9], infantil: [94.9, 124.9] },
     imgs: ["kit-casal-calca.jpg", "kit-casal-calca-b.jpg"],
-    extra: (quem) => [
+    cores: (quem) => [
       {
         name: `Camiseta ${quem}`,
-        values: quem === "dela" ? ["Branca", "Preta"] : ["Preta", "Branca"],
+        values: quem === "dele" ? ["Preta", "Branca"] : ["Branca", "Preta"],
       },
       {
         name: `Calça ${quem}`,
-        values: quem === "dela" ? ["Branca", "Cinza"] : ["Cinza", "Branca"],
+        values: quem === "dele" ? ["Cinza", "Branca"] : ["Branca", "Cinza"],
       },
     ],
-    description: (modo) => [
-      modo === "casal"
-        ? "O pijama de casal para as noites frias. São dois conjuntos de dragão que combinam: calças de felpa macia estampadas com dragõezinhos e camisetas com os olhinhos do dragão noturno ou do dragão branco."
-        : `Conjunto ${modo === "f" ? "feminino" : "masculino"} para as noites frias: calça de felpa macia estampada com dragõezinhos e camiseta com os olhinhos do dragão, na cor que você escolher.`,
-      "As calças são de felpa antialérgica, com elástico na cintura e corte reto, quentinhas sem apertar, na cor branca com dragões brancos ou cinza com dragões pretos. As camisetas são de algodão jersey fio 24/1, macias e respiráveis: preta com olhos verdes ou branca com olhos azuis.",
-      modo === "casal"
-        ? "Os tamanhos dela e dele são escolhidos separadamente, e o combo sai mais barato que os dois conjuntos avulsos. Um presente perfeito para o dia dos namorados ou para o primeiro inverno juntos."
-        : "Também dá para levar o combo casal, com o conjunto do par incluído e desconto.",
-    ],
-    specs: (modo) => [
-      [
-        "Vem no pedido",
-        modo === "casal" ? "2 camisetas + 2 calças (feminino e masculino)" : "1 camiseta + 1 calça",
-      ],
+    coresTexto:
+      "Você combina as cores: camiseta preta com olhos verdes ou branca com olhos azuis, e calça branca com dragões brancos ou cinza com dragões pretos.",
+    material:
+      "A camiseta é de algodão jersey fio 24/1, macia e respirável, e a calça é de felpa antialérgica com elástico na cintura e corte reto.",
+    clima: "Quentinho para as noites frias.",
+    specsPeca: [
+      ["Camiseta", "Algodão jersey fio 24/1: preta com olhos verdes ou branca com olhos azuis"],
       ["Calça", "Felpa antialérgica, elástico na cintura e corte reto"],
       ["Cores da calça", "Branca com dragões brancos ou cinza com dragões pretos"],
-      ["Camiseta", "Algodão jersey fio 24/1: preta com olhos verdes ou branca com olhos azuis"],
-      ...(modo !== "m"
-        ? [["Tamanhos femininos", "Infantil 4 a 12 e adulto PP, P, M, G e GG"] as const]
-        : []),
-      ...(modo !== "f"
-        ? [["Tamanhos masculinos", "Infantil 4 a 12 e adulto P, M, G e GG"] as const]
-        : []),
-      ["Medidas", "Podem variar de 1 a 2 cm"],
-      ["Cuidados", CUIDADOS],
     ],
   }),
 ];
