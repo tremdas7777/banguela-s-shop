@@ -2,7 +2,10 @@
 - [x] Ativar Lovable Cloud.
 - [x] Aplicar as seis migrations existentes, sem alterações, em ordem.
 - [x] Conferir configuração e variáveis públicas e servidor.
-- [ ] Solicitar somente ADMIN_PASSWORD pelo formulário seguro.
+- [x] Solicitar somente ADMIN_PASSWORD pelo formulário seguro.
 - [ ] Gateways e rastreio: usuário configurará depois pelo admin; não solicitar chaves agora.
-- [ ] Testar abas do admin após definir a senha; Pix depende de gateway configurado pelo usuário.
-- [ ] Publicar e confirmar resposta do webhook.
+- [x] Testar Funil, Pedidos e Checkouts abandonados com a senha salva.
+- [ ] Testar Pix e ler pedido no admin: aguarda gateway configurado pelo usuário.
+- [x] Solicitar publicação em https://banguelashop.lovable.app.
+- [x] Confirmar resposta local do webhook: 200.
+- [ ] Confirmar resposta do webhook publicado: aguarda conclusão da publicação.
