@@ -41,6 +41,7 @@ export const BUNDLE_IDS = [
   "pelucia",
   "lum3d",
   "mascara",
+  "kitescola",
   "carro",
   "aneis",
   "colares",
@@ -58,7 +59,7 @@ export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHI
 export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
-export type CategoryId = "moletons" | "conforto" | "casa" | "joias" | "auto";
+export type CategoryId = "moletons" | "conforto" | "casa" | "escola" | "joias" | "auto";
 
 export const categories: readonly {
   id: CategoryId;
@@ -83,6 +84,12 @@ export const categories: readonly {
     name: "Decoração de Dragão",
     desc: "Luminária e itens para o quarto",
     img: "/produtos/luminaria.jpg",
+  },
+  {
+    id: "escola",
+    name: "Volta às Aulas",
+    desc: "Mochila, estojo e lancheira de dragão",
+    img: "/produtos/kit-escolar.jpg",
   },
   {
     id: "joias",
@@ -756,6 +763,39 @@ export const bundles: Bundle[] = [
     checkoutProductDescription: "Máscara de dormir com estampa de dragão e elástico ajustável.",
     checkoutUrl: "/checkout?plano=mascara",
     badge: "Novo",
+  },
+  {
+    id: "kitescola",
+    name: "Kit Escolar Dragão Noturno",
+    tag: "Mochila + estojo + lancheira térmica",
+    price: 189.9,
+    compareAtPrice: 259.9,
+    img: img("kit-escolar.jpg"),
+    images: [img("kit-escolar.jpg")],
+    options: [],
+    benefits: [
+      "Kit completo: mochila, estojo e lancheira térmica",
+      "Estampa de dragão com olhos verdes nas três peças",
+      "Lancheira térmica com alça de ombro e alça de mão",
+    ],
+    description: [
+      "O kit para voltar às aulas no estilo dragão. São três peças que combinam: a mochila com o dragão sorridente, o estojo com os olhos verdes e a lancheira térmica com um olho de dragão bem de perto.",
+      "A mochila tem alças acolchoadas para as costas, alça de mão e bolso lateral de tela para a garrafinha. O estojo fecha com zíper e cabe lápis, canetas e borracha. A lancheira é térmica, ajuda a manter o lanche na temperatura, e tem alça de ombro removível e alça de mão.",
+      "Ótimo presente para a criança que ama dragões, e chama atenção no primeiro dia de aula.",
+    ],
+    specs: [
+      ["Vem no kit", "1 mochila + 1 estojo + 1 lancheira térmica"],
+      ["Mochila", "Alças de costas, alça de mão e bolso lateral de tela"],
+      ["Estojo", "Fechamento com zíper"],
+      ["Lancheira", "Térmica, com alça de ombro e alça de mão"],
+      ["Estampa", "Dragão noturno com olhos verdes"],
+      ["Cuidados", "Limpar com pano úmido e sabão neutro. Não lavar na máquina."],
+    ],
+    category: "escola",
+    checkoutProductName: "Kit Escolar Dragão Noturno",
+    checkoutProductDescription: "Kit escolar com mochila, estojo e lancheira térmica de dragão.",
+    checkoutUrl: "/checkout?plano=kitescola",
+    badge: "Kit 3 peças",
   },
   {
     id: "carro",
