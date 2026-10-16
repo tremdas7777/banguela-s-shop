@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64.0 64" width="64.0" height="64" role="img" aria-label="Loja do Banguela"><g transform="translate(0 0) scale(1.0)">
-<defs><radialGradient id="iris00" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#e4fb8a"/><stop offset=".55" stop-color="#c4ef4f"/><stop offset="1" stop-color="#5fae2e"/></radialGradient></defs>
-<circle cx="32" cy="32" r="32" fill="#173f2a"/>
-<path d="M7 33 C16 18.5 48 18.5 57 33 C48 45.5 16 45.5 7 33 Z" fill="url(#iris00)"/>
-<path d="M32 21.2 C28.4 26.5 28.4 39.5 32 44.6 C35.6 39.5 35.6 26.5 32 21.2 Z" fill="#0f1c15"/>
-<circle cx="25.6" cy="28.6" r="2.3" fill="#ffffff" opacity=".9"/>
-</g></svg>

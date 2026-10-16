@@ -1,5 +1,5 @@
 /**
- * Catálogo da Loja do Banguela.
+ * Catálogo da Banguela Shop.
  * O checkout vende um produto por vez (`?plano=<id>&variante=<opções>`); o preço é
  * sempre recalculado no servidor a partir daqui — o cliente só exibe.
  */

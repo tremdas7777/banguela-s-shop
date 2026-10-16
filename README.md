@@ -1,6 +1,6 @@
 # Banguela's Shop
 
-Loja do Banguela — produtos de dragão (pijamas, pantufas, Snuggy, joias e mascotes para carro),
+Banguela Shop — produtos de dragão (pijamas, pantufas, Snuggy, joias e mascotes para carro),
 com checkout próprio (Pix + cartão), painel admin e integrações de rastreio e marketing.
 
 This project was built with [Lovable](https://lovable.dev).

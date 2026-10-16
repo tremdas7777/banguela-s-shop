@@ -1,15 +1,15 @@
 /**
- * Marca da loja — Loja do Banguela.
+ * Marca da loja — Banguela Shop.
  * PREENCHA `cnpj`, `email` e `whatsapp` com os dados da sua empresa antes de vender.
  */
 export const brand = {
-  name: "Loja do Banguela",
-  productName: "Loja do Banguela",
+  name: "Banguela Shop",
+  productName: "Banguela Shop",
   /** Nome genérico que aparece na fatura do cliente (gateways Pix e cartão). */
   gatewayName: "Banguela Shop",
   tagline: "Produtos de dragão para vestir, presentear e levar na estrada",
   taglineShort: "Produtos de dragão",
-  manufacturer: "Loja do Banguela",
+  manufacturer: "Banguela Shop",
   manufacturerTagline: "Feito para fãs de dragão",
   cnpj: "00.000.000/0000-00",
   email: "contato@seudominio.com.br",

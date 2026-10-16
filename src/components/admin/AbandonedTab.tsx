@@ -46,8 +46,8 @@ function whatsappLink(r: AbandonedCheckout) {
   const first = (r.name ?? "").split(/\s+/)[0];
   const msg =
     r.step === "pix"
-      ? `Oi ${first}! Vi que você gerou o Pix do seu pedido (${r.plano ?? "Loja do Banguela"}) e ainda não finalizou. Posso te ajudar com alguma dúvida?`
-      : `Oi ${first}! Vi que você começou seu pedido (${r.plano ?? "Loja do Banguela"}) no nosso site. Ficou alguma dúvida? Estou aqui pra te ajudar.`;
+      ? `Oi ${first}! Vi que você gerou o Pix do seu pedido (${r.plano ?? "Banguela Shop"}) e ainda não finalizou. Posso te ajudar com alguma dúvida?`
+      : `Oi ${first}! Vi que você começou seu pedido (${r.plano ?? "Banguela Shop"}) no nosso site. Ficou alguma dúvida? Estou aqui pra te ajudar.`;
   return `https://wa.me/55${r.phone.replace(/^55/, "")}?text=${encodeURIComponent(msg)}`;
 }
 

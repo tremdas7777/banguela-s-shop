@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo.webp";
 import { brand } from "@/lib/brand";
 import { CheckoutFooter } from "./parts";
 
@@ -8,7 +8,7 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="ck flex min-h-screen flex-col bg-white text-foreground">
       <header className="flex justify-center py-6 md:py-8">
-        <img src={logo} alt={brand.name} className="h-10 w-auto md:h-12" />
+        <img src={logo} alt={brand.name} className="h-12 w-auto md:h-14" />
       </header>
       <main className="flex-1 pt-4">{children}</main>
       <CheckoutFooter />

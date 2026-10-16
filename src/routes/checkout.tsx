@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CreditCard, Loader2, Lock } from "lucide-react";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo.webp";
 import {
   getBundle,
   isFreeShippingEligible,
@@ -803,7 +803,7 @@ function Page() {
   if (variantValues === null)
     return (
       <div className="ck flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center text-foreground">
-        <img src={logo} alt={brand.name} className="h-10 w-auto" />
+        <img src={logo} alt={brand.name} className="h-12 w-auto" />
         <p className="text-[15px]">
           Escolha as opções de {bundle.name} antes de finalizar a compra.
         </p>
@@ -820,7 +820,7 @@ function Page() {
   return (
     <div className="ck flex min-h-screen flex-col text-foreground">
       <header className="flex justify-center py-6 md:py-10">
-        <img src={logo} alt={brand.name} className="h-10 w-auto md:h-12" />
+        <img src={logo} alt={brand.name} className="h-12 w-auto md:h-14" />
       </header>
       <SummaryMobile
         bundle={bundle}

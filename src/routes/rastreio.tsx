@@ -8,10 +8,10 @@ import { trackByCpf, type RastreioStatus } from "@/lib/rastreio.functions";
 export const Route = createFileRoute("/rastreio")({
   head: () => ({
     meta: [
-      { title: "Rastrear Pedido | Loja do Banguela" },
+      { title: "Rastrear Pedido | Banguela Shop" },
       {
         name: "description",
-        content: "Acompanhe a entrega do seu pedido da Loja do Banguela pelo CPF do titular.",
+        content: "Acompanhe a entrega do seu pedido da Banguela Shop pelo CPF do titular.",
       },
       { property: "og:title", content: "Rastrear Pedido" },
       { property: "og:description", content: "Acompanhe a entrega do seu pedido." },

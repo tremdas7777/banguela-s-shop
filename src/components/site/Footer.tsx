@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Mail, MessageCircle, ShieldCheck } from "lucide-react";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo-full.webp";
 import { brand } from "@/lib/brand";
 import { categories, FREE_SHIPPING_LABEL } from "@/lib/bundles";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
@@ -88,7 +88,7 @@ export function Footer() {
       <div className="container-edge py-10 md:py-14">
         <div className="text-center">
           <Link to="/" aria-label={`${brand.name} — início`} className="inline-block">
-            <img src={logo} alt={brand.name} className="mx-auto h-12 w-auto" loading="lazy" />
+            <img src={logo} alt={brand.name} className="mx-auto h-32 w-auto" loading="lazy" />
           </Link>
           <p className="mx-auto mt-3 max-w-sm text-[14px] text-[var(--ink)]/65">
             Loja online de produtos de dragão. Enviamos para todo o Brasil.
