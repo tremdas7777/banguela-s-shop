@@ -80,11 +80,11 @@ function Page() {
               onChange={(e) => setCpf(formatCpf(e.target.value))}
               placeholder="000.000.000-00"
               inputMode="numeric"
-              className="flex-1 bg-transparent border-0 outline-none text-lg placeholder:text-[var(--ink)]/30"
+              className="min-w-0 flex-1 bg-transparent border-0 outline-none text-lg placeholder:text-[var(--ink)]/30"
             />
             <button
               disabled={mutation.isPending}
-              className="bg-[var(--primary)] text-white px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-colors disabled:opacity-50"
+              className="shrink-0 bg-[var(--primary)] text-white px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-colors disabled:opacity-50 sm:px-8"
             >
               {mutation.isPending ? "Buscando..." : "Rastrear"}
             </button>

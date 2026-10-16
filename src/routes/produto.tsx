@@ -365,6 +365,11 @@ function Page() {
                           <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
                         )}
                       </div>
+                      {p.optionNotes?.[o.name.replace(/ (dela|dele)$/, "")] && (
+                        <p className="-mt-1.5 mb-2.5 text-[12.5px] text-[var(--ink)]/60">
+                          {p.optionNotes[o.name.replace(/ (dela|dele)$/, "")]}
+                        </p>
+                      )}
                       <div className="flex flex-wrap gap-2">
                         {o.values.map((v) => {
                           const on = sel[o.name] === v;

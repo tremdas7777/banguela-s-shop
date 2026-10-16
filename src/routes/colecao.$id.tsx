@@ -3,16 +3,16 @@ import { ChevronRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { brand } from "@/lib/brand";
-import { bundlesByCategory, categories } from "@/lib/bundles";
+import { categories, findCollection } from "@/lib/bundles";
 
 export const Route = createFileRoute("/colecao/$id")({
   loader: ({ params }) => {
-    const category = categories.find((c) => c.id === params.id);
-    if (!category) throw notFound();
-    return { id: category.id };
+    const c = findCollection(params.id);
+    if (!c) throw notFound();
+    return { id: c.id };
   },
   head: ({ loaderData }) => {
-    const c = categories.find((x) => x.id === loaderData?.id);
+    const c = loaderData ? findCollection(loaderData.id) : undefined;
     if (!c) return {};
     const title = `${c.name} | ${brand.name}`;
     return {
@@ -30,8 +30,8 @@ export const Route = createFileRoute("/colecao/$id")({
 
 function Page() {
   const { id } = Route.useLoaderData();
-  const c = categories.find((x) => x.id === id)!;
-  const items = bundlesByCategory(c.id);
+  const c = findCollection(id)!;
+  const items = c.items;
 
   return (
     <SiteLayout>

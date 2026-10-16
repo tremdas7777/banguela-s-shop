@@ -6,10 +6,11 @@ import { brand } from "@/lib/brand";
 import { availableBundles, brl, categories, listedBundles, type BundleId } from "@/lib/bundles";
 
 /** Menu principal: um atalho por tipo de produto, como numa loja de roupa. */
-const nav: { id: BundleId; label: string }[] = [
-  { id: "pijama", label: "Pijamas" },
+/** collection: abre a página da coleção em vez de um produto. */
+const nav: { id: BundleId; label: string; collection?: string }[] = [
+  { id: "pijama", label: "Pijamas", collection: "pijamas" },
   { id: "snuggy", label: "Snuggy" },
-  { id: "pantufa", label: "Pantufas" },
+  { id: "pantufa", label: "Pantufas", collection: "pantufas" },
   { id: "aneis", label: "Anéis" },
   { id: "colares", label: "Colares" },
   { id: "carro", label: "Para o carro" },
@@ -111,7 +112,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/35 md:hidden" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] bg-black/35 lg:hidden" onClick={onClose}>
       <aside
         className="flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-white animate-in slide-in-from-left duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -161,16 +162,33 @@ function Drawer({ onClose }: { onClose: () => void }) {
               const b = availableBundles.find((x) => x.id === item.id);
               return (
                 <li key={item.id}>
-                  <Link
-                    to="/produto"
-                    search={{ plano: item.id }}
-                    onClick={onClose}
-                    className="flex items-center gap-3 rounded-2xl py-2 pr-2"
-                  >
-                    {b && <img src={b.img} alt="" className="h-12 w-12 rounded-xl object-cover" />}
-                    <span className="flex-1 text-[15px] font-semibold">{item.label}</span>
-                    <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
-                  </Link>
+                  {item.collection ? (
+                    <Link
+                      to="/colecao/$id"
+                      params={{ id: item.collection }}
+                      onClick={onClose}
+                      className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+                    >
+                      {b && (
+                        <img src={b.img} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                      )}
+                      <span className="flex-1 text-[15px] font-semibold">{item.label}</span>
+                      <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/produto"
+                      search={{ plano: item.id }}
+                      onClick={onClose}
+                      className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+                    >
+                      {b && (
+                        <img src={b.img} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                      )}
+                      <span className="flex-1 text-[15px] font-semibold">{item.label}</span>
+                      <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+                    </Link>
+                  )}
                 </li>
               );
             })}
@@ -227,8 +245,8 @@ export function Header() {
 
   return (
     <header className="border-b border-[var(--border)] bg-white">
-      <div className="container-edge grid grid-cols-[1fr_auto_1fr] items-center py-2 md:flex md:gap-8 md:py-3">
-        <div className="-ml-2 flex items-center md:hidden">
+      <div className="container-edge grid grid-cols-[1fr_auto_1fr] items-center py-2 lg:flex lg:gap-6 lg:py-3">
+        <div className="-ml-2 flex items-center lg:hidden">
           <button
             type="button"
             aria-label="Abrir menu"
@@ -251,7 +269,7 @@ export function Header() {
           <img src={logo} alt={brand.name} className="h-[84px] w-auto md:h-24" />
         </Link>
 
-        <nav className="hidden flex-1 justify-center gap-6 text-[14px] font-semibold text-[var(--night)] md:flex lg:gap-8">
+        <nav className="hidden flex-1 justify-center gap-5 text-[14px] font-semibold text-[var(--night)] lg:flex xl:gap-7">
           <Link
             to="/colecao/$id"
             params={{ id: "moletons" }}
@@ -266,23 +284,34 @@ export function Header() {
           >
             Brinquedos
           </Link>
-          {nav.map((item) => (
-            <Link
-              key={item.id}
-              to="/produto"
-              search={{ plano: item.id }}
-              className="py-2 transition-colors hover:text-[var(--primary)]"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {nav.map((item) =>
+            item.collection ? (
+              <Link
+                key={item.id}
+                to="/colecao/$id"
+                params={{ id: item.collection }}
+                className="py-2 transition-colors hover:text-[var(--primary)]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <Link
+                key={item.id}
+                to="/produto"
+                search={{ plano: item.id }}
+                className="py-2 transition-colors hover:text-[var(--primary)]"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
         </nav>
 
         <div className="-mr-2 flex items-center justify-end">
           <button
             type="button"
             aria-label="Buscar"
-            className={`${iconBtn} hidden md:grid`}
+            className={`${iconBtn} hidden lg:grid`}
             onClick={() => setSearch(true)}
           >
             <Search className="h-5 w-5" />

@@ -23,8 +23,8 @@ export const ORDER_BUMPS: readonly OrderBumpItem[] = [
     name: "Anéis Promessa",
     fullName: "Par de Anéis Promessa de Dragão (prata 925)",
     gatewayName: `${brand.gatewayName} Anéis`,
-    price: 99.9,
-    compareAt: 139.9,
+    price: 69.9,
+    compareAt: 97.9,
     img: "/produtos/p5_aneis.jpg",
   },
   {
@@ -32,8 +32,8 @@ export const ORDER_BUMPS: readonly OrderBumpItem[] = [
     name: "Kit Colares",
     fullName: "Kit Colares de Dragão + caixa de presente",
     gatewayName: `${brand.gatewayName} Colares`,
-    price: 89.9,
-    compareAt: 129.9,
+    price: 62.9,
+    compareAt: 90.9,
     img: "/produtos/p6_colares.jpg",
   },
 ];

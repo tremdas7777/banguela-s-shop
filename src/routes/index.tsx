@@ -210,11 +210,13 @@ function Shelves() {
   );
 }
 
-const TYPES: { id: BundleId; label: string; img: string }[] = [
-  { id: "mdpreto", label: "Sleepo", img: img("md-preto.jpg") },
-  { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg") },
+/** collection: abre a página da coleção em vez de um produto. */
+const TYPES: { id: BundleId; label: string; img: string; collection?: string }[] = [
+  { id: "mdpreto", label: "Sleepo", img: img("md-preto.jpg"), collection: "moletons" },
+  { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg"), collection: "pijamas" },
+  { id: "bq15", label: "Brinquedos", img: img("bq15-1.jpg"), collection: "brinquedos" },
   { id: "snuggy", label: "Snuggy", img: img("p2_snuggy.jpg") },
-  { id: "pantufa", label: "Pantufas", img: img("p3b.jpg") },
+  { id: "pantufa", label: "Pantufas", img: img("p3b.jpg"), collection: "pantufas" },
   { id: "aneis", label: "Anéis", img: img("p5_aneis.jpg") },
   { id: "colares", label: "Colares", img: img("p6_colares.jpg") },
   { id: "carro", label: "Para o carro", img: img("p4_carro.jpg") },
@@ -226,26 +228,47 @@ function Categories() {
     <section id="colecoes" className="container-edge scroll-mt-32 pt-12 md:pt-14">
       <SectionHead title="Compre por categoria" />
       <Shelf label="Categorias" itemClassName="w-[38%] sm:w-[27%] md:w-[calc((100%-5rem)/6)]">
-        {TYPES.map((t) => (
-          <Link
-            key={t.id}
-            to="/produto"
-            search={{ plano: t.id }}
-            className="group relative block aspect-[4/5] overflow-hidden rounded-[20px] bg-[var(--tile)]"
-          >
-            <img
-              src={t.img}
-              alt={t.label}
-              loading="lazy"
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
-            />
-            <span className="absolute inset-x-2 bottom-3 flex justify-center">
-              <span className="rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[var(--night)] shadow-[0_4px_14px_-6px_rgba(0,0,0,0.35)]">
-                {t.label}
+        {TYPES.map((t) =>
+          t.collection ? (
+            <Link
+              key={t.id}
+              to="/colecao/$id"
+              params={{ id: t.collection }}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-[20px] bg-[var(--tile)]"
+            >
+              <img
+                src={t.img}
+                alt={t.label}
+                loading="lazy"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+              />
+              <span className="absolute inset-x-2 bottom-3 flex justify-center">
+                <span className="rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[var(--night)] shadow-[0_4px_14px_-6px_rgba(0,0,0,0.35)]">
+                  {t.label}
+                </span>
               </span>
-            </span>
-          </Link>
-        ))}
+            </Link>
+          ) : (
+            <Link
+              key={t.id}
+              to="/produto"
+              search={{ plano: t.id }}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-[20px] bg-[var(--tile)]"
+            >
+              <img
+                src={t.img}
+                alt={t.label}
+                loading="lazy"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+              />
+              <span className="absolute inset-x-2 bottom-3 flex justify-center">
+                <span className="rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[var(--night)] shadow-[0_4px_14px_-6px_rgba(0,0,0,0.35)]">
+                  {t.label}
+                </span>
+              </span>
+            </Link>
+          ),
+        )}
       </Shelf>
     </section>
   );

@@ -147,6 +147,8 @@ export type Bundle = {
   group?: string;
   /** Rótulo da opção dentro do grupo ("Combo casal", "Só feminino"...). */
   groupLabel?: string;
+  /** Texto curto mostrado embaixo de uma opção (chave = nome da opção sem "dela"/"dele"). */
+  optionNotes?: Readonly<Record<string, string>>;
   /** false = não aparece nas vitrines (só pela página do grupo). */
   listed?: boolean;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
@@ -178,14 +180,14 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   id,
   kids: {
     id: `${id}i` as BundleId,
-    price: 169.9,
-    compareAtPrice: 239.9,
+    price: 118.9,
+    compareAtPrice: 167.9,
     options: [{ name: "Idade", values: ["4 a 8 anos", "9 a 14 anos"] }],
   },
   name: `Sleepo Dragão ${estampa}`,
   tag: "Cobertor vestível de dragão com sherpa por dentro",
-  price: 199.9,
-  compareAtPrice: 279.9,
+  price: 139.9,
+  compareAtPrice: 195.9,
   img: img(`md-${slug}.jpg`),
   images: [img(`md-${slug}.jpg`), img(`md-${slug}-uso.jpg`)],
   options: [],
@@ -238,6 +240,7 @@ type KitDef = {
   material: string;
   clima: string;
   specsPeca: (readonly [string, string])[];
+  optionNotes?: Record<string, string>;
 };
 
 const TAM_INF = ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"];
@@ -303,6 +306,7 @@ function kit(k: KitDef): Bundle[] {
       price,
       compareAtPrice,
       options: options[modo],
+      ...(k.optionNotes ? { optionNotes: k.optionNotes } : {}),
       benefits: casal
         ? [
             `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
@@ -346,7 +350,7 @@ function kit(k: KitDef): Bundle[] {
   return (["casal", "f", "m", "i"] as const).map(make);
 }
 
-const MODELOS = ["Dragão branco", "Dragão noturno"];
+const MODELOS = ["Conjunto 1", "Conjunto 2"];
 
 const kits: Bundle[] = [
   ...kit({
@@ -354,22 +358,26 @@ const kits: Bundle[] = [
     ids: { casal: "kitcasal", f: "kitshortf", m: "kitshortm", i: "kitshorti" },
     title: "Pijama Casal Dragões Short",
     peca: "short",
-    prices: { casal: [179.9, 249.9], avulso: [99.9, 129.9], infantil: [89.9, 119.9] },
+    prices: { casal: [125.9, 174.9], avulso: [69.9, 90.9], infantil: [62.9, 83.9] },
     imgs: ["kit-casal.jpg", "kit-casal-b.jpg", "kit-casal-c.jpg"],
+    optionNotes: {
+      Modelo:
+        "Conjunto 1: camiseta branca + short branco · Conjunto 2: camiseta preta + short cinza",
+    },
     cores: (quem) => [
       {
         name: `Modelo ${quem}`,
-        values: quem === "dele" ? [...MODELOS].reverse() : MODELOS,
+        values: MODELOS,
       },
     ],
     coresTexto:
-      "São dois modelos: o dragão branco, de camiseta branca com olhinhos azuis e short branco estampado, e o dragão noturno, de camiseta preta com olhinhos verdes e short cinza estampado.",
+      "São dois conjuntos: o Conjunto 1, de camiseta branca com olhinhos azuis e short branco estampado, e o Conjunto 2, de camiseta preta com olhinhos verdes e short cinza estampado.",
     material:
       "A camiseta é de algodão jersey fio 24/1, macia e respirável, e o short é de algodão leve com elástico na cintura.",
     clima: "Perfeito para as noites quentes.",
     specsPeca: [
-      ["Modelo dragão branco", "Camiseta branca com olhos azuis e short branco estampado"],
-      ["Modelo dragão noturno", "Camiseta preta com olhos verdes e short cinza estampado"],
+      ["Conjunto 1", "Camiseta branca com olhos azuis e short branco estampado"],
+      ["Conjunto 2", "Camiseta preta com olhos verdes e short cinza estampado"],
       ["Camiseta", "Algodão jersey fio 24/1"],
       ["Short", "Algodão, com elástico na cintura"],
     ],
@@ -379,7 +387,7 @@ const kits: Bundle[] = [
     ids: { casal: "kitcalca", f: "kitcalcaf", m: "kitcalcam", i: "kitcalcai" },
     title: "Pijama Casal Dragões Calça",
     peca: "calça",
-    prices: { casal: [189.9, 259.9], avulso: [104.9, 134.9], infantil: [94.9, 124.9] },
+    prices: { casal: [132.9, 181.9], avulso: [73.9, 94.9], infantil: [66.9, 87.9] },
     imgs: ["kit-casal-calca.jpg", "kit-casal-calca-b.jpg"],
     cores: (quem) => [
       {
@@ -411,8 +419,8 @@ export const bundles: Bundle[] = [
     id: "pijama",
     kids: {
       id: "pijamai",
-      price: 109.9,
-      compareAtPrice: 149.9,
+      price: 76.9,
+      compareAtPrice: 104.9,
       options: [
         { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
         { name: "Idade", values: ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"] },
@@ -420,8 +428,8 @@ export const bundles: Bundle[] = [
     },
     name: "Calça Pijama de Dragão",
     tag: "Do infantil 4 ao XGG",
-    price: 129.9,
-    compareAtPrice: 179.9,
+    price: 90.9,
+    compareAtPrice: 125.9,
     img: img("p1_pijama.jpg"),
     images: [img("p1_pijama.jpg"), img("p1_branco.jpg"), img("p1_preto.jpg"), img("p1_casal.jpg")],
     options: [
@@ -460,8 +468,8 @@ export const bundles: Bundle[] = [
     id: "snuggy",
     kids: {
       id: "snuggyi",
-      price: 169.9,
-      compareAtPrice: 239.9,
+      price: 118.9,
+      compareAtPrice: 167.9,
       options: [
         { name: "Cor", values: ["Preto", "Branco"] },
         { name: "Idade", values: ["4 a 8 anos", "9 a 14 anos"] },
@@ -469,8 +477,8 @@ export const bundles: Bundle[] = [
     },
     name: "Snuggy Dragão",
     tag: "Cobertor vestível com capuz",
-    price: 199.9,
-    compareAtPrice: 279.9,
+    price: 139.9,
+    compareAtPrice: 195.9,
     img: img("p2_snuggy.jpg"),
     images: [img("p2_snuggy.jpg"), img("p2b.jpg"), img("p2c.jpg")],
     options: [
@@ -509,8 +517,8 @@ export const bundles: Bundle[] = [
     id: "pantufa",
     kids: {
       id: "pantufai",
-      price: 89.9,
-      compareAtPrice: 119.9,
+      price: 62.9,
+      compareAtPrice: 83.9,
       options: [
         { name: "Cor", values: ["Branco", "Preto"] },
         { name: "Tamanho", values: ["28-29", "30-31", "32-33", "34-35"] },
@@ -518,8 +526,8 @@ export const bundles: Bundle[] = [
     },
     name: "Pantufas de Dragão",
     tag: "Quentinhas e antiderrapantes",
-    price: 99.9,
-    compareAtPrice: 139.9,
+    price: 69.9,
+    compareAtPrice: 97.9,
     img: img("p3_pantufas.jpg"),
     images: [img("p3_pantufas.jpg"), img("p3b.jpg"), img("p3c.jpg")],
     options: [
@@ -554,15 +562,15 @@ export const bundles: Bundle[] = [
     id: "chinelo",
     kids: {
       id: "chineloi",
-      price: 129.9,
-      compareAtPrice: 169.9,
+      price: 90.9,
+      compareAtPrice: 118.9,
       options: [{ name: "Tamanho", values: ["P (26-28)", "M (29-31)"] }],
       images: [img("chinelo-inf-1.jpg"), img("chinelo-inf-2.jpg")],
     },
     name: "Chinelo Nuvem Dragão Noturno",
     tag: "Solado nuvem fofinho e dragão de pelúcia",
-    price: 149.9,
-    compareAtPrice: 199.9,
+    price: 104.9,
+    compareAtPrice: 139.9,
     img: img("chinelo-1.jpg"),
     images: [
       img("chinelo-1.jpg"),
@@ -605,8 +613,8 @@ export const bundles: Bundle[] = [
     id: "luminaria",
     name: "Luminária Dragão Noturno",
     tag: "Luz suave para o quarto, produto licenciado",
-    price: 229.9,
-    compareAtPrice: 279.9,
+    price: 160.9,
+    compareAtPrice: 195.9,
     img: img("luminaria.jpg"),
     images: [img("luminaria.jpg")],
     options: [],
@@ -641,8 +649,8 @@ export const bundles: Bundle[] = [
     id: "pelucia",
     name: "Pelúcia Gigante Dragão Noturno 1,10 m",
     tag: "Travesseiro de abraço extra grande",
-    price: 189.9,
-    compareAtPrice: 259.9,
+    price: 132.9,
+    compareAtPrice: 181.9,
     img: img("pelucia-gigante.jpg"),
     images: [
       img("pelucia-gigante.jpg"),
@@ -679,8 +687,8 @@ export const bundles: Bundle[] = [
     id: "lum3d",
     name: "Luminária LED 3D Dragão Noturno",
     tag: "7 cores com um toque, USB ou pilhas",
-    price: 89.9,
-    compareAtPrice: 129.9,
+    price: 62.9,
+    compareAtPrice: 90.9,
     img: img("luminaria-3d.jpg"),
     images: [
       img("luminaria-3d.jpg"),
@@ -721,8 +729,8 @@ export const bundles: Bundle[] = [
     id: "mascara",
     name: "Máscara de Dormir Dragão",
     tag: "7 estampas, bloqueia a luz para dormir melhor",
-    price: 29.9,
-    compareAtPrice: 49.9,
+    price: 20.9,
+    compareAtPrice: 34.9,
     img: img("mascara-todas.jpg"),
     images: [
       img("mascara-todas.jpg"),
@@ -779,8 +787,8 @@ export const bundles: Bundle[] = [
     id: "kitescola",
     name: "Kit Escolar Dragão Noturno",
     tag: "Mochila + estojo + lancheira térmica",
-    price: 189.9,
-    compareAtPrice: 259.9,
+    price: 132.9,
+    compareAtPrice: 181.9,
     img: img("kit-escolar.jpg"),
     images: [img("kit-escolar.jpg")],
     options: [],
@@ -812,8 +820,8 @@ export const bundles: Bundle[] = [
     id: "carro",
     name: "Dragão de Carro",
     tag: "Mascote para carro e moto",
-    price: 89.9,
-    compareAtPrice: 119.9,
+    price: 62.9,
+    compareAtPrice: 83.9,
     img: img("p4_carro.jpg"),
     images: [img("p4_carro.jpg"), img("p4b.jpg"), img("p4c.jpg")],
     options: [
@@ -846,8 +854,8 @@ export const bundles: Bundle[] = [
     id: "aneis",
     name: "Anéis Promessa de Dragão",
     tag: "Par em prata 925",
-    price: 139.9,
-    compareAtPrice: 189.9,
+    price: 97.9,
+    compareAtPrice: 132.9,
     img: img("p5_aneis.jpg"),
     images: [img("p5_aneis.jpg"), img("p5b.jpg"), img("p5c.jpg")],
     options: [],
@@ -876,8 +884,8 @@ export const bundles: Bundle[] = [
     id: "colares",
     name: "Kit Colares de Dragão",
     tag: "Par de colares + caixa",
-    price: 129.9,
-    compareAtPrice: 199.9,
+    price: 90.9,
+    compareAtPrice: 139.9,
     img: img("p6_colares.jpg"),
     images: [img("p6_colares.jpg"), img("p6b.jpg"), img("p6c.jpg")],
     options: [],
@@ -954,6 +962,52 @@ export const listedBundles = availableBundles.filter((b) => b.listed !== false);
 
 export const bundlesByCategory = (cat: CategoryId) =>
   listedBundles.filter((b) => b.category === cat);
+
+/** Páginas de coleção que juntam produtos escolhidos (ex.: todos os pijamas), além das categorias. */
+export const extraCollections: readonly {
+  id: string;
+  name: string;
+  desc: string;
+  img: string;
+  ids: readonly BundleId[];
+}[] = [
+  {
+    id: "pijamas",
+    name: "Pijamas",
+    desc: "Calça de pijama e kits de casal, em versão adulta e infantil",
+    img: "/produtos/kit-casal.jpg",
+    ids: ["pijama", "kitcasal", "kitcalca"],
+  },
+  {
+    id: "pantufas",
+    name: "Pantufas e Chinelos",
+    desc: "Pantufas e chinelos de dragão para a família toda",
+    img: "/produtos/p3b.jpg",
+    ids: ["pantufa", "chinelo"],
+  },
+];
+
+/** Encontra uma categoria ou coleção extra e devolve os produtos dela. */
+export function findCollection(id: string) {
+  const c = categories.find((x) => x.id === id);
+  if (c)
+    return {
+      id: c.id as string,
+      name: c.name,
+      desc: c.desc,
+      img: c.img,
+      items: bundlesByCategory(c.id),
+    };
+  const e = extraCollections.find((x) => x.id === id);
+  if (!e) return undefined;
+  return {
+    id: e.id,
+    name: e.name,
+    desc: e.desc,
+    img: e.img,
+    items: e.ids.map((i) => getBundle(i)),
+  };
+}
 
 /** Opções do mesmo grupo (combo casal / avulsos), na ordem do catálogo. */
 export const groupBundles = (b: Bundle) =>
