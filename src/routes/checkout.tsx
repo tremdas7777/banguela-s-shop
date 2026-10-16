@@ -142,7 +142,7 @@ function Page() {
   const bundle = getBundle(bundleIdFromSearch(search));
   // null = o produto pede cor/tamanho e a URL não trouxe (o servidor também recusa).
   const variantValues = parseVariant(bundle, search.variante);
-  const variant = variantValues?.length ? variantLabel(variantValues) : undefined;
+  const variant = variantValues?.length ? variantLabel(variantValues, bundle) : undefined;
   const itemName = productLabel(bundle, variantValues ?? []);
   useEffect(() => {
     metaTrack("InitiateCheckout", { value: bundle.price, contentName: bundle.name });

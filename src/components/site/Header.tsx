@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, CircleHelp, Menu, Search, Truck, X } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import { brand } from "@/lib/brand";
-import { availableBundles, brl, categories, type BundleId } from "@/lib/bundles";
+import { availableBundles, brl, categories, listedBundles, type BundleId } from "@/lib/bundles";
 
 /** Menu principal: um atalho por tipo de produto, como numa loja de roupa. */
 const nav: { id: BundleId; label: string }[] = [
@@ -39,7 +39,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   const term = normalize(q.trim());
-  const results = availableBundles.filter((b) => {
+  const results = listedBundles.filter((b) => {
     if (!term) return true;
     const cat = categories.find((c) => c.id === b.category)?.name ?? "";
     return normalize(`${b.name} ${b.tag} ${cat}`).includes(term);

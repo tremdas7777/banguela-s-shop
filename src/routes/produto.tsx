@@ -11,7 +11,8 @@ import { trackCheckoutClick } from "@/lib/analytics";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import {
-  availableBundles,
+  groupBundles,
+  listedBundles,
   brl,
   bundlesByCategory,
   bundleShippingLabel,
@@ -110,7 +111,8 @@ function Page() {
   };
 
   const buyLabel = complete ? "Comprar agora" : `Escolha ${missing.join(" e ")}`;
-  const related = availableBundles.filter((b) => b.id !== p.id);
+  const related = listedBundles.filter((b) => b.id !== p.id && (!p.group || b.group !== p.group));
+  const group = groupBundles(p);
 
   const info: { title: string; body: ReactNode }[] = [
     {
@@ -244,6 +246,49 @@ function Page() {
                 </li>
               ))}
             </ul>
+
+            {group.length > 1 && (
+              <div className="mt-6">
+                <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
+                  Escolha o kit
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {group.map((g) => {
+                    const on = g.id === p.id;
+                    const combo = g.groupLabel === "Combo casal";
+                    const avulsos = group.filter((x) => x.groupLabel !== "Combo casal");
+                    const saving = combo ? avulsos.reduce((s, x) => s + x.price, 0) - g.price : 0;
+                    return (
+                      <Link
+                        key={g.id}
+                        to="/produto"
+                        search={{ plano: g.id }}
+                        replace
+                        resetScroll={false}
+                        aria-current={on}
+                        className={`relative flex flex-col items-center rounded-2xl border-2 px-2 pb-2.5 pt-3 text-center transition ${
+                          on
+                            ? "border-[var(--night)] bg-[var(--mint)]"
+                            : "border-[var(--ink)]/15 bg-white hover:border-[var(--night)]/50"
+                        }`}
+                      >
+                        {combo && saving > 0 && (
+                          <span className="absolute -top-2.5 rounded-full bg-[var(--night)] px-2 py-0.5 text-[10.5px] font-bold text-white">
+                            Economize {brl(saving)}
+                          </span>
+                        )}
+                        <span className="text-[13px] font-bold leading-tight text-[var(--night)]">
+                          {g.groupLabel}
+                        </span>
+                        <span className="mt-1 text-[14px] font-extrabold text-[var(--night)]">
+                          {brl(g.price)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {p.estampa && (
               <div className="mt-6">
