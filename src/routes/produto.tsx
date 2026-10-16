@@ -457,6 +457,67 @@ function Page() {
           </div>
         </div>
 
+        {p.richSections && p.richSections.length > 0 && (
+          <section className="mt-14 space-y-10 md:space-y-14">
+            {p.richSections.map((r, i) =>
+              r.media ? (
+                <div key={r.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-10">
+                  <img
+                    src={r.media}
+                    alt=""
+                    loading="lazy"
+                    className={`mx-auto w-full max-w-md rounded-[20px] bg-[var(--tile)] ${i % 2 ? "md:order-2" : ""}`}
+                  />
+                  <div className="text-center md:text-left">
+                    <h2 className="text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+                      {r.title}
+                    </h2>
+                    <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink)]/75">
+                      {r.text}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div key={r.title} className="mx-auto max-w-2xl text-center">
+                  <h2 className="text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+                    {r.title}
+                  </h2>
+                  <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink)]/75">{r.text}</p>
+                </div>
+              ),
+            )}
+          </section>
+        )}
+
+        {p.compare && (
+          <section className="mx-auto mt-14 max-w-xl">
+            <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+              {p.compare.title}
+            </h2>
+            <div className="overflow-hidden rounded-[20px] border border-[var(--border)]">
+              <div className="grid grid-cols-[1fr_auto_auto] bg-[var(--mint)] text-[13px] font-bold text-[var(--night)]">
+                <span className="px-4 py-3" />
+                <span className="w-28 px-2 py-3 text-center">{brand.name}</span>
+                <span className="w-20 px-2 py-3 text-center text-[var(--ink)]/55">Outras</span>
+              </div>
+              {p.compare.rows.map((row) => (
+                <div
+                  key={row}
+                  className="grid grid-cols-[1fr_auto_auto] items-center border-t border-[var(--border)] text-[14px]"
+                >
+                  <span className="px-4 py-3 text-[var(--ink)]/85">{row}</span>
+                  <span className="grid w-28 place-items-center py-3">
+                    <Check className="h-5 w-5 text-[var(--primary)]" strokeWidth={3} />
+                  </span>
+                  <span className="grid w-20 place-items-center py-3 text-[18px] font-bold text-[var(--sale)]">
+                    ×
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="mt-14">
           <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
             Complete o visual

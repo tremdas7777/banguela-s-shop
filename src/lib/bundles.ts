@@ -149,6 +149,10 @@ export type Bundle = {
   groupLabel?: string;
   /** Texto curto mostrado embaixo de uma opção (chave = nome da opção sem "dela"/"dele"). */
   optionNotes?: Readonly<Record<string, string>>;
+  /** Descrição em blocos abaixo do produto (texto + GIF/foto ao lado), como nas lojas grandes. */
+  richSections?: readonly { title: string; text: string; media?: string }[];
+  /** Quadro comparativo "Banguela Shop x Outras": cada linha é uma vantagem. */
+  compare?: { title: string; rows: readonly string[] };
   /** false = não aparece nas vitrines (só pela página do grupo). */
   listed?: boolean;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
@@ -457,6 +461,31 @@ export const bundles: Bundle[] = [
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
       ],
     ],
+    richSections: [
+      {
+        title: "Pijama de dragão 🌟 Sucesso entre os fãs",
+        text: "A calça de pijama de dragão conquistou quem ama dragões: conforto de sobra, tecido felpudo e macio e uma estampa fofa que faz sucesso em casa e nas fotos.",
+        media: img("pijama-gif-1.webp"),
+      },
+      {
+        title: "Qualidade incomparável 🧵",
+        text: "Feita com materiais de qualidade, que duram e continuam macios lavagem após lavagem. Pode esquecer o desgaste: é um pijama para te deixar quentinho por muitos invernos.",
+        media: img("pijama-gif-2.webp"),
+      },
+      {
+        title: "Conforto para todos 👨‍👨‍👧‍👦",
+        text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, a calça de pijama de dragão deixa todo mundo quentinho, confortável e feliz. Tem do infantil ao XGG.",
+      },
+    ],
+    compare: {
+      title: "Feita para o conforto, feita para fãs",
+      rows: [
+        "Tecido macio e felpudo",
+        "Estampa exclusiva de dragão",
+        "Veste no tamanho certo",
+        "Troca de tamanho em 30 dias",
+      ],
+    },
     category: "conforto",
     checkoutProductName: "Calça Pijama de Dragão",
     checkoutProductDescription:
@@ -505,6 +534,32 @@ export const bundles: Bundle[] = [
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
       ],
     ],
+    richSections: [
+      {
+        title: "Snuggy Dragão 🌟 Sucesso entre os fãs",
+        text: "O macacão de dragão que conquistou quem ama dragões e os fãs de Como Treinar o Seu Dragão. Conforto de sobra, flanela macia de qualidade e um visual de dragão fofo que ganha qualquer um.",
+        media: img("snuggy-gif-1.webp"),
+      },
+      {
+        title: "Qualidade incomparável 🧵",
+        text: "Feito com materiais de qualidade, que duram e continuam macios por muito tempo. Pode esquecer o desgaste: o Snuggy foi feito para te deixar quentinho por muitos invernos.",
+        media: img("snuggy-gif-2.webp"),
+      },
+      {
+        title: "Conforto para todos 👨‍👨‍👧‍👦",
+        text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, o Snuggy Dragão tem tudo para deixar todo mundo quentinho e feliz. Tem versão adulta e infantil.",
+        media: img("snuggy-gif-3.webp"),
+      },
+    ],
+    compare: {
+      title: "Feito para o conforto, feito para fãs",
+      rows: [
+        "Flanela macia de qualidade",
+        "Visual de dragão com capuz",
+        "Veste no tamanho certo",
+        "Troca de tamanho em 30 dias",
+      ],
+    },
     category: "conforto",
     checkoutProductName: "Snuggy Dragão",
     checkoutProductDescription:
