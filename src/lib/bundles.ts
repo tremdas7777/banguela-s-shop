@@ -4,6 +4,8 @@
  * sempre recalculado no servidor a partir daqui — o cliente só exibe.
  */
 
+import { BRINQUEDO_IDS, brinquedos } from "./brinquedos";
+
 export const BUNDLE_IDS = [
   "mdpreto",
   "mdbranco",
@@ -42,6 +44,7 @@ export const BUNDLE_IDS = [
   "lum3d",
   "mascara",
   "kitescola",
+  ...BRINQUEDO_IDS,
   "carro",
   "aneis",
   "colares",
@@ -59,7 +62,8 @@ export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHI
 export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
-export type CategoryId = "moletons" | "conforto" | "casa" | "escola" | "joias" | "auto";
+export type CategoryId =
+  "moletons" | "conforto" | "brinquedos" | "casa" | "escola" | "joias" | "auto";
 
 export const categories: readonly {
   id: CategoryId;
@@ -78,6 +82,12 @@ export const categories: readonly {
     name: "Sleepo Dragão",
     desc: "Cobertor vestível com capuz de dragão",
     img: "/produtos/md-preto.jpg",
+  },
+  {
+    id: "brinquedos",
+    name: "Brinquedos",
+    desc: "Bonecos, pelúcias, Funkos e playsets com 70% OFF",
+    img: "/produtos/bq15-1.jpg",
   },
   {
     id: "casa",
@@ -395,6 +405,7 @@ const kits: Bundle[] = [
 ];
 
 export const bundles: Bundle[] = [
+  ...brinquedos,
   ...moletons,
   {
     id: "pijama",

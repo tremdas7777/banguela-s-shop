@@ -141,6 +141,22 @@ function Drawer({ onClose }: { onClose: () => void }) {
                 <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
               </Link>
             </li>
+            <li>
+              <Link
+                to="/colecao/$id"
+                params={{ id: "brinquedos" }}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+              >
+                <img
+                  src="/produtos/bq15-1.jpg"
+                  alt=""
+                  className="h-12 w-12 rounded-xl object-cover"
+                />
+                <span className="flex-1 text-[15px] font-semibold">Brinquedos com 70% OFF</span>
+                <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+              </Link>
+            </li>
             {nav.map((item) => {
               const b = availableBundles.find((x) => x.id === item.id);
               return (
@@ -242,6 +258,13 @@ export function Header() {
             className="py-2 transition-colors hover:text-[var(--primary)]"
           >
             Sleepo Dragão
+          </Link>
+          <Link
+            to="/colecao/$id"
+            params={{ id: "brinquedos" }}
+            className="py-2 transition-colors hover:text-[var(--primary)]"
+          >
+            Brinquedos
           </Link>
           {nav.map((item) => (
             <Link
