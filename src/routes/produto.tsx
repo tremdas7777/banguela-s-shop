@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { GIFT } from "@/lib/gift";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
@@ -407,6 +408,17 @@ function Page() {
             >
               {buyLabel}
             </button>
+
+            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[var(--mint)] p-3">
+              <img
+                src={GIFT.img}
+                alt=""
+                className="h-12 w-12 shrink-0 rounded-xl bg-white object-cover"
+              />
+              <p className="text-[13.5px] leading-snug text-[var(--night)]">
+                <b>Brinde em toda compra:</b> você ganha um {GIFT.short} junto com o pedido.
+              </p>
+            </div>
 
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px] text-[var(--ink)]/65 md:justify-start">
               <span className="inline-flex items-center gap-1.5">

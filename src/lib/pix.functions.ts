@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { GIFT } from "@/lib/gift";
 import { z } from "zod";
 import {
   getBundle,
@@ -80,7 +81,7 @@ const chosenBumps = (d: { bumps: readonly string[]; bump: boolean }) =>
 const storedBumps = (d: { bumps: readonly string[]; bump: boolean }) =>
   chosenBumps(d).map((b) => ({ id: b.id, name: b.fullName, price: b.price }));
 const orderName = (bundleName: string, d: { bumps: readonly string[]; bump: boolean }) =>
-  [bundleName, ...chosenBumps(d).map((b) => b.name)].join(" + ");
+  [bundleName, ...chosenBumps(d).map((b) => b.name), `Brinde: ${GIFT.name}`].join(" + ");
 
 /** Produto + variação validados no servidor. O preço vem só do catálogo, nunca do cliente. */
 function resolveProduct(d: { plano: string; variante?: string }) {

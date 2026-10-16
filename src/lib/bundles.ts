@@ -35,6 +35,9 @@ export const BUNDLE_IDS = [
   "snuggyi",
   "pantufa",
   "pantufai",
+  "chinelo",
+  "chineloi",
+  "luminaria",
   "carro",
   "aneis",
   "colares",
@@ -52,7 +55,7 @@ export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHI
 export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
-export type CategoryId = "moletons" | "conforto" | "joias" | "auto";
+export type CategoryId = "moletons" | "conforto" | "casa" | "joias" | "auto";
 
 export const categories: readonly {
   id: CategoryId;
@@ -71,6 +74,12 @@ export const categories: readonly {
     name: "Sleepo Dragão",
     desc: "Cobertor vestível com capuz de dragão",
     img: "/produtos/md-preto.jpg",
+  },
+  {
+    id: "casa",
+    name: "Decoração de Dragão",
+    desc: "Luminária e itens para o quarto",
+    img: "/produtos/luminaria.jpg",
   },
   {
     id: "joias",
@@ -126,6 +135,8 @@ export type Bundle = {
     price: number;
     compareAtPrice?: number;
     options: readonly ProductOption[];
+    /** Fotos próprias da versão infantil (senão usa as do adulto). */
+    images?: readonly string[];
   };
 };
 
@@ -519,6 +530,93 @@ export const bundles: Bundle[] = [
     checkoutUrl: "/checkout?plano=pantufa",
   },
   {
+    id: "chinelo",
+    kids: {
+      id: "chineloi",
+      price: 129.9,
+      compareAtPrice: 169.9,
+      options: [{ name: "Tamanho", values: ["P (26-28)", "M (29-31)"] }],
+      images: [img("chinelo-inf-1.jpg"), img("chinelo-inf-2.jpg")],
+    },
+    name: "Chinelo Nuvem Dragão Noturno",
+    tag: "Solado nuvem fofinho e dragão de pelúcia",
+    price: 149.9,
+    compareAtPrice: 199.9,
+    img: img("chinelo-1.jpg"),
+    images: [
+      img("chinelo-1.jpg"),
+      img("chinelo-2.jpg"),
+      img("chinelo-3.jpg"),
+      img("chinelo-4.jpg"),
+    ],
+    options: [{ name: "Tamanho", values: ["P (33-35)", "M (36-38)", "G (39-41)"] }],
+    benefits: [
+      "Solado nuvem alto e macio, que amortece cada passo",
+      "Dragãozinho de pelúcia com olhos verdes na tira",
+      "Sola de PVC com borracha antiderrapante",
+    ],
+    description: [
+      "O chinelo mais fofo da casa: solado estilo nuvem, alto e macio, que deixa cada passo leve, e um dragãozinho preto de pelúcia com olhos verdes na tira, que parece estar abraçando o seu pé.",
+      "A tira tem forro em poliéster macio e quentinho, e a sola é de PVC com borracha antiderrapante, para andar com segurança no piso da cozinha, do banheiro ou da varanda. Serve para o home office, para a maratona de séries ou para dar uma volta.",
+      "Tem versão adulta e infantil, para a família inteira andar de dragão pela casa.",
+    ],
+    specs: [
+      ["Tamanhos adultos", "P (33-35), M (36-38) e G (39-41)"],
+      ["Tamanhos infantis", "P (26-28) e M (29-31)"],
+      ["Medidas adulto", "P 24 cm, M 26 cm e G 28 cm de comprimento; 10 cm de largura e altura"],
+      ["Material", "Tira com forro em poliéster"],
+      ["Sola", "PVC com borracha antiderrapante"],
+      ["Peso", "Cerca de 300 g"],
+      ["Dica", "Se estiver entre dois números, escolha o maior"],
+      [
+        "Cuidados",
+        "Lavar à mão com água fria. Não usar alvejante. Secar na sombra, na horizontal.",
+      ],
+    ],
+    category: "conforto",
+    checkoutProductName: "Chinelo Nuvem Dragão Noturno",
+    checkoutProductDescription:
+      "Chinelo com solado nuvem antiderrapante e dragão de pelúcia na tira.",
+    checkoutUrl: "/checkout?plano=chinelo",
+    badge: "Novo",
+  },
+  {
+    id: "luminaria",
+    name: "Luminária Dragão Noturno",
+    tag: "Luz suave para o quarto, produto licenciado",
+    price: 229.9,
+    compareAtPrice: 279.9,
+    img: img("luminaria.jpg"),
+    images: [img("luminaria.jpg")],
+    options: [],
+    benefits: [
+      "Os olhos grandes do dragão acendem com luz suave",
+      "Bivolt (110/220V), cabo de 1,8 m com interruptor",
+      "Produto licenciado, feito no Brasil",
+    ],
+    description: [
+      "Uma luminária em forma de dragão noturno sentado, com os olhos grandes e expressivos que se iluminam e deixam o quarto com uma luz suave e aconchegante. Fica linda na mesa de cabeceira, na escrivaninha ou na estante.",
+      "É feita em polietileno resistente no Brasil, é bivolt (110/220V) e tem cabo de 1,8 m com interruptor de mão. Usa lâmpada LED de até 15 W ou fluorescente compacta (a lâmpada não acompanha). Produto licenciado oficial.",
+      "Ótima para quarto infantil, sala de jogos ou para quem quer um cantinho de leitura com clima de dragão.",
+    ],
+    specs: [
+      ["Dimensões", "29 cm de altura x 20 cm de largura x 17 cm de profundidade"],
+      ["Peso", "0,7 kg"],
+      ["Material", "Polietileno e componentes eletrônicos"],
+      ["Tensão", "Bivolt (110/220V)"],
+      ["Cabo", "1,8 m com interruptor de mão"],
+      ["Lâmpada", "LED até 15 W ou fluorescente compacta (não inclusa)"],
+      ["Troca da lâmpada", "Precisa de uma chave Philips pequena"],
+      ["Origem", "Fabricada no Brasil, produto licenciado"],
+    ],
+    category: "casa",
+    checkoutProductName: "Luminária Dragão Noturno",
+    checkoutProductDescription:
+      "Luminária de dragão em polietileno, bivolt, com cabo e interruptor.",
+    checkoutUrl: "/checkout?plano=luminaria",
+    badge: "Novo",
+  },
+  {
     id: "carro",
     name: "Dragão de Carro",
     tag: "Mascote para carro e moto",
@@ -633,6 +731,7 @@ function expandKids(list: Bundle[]): Bundle[] {
         price: kids.price,
         compareAtPrice: kids.compareAtPrice,
         options: kids.options,
+        ...(kids.images?.length ? { img: kids.images[0]!, images: kids.images } : {}),
         checkoutProductName: `${b.checkoutProductName} Infantil`,
         checkoutUrl: `/checkout?plano=${kids.id}`,
         badge: undefined,

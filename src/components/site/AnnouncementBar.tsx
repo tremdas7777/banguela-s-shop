@@ -3,6 +3,7 @@ import { FREE_SHIPPING_MIN } from "@/lib/bundles";
 
 const messages = [
   `Frete grátis em compras acima de R$ ${FREE_SHIPPING_MIN}`,
+  "Brinde: chaveiro de dragão em toda compra",
   "Pantufas de dragão do 28 ao 45",
   "Pix com desconto · Cartão em até 12x",
   "Envio para todo o Brasil com rastreio",
