@@ -8,4 +8,4 @@
 - [ ] Testar Pix e ler pedido no admin: aguarda gateway configurado pelo usuário.
 - [x] Solicitar publicação em https://banguelashop.lovable.app.
 - [x] Confirmar resposta local do webhook: 200.
-- [ ] Confirmar resposta do webhook publicado: aguarda conclusão da publicação.
+- [x] Confirmar resposta do webhook publicado: 200 e confirmação ok.
