@@ -29,6 +29,13 @@
       "when": 1792116138026,
       "tag": "0003_existing_private_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792116155256,
+      "tag": "0004_existing_pix_orders",
+      "breakpoints": true
     }
   ]
 }
