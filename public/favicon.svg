@@ -1,10 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <rect width="48" height="48" rx="11" fill="#f6f8f5"/>
-  <path d="M11 11 C8 5 11 4 15 8 C16 10 16 12 15 13 Z" fill="#14201a"/>
-  <path d="M37 11 C40 5 37 4 33 8 C32 10 32 12 33 13 Z" fill="#14201a"/>
-  <path d="M24 9 C14 9 8 16 8 24 C8 33 15 39 24 39 C33 39 40 33 40 24 C40 16 34 9 24 9 Z" fill="#14201a"/>
-  <ellipse cx="18" cy="24" rx="5" ry="6.2" fill="#9be65a"/>
-  <ellipse cx="18.4" cy="25" rx="2.1" ry="3.6" fill="#0a1405"/>
-  <ellipse cx="30" cy="24" rx="5" ry="6.2" fill="#9be65a"/>
-  <ellipse cx="30.4" cy="25" rx="2.1" ry="3.6" fill="#0a1405"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64.0 64" width="64.0" height="64" role="img" aria-label="Loja do Banguela"><g transform="translate(0 0) scale(1.0)">
+<defs><radialGradient id="iris00" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#e4fb8a"/><stop offset=".55" stop-color="#c4ef4f"/><stop offset="1" stop-color="#5fae2e"/></radialGradient></defs>
+<circle cx="32" cy="32" r="32" fill="#173f2a"/>
+<path d="M7 33 C16 18.5 48 18.5 57 33 C48 45.5 16 45.5 7 33 Z" fill="url(#iris00)"/>
+<path d="M32 21.2 C28.4 26.5 28.4 39.5 32 44.6 C35.6 39.5 35.6 26.5 32 21.2 Z" fill="#0f1c15"/>
+<circle cx="25.6" cy="28.6" r="2.3" fill="#ffffff" opacity=".9"/>
+</g></svg>

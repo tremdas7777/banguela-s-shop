@@ -216,7 +216,7 @@ export function Header() {
         </div>
 
         <Link to="/" aria-label={`${brand.name} — início`} className="flex shrink-0 justify-center">
-          <img src={logo} alt={brand.name} className="h-8 w-auto md:h-10" />
+          <img src={logo} alt={brand.name} className="h-9 w-auto md:h-11" />
         </Link>
 
         <nav className="hidden flex-1 justify-center gap-6 text-[14px] font-semibold text-[var(--night)] md:flex lg:gap-8">

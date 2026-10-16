@@ -88,7 +88,7 @@ export function Footer() {
       <div className="container-edge py-10 md:py-14">
         <div className="text-center">
           <Link to="/" aria-label={`${brand.name} — início`} className="inline-block">
-            <img src={logo} alt={brand.name} className="mx-auto h-10 w-auto" loading="lazy" />
+            <img src={logo} alt={brand.name} className="mx-auto h-12 w-auto" loading="lazy" />
           </Link>
           <p className="mx-auto mt-3 max-w-sm text-[14px] text-[var(--ink)]/65">
             Loja online de produtos de dragão. Enviamos para todo o Brasil.
