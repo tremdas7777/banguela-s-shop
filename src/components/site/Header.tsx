@@ -117,7 +117,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3">
-          <img src={logo} alt={brand.name} className="h-11 w-auto" />
+          <img src={logo} alt={brand.name} className="h-16 w-auto" />
           <button type="button" aria-label="Fechar menu" className={iconBtn} onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
@@ -216,7 +216,7 @@ export function Header() {
         </div>
 
         <Link to="/" aria-label={`${brand.name} — início`} className="flex shrink-0 justify-center">
-          <img src={logo} alt={brand.name} className="h-14 w-auto md:h-16" />
+          <img src={logo} alt={brand.name} className="h-[84px] w-auto md:h-24" />
         </Link>
 
         <nav className="hidden flex-1 justify-center gap-6 text-[14px] font-semibold text-[var(--night)] md:flex lg:gap-8">

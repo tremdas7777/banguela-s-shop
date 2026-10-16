@@ -803,7 +803,7 @@ function Page() {
   if (variantValues === null)
     return (
       <div className="ck flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center text-foreground">
-        <img src={logo} alt={brand.name} className="h-12 w-auto" />
+        <img src={logo} alt={brand.name} className="h-[72px] w-auto" />
         <p className="text-[15px]">
           Escolha as opções de {bundle.name} antes de finalizar a compra.
         </p>
@@ -820,7 +820,7 @@ function Page() {
   return (
     <div className="ck flex min-h-screen flex-col text-foreground">
       <header className="flex justify-center py-6 md:py-10">
-        <img src={logo} alt={brand.name} className="h-12 w-auto md:h-14" />
+        <img src={logo} alt={brand.name} className="h-[72px] w-auto md:h-20" />
       </header>
       <SummaryMobile
         bundle={bundle}
