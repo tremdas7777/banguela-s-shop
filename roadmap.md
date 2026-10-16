@@ -1,7 +1,8 @@
 # Configuração Banguela Shop
 - [x] Ativar Lovable Cloud.
-- [ ] Aplicar as seis migrations existentes, sem alterações, em ordem.
-- [ ] Conferir configuração e variáveis públicas e servidor.
-- [ ] Solicitar ADMIN_PASSWORD e chaves opcionais pelo formulário seguro.
-- [ ] Testar abas do admin e Pix com leitura do pedido.
+- [x] Aplicar as seis migrations existentes, sem alterações, em ordem.
+- [x] Conferir configuração e variáveis públicas e servidor.
+- [ ] Solicitar somente ADMIN_PASSWORD pelo formulário seguro.
+- [ ] Gateways e rastreio: usuário configurará depois pelo admin; não solicitar chaves agora.
+- [ ] Testar abas do admin após definir a senha; Pix depende de gateway configurado pelo usuário.
 - [ ] Publicar e confirmar resposta do webhook.
