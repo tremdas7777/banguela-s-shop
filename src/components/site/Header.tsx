@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, CircleHelp, Menu, Search, Truck, X } from "lucide-react";
 import logo from "@/assets/logo.webp";
+import { CartButton, CartDrawer } from "@/components/site/CartDrawer";
 import { brand } from "@/lib/brand";
 import { availableBundles, brl, categories, listedBundles, type BundleId } from "@/lib/bundles";
 
@@ -319,11 +320,13 @@ export function Header() {
           <a href="/faq" aria-label="Dúvidas" className={iconBtn}>
             <CircleHelp className="h-5 w-5" />
           </a>
-          <a href="/rastreio" aria-label="Rastrear pedido" className={iconBtn}>
+          <a href="/rastreio" aria-label="Rastrear pedido" className={`${iconBtn} hidden sm:grid`}>
             <Truck className="h-5 w-5" />
           </a>
+          <CartButton className={iconBtn} />
         </div>
       </div>
+      <CartDrawer />
 
       {menu && <Drawer onClose={closeMenu} />}
       {search && <SearchPanel onClose={closeSearch} />}

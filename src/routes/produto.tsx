@@ -1,7 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GIFT } from "@/lib/gift";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Lock,
+  Plus,
+  RefreshCw,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { PantufaOferta } from "@/components/shop/PantufaOferta";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -10,6 +19,7 @@ import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
 import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
+import { addToCart, markCartCheckout, setCartOpen, setCartPantufas } from "@/lib/cart";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import {
@@ -107,9 +117,11 @@ function Page() {
   };
 
   // Pijamas: antes do checkout, oferece as pantufas (popup).
-  const [oferta, setOferta] = useState(false);
+  // "comprar" vai direto ao checkout; "carrinho" adiciona e abre o carrinho.
+  const [oferta, setOferta] = useState<null | "comprar" | "carrinho">(null);
   const goCheckout = (pantufas: PantufaPar[]) => {
     const chosen = values as string[];
+    markCartCheckout(false);
     trackCheckoutClick({
       source: "product_page",
       bundleId: p.id,
@@ -125,14 +137,29 @@ function Page() {
       },
     });
   };
+  const goCart = (pantufas: PantufaPar[]) => {
+    const chosen = values as string[];
+    addToCart({ plano: p.id, ...(chosen.length ? { variante: encodeVariant(chosen) } : {}) });
+    if (pantufas.length) setCartPantufas(pantufas);
+    metaTrack("AddToCart", { value: p.price + pantufasTotal(pantufas), contentName: p.name });
+    setOferta(null);
+    setCartOpen(true);
+  };
+  const ready = () => {
+    if (complete) return true;
+    setNudge(true);
+    optionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return false;
+  };
   const buy = () => {
-    if (!complete) {
-      setNudge(true);
-      optionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    if (temOfertaPantufas(p.id)) setOferta(true);
+    if (!ready()) return;
+    if (temOfertaPantufas(p.id)) setOferta("comprar");
     else goCheckout([]);
+  };
+  const addCart = () => {
+    if (!ready()) return;
+    if (temOfertaPantufas(p.id)) setOferta("carrinho");
+    else goCart([]);
   };
 
   const buyLabel = complete
@@ -193,11 +220,11 @@ function Page() {
   return (
     <SiteLayout>
       <PantufaOferta
-        open={oferta}
+        open={oferta !== null}
         productPrice={p.price}
         infantil={pijamaInfantil(p.id)}
-        onClose={() => setOferta(false)}
-        onContinue={goCheckout}
+        onClose={() => setOferta(null)}
+        onContinue={(pares) => (oferta === "carrinho" ? goCart(pares) : goCheckout(pares))}
       />
       <div className="container-edge pb-28 pt-4 md:pb-20 md:pt-8">
         <nav
@@ -438,6 +465,13 @@ function Page() {
             >
               {buyLabel}
             </button>
+            <button
+              type="button"
+              onClick={addCart}
+              className="mt-3 hidden w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--night)] py-[14px] text-[14px] font-extrabold uppercase tracking-[0.08em] text-[var(--night)] transition hover:bg-[var(--mint)] md:flex"
+            >
+              <ShoppingBag className="h-4 w-4" /> Adicionar ao carrinho
+            </button>
 
             <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[var(--mint)] p-3">
               <img
@@ -530,6 +564,7 @@ function Page() {
             })}
           </section>
         )}
+
 
         {p.compare && (
           <section className="mx-auto mt-14 max-w-xl">
@@ -662,6 +697,18 @@ function Page() {
               <s className="text-[12px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
             )}
           </div>
+          <button
+            type="button"
+            onClick={addCart}
+            aria-label="Adicionar ao carrinho"
+            className="relative grid h-[50px] w-[50px] shrink-0 place-items-center rounded-full border-2 border-[var(--night)] text-[var(--night)]"
+          >
+            <ShoppingBag className="h-5 w-5" />
+            <Plus
+              className="absolute right-2 top-2 h-3.5 w-3.5 rounded-full bg-[var(--night)] p-0.5 text-white"
+              strokeWidth={3}
+            />
+          </button>
           <button
             type="button"
             onClick={buy}

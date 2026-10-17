@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import type { Bundle } from "@/lib/bundles";
 import { bumpsTotal, getBumps, type BumpId } from "@/lib/order-bump";
 import { pantufaItems, pantufasTotal, type PantufaPar } from "@/lib/pantufa-oferta";
+import type { CartLine } from "@/lib/cart";
 import { brl } from "./parts";
 import { FreeShippingProgress } from "./FreeShippingProgress";
 
@@ -16,11 +17,16 @@ type Props = {
   /** Pantufas escolhidas no popup do pijama. */
   pantufas?: PantufaPar[];
   onRemovePantufas?: () => void;
+  /** Demais produtos do carrinho. */
+  itens?: CartLine[];
   variant?: string;
 };
 
-const productsOf = ({ bundle, bumps = [], pantufas = [] }: Props) =>
-  bundle.price + bumpsTotal(bumps) + pantufasTotal(pantufas);
+const productsOf = ({ bundle, bumps = [], pantufas = [], itens = [] }: Props) =>
+  bundle.price +
+  bumpsTotal(bumps) +
+  pantufasTotal(pantufas) +
+  itens.reduce((s, l) => s + l.price, 0);
 const totalOf = (p: Props) => productsOf(p) - p.discount + p.frete;
 
 function Body(p: Props) {
@@ -79,6 +85,25 @@ function Body(p: Props) {
         </div>
         <span className="text-[13px] font-semibold text-[var(--ck-ok)]">Grátis</span>
       </div>
+      {(p.itens ?? []).map((l) => (
+        <div key={l.key} className="mt-4 flex gap-3">
+          <img
+            src={l.bundle.img}
+            alt=""
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-md border border-border object-cover"
+          />
+          <div className="flex-1 text-[13px]">
+            <p>{l.title}</p>
+            <p className="mt-1 text-muted-foreground">
+              {l.detail ? `${l.detail} · ` : ""}
+              {l.qtd} {l.qtd === 1 ? "unidade" : "unidades"}
+            </p>
+          </div>
+          <span className="text-[13px]">{brl(l.price)}</span>
+        </div>
+      ))}
       {pantufaItems(pantufas).map((b, i) => (
         <div key={b.name} className="mt-4 flex gap-3">
           <img
@@ -145,7 +170,12 @@ export function SummaryMobile(p: Props) {
         className="flex w-full items-center justify-between px-5 py-3"
       >
         <span className="text-[13px]">
-          Resumo do pedido ({2 + getBumps(p.bumps ?? []).length + (p.pantufas?.length ?? 0)})
+          Resumo do pedido (
+          {2 +
+            getBumps(p.bumps ?? []).length +
+            (p.pantufas?.length ?? 0) +
+            (p.itens ?? []).reduce((s, l) => s + l.qtd, 0)}
+          )
         </span>
         <span className="flex items-center gap-2 text-lg font-medium">
           {brl(totalOf(p))}{" "}

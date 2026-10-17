@@ -5,6 +5,7 @@ import { loadPixSession, type PixSession } from "@/lib/pix-session";
 import { brl } from "@/components/checkout/parts";
 import { Pill, Shell } from "@/components/checkout/OrderShell";
 import { brand } from "@/lib/brand";
+import { clearCartAfterPurchase } from "@/lib/cart";
 
 export const Route = createFileRoute("/obrigado/$id")({
   head: () => ({
@@ -21,6 +22,10 @@ function Page() {
     main: null,
     extras: [],
   });
+
+  useEffect(() => {
+    clearCartAfterPurchase();
+  }, []);
 
   useEffect(() => {
     const s = loadPixSession(id);

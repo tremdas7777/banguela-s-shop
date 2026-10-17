@@ -85,12 +85,42 @@ const customerSchema = z.object({
     .max(2)
     .refine(paresOk, "Escolha no máximo um par de cada cor.")
     .default([]),
+  /** Demais produtos do carrinho. Preço sempre do catálogo. */
+  itens: z
+    .array(
+      z.object({
+        plano: z.string(),
+        variante: z.string().max(200).optional(),
+        qtd: z.number().int().min(1).max(10),
+      }),
+    )
+    .max(20)
+    .default([]),
   utm: utmSchema,
 });
 
-type Extras = { bumps: readonly string[]; bump: boolean; pantufas: readonly PantufaPar[] };
-/** Itens além do produto (order bumps e pantufas da oferta), com preço do servidor. */
+type Extras = {
+  bumps: readonly string[];
+  bump: boolean;
+  pantufas: readonly PantufaPar[];
+  itens: readonly { plano: string; variante?: string | undefined; qtd: number }[];
+};
+/** Demais produtos do carrinho, validados e com preço do catálogo. */
+const cartExtras = (d: Extras) =>
+  d.itens.map((it) => {
+    const { bundle, itemName } = resolveProduct(it);
+    const name = it.qtd > 1 ? `${it.qtd}x ${itemName}` : itemName;
+    return {
+      id: bundle.id,
+      name,
+      fullName: name,
+      gatewayName: brand.gatewayName,
+      price: Math.round(bundle.price * it.qtd * 100) / 100,
+    };
+  });
+/** Itens além do produto (carrinho, order bumps e pantufas da oferta), com preço do servidor. */
 const chosenExtras = (d: Extras) => [
+  ...cartExtras(d),
   ...getBumps(d.bump ? [...d.bumps, "vivicap"] : d.bumps),
   ...pantufaItems(d.pantufas),
 ];
