@@ -509,6 +509,230 @@ const TOYS: Toy[] = [
   },
 ];
 
+/** Copy de venda de cada brinquedo: gancho e vantagens (blocos da descrição com as fotos). */
+const TOY_COPY: Record<Toy["id"], { h: string; t: string; p: string[] }> = {
+  bq01: {
+    h: "O rugido de plasma mais famoso dos filmes",
+    t: "Aperte e ouça o Banguela soltar o disparo de plasma, igual às cenas épicas do cinema. Com 33 cm, ele domina qualquer batalha no tapete da sala.",
+    p: [
+      "Cerca de 33 cm de comprimento",
+      "Sons do disparo de plasma",
+      "Cauda removível",
+      "Escamas e asas fiéis ao personagem",
+    ],
+  },
+  bq02: {
+    h: "Ele voa, ruge e dispara plasma",
+    t: "Mexa as asas e as pernas e ouça o Banguela ganhar vida: tem som de voo, de rugido e de plasma, cada um num movimento diferente.",
+    p: [
+      "Asas e pernas articuladas",
+      "Botão nas costas com sons de plasma",
+      "Som de voo ao levantar a perna",
+      "Rugido ao voltar para a posição",
+    ],
+  },
+  bq03: {
+    h: "O Banguela mais detalhado da coleção",
+    t: "Uma figura grande e cheia de detalhes, com articulações que deixam cada pose realista. Para brincar de Berk ou para ser o destaque da estante.",
+    p: [
+      "Linha Deluxe, rica em detalhes",
+      "Vários pontos de articulação",
+      "Para brincar e para colecionar",
+      "Estimula a imaginação",
+    ],
+  },
+  bq04: {
+    h: "Pequeno no preço, grande na aventura",
+    t: "Com 20 cm, asas que se movem e cauda removível, é o Banguela perfeito para levar para qualquer lugar e começar a coleção.",
+    p: [
+      "Cerca de 20 cm",
+      "Asas que se movem",
+      "Cauda removível",
+      "Combina com outros dragões da linha",
+    ],
+  },
+  bq05: {
+    h: "Um carinho e ele responde",
+    t: "O mini Banguela tem sensor de toque: é só fazer carinho para ele reagir com sons e movimentos. As crianças não largam.",
+    p: [
+      "Sensor de toque",
+      "Mais de 25 sons e movimentos",
+      "Tamanho mini, cabe na mão",
+      "Diversão sem precisar de tela",
+    ],
+  },
+  bq06: {
+    h: "O Funko que rouba a cena da coleção",
+    t: "Maior que um Pop! comum e com cenário, o Deluxe do Banguela é a peça que todo colecionador quer na prateleira.",
+    p: [
+      "Linha Pop! Deluxe com cenário",
+      "Vinil de alta qualidade",
+      "Produto importado",
+      "Para fãs de todas as idades",
+    ],
+  },
+  bq07: {
+    h: "Asas abertas, pronto para voar",
+    t: "A figura deluxe de Como Treinar o Seu Dragão 3 abre e movimenta as asas para recriar os voos mais bonitos do filme.",
+    p: [
+      "Asas que abrem e se movimentam",
+      "Figura articulada",
+      "Faz parte de uma coleção de dragões",
+      "Chega na caixa original",
+    ],
+  },
+  bq08: {
+    h: "O bebê dragão mais fofo de Berk",
+    t: "Macio, leve e gostoso de abraçar, o Baby Dragon Banguela é o companheiro perfeito para os pequenos criarem as primeiras histórias.",
+    p: [
+      "100% vinil macio",
+      "Certificação INMETRO",
+      "Leve e fácil de segurar",
+      "Preço que cabe em qualquer lembrança",
+    ],
+  },
+  bq09: {
+    h: "O clássico que todo fã precisa ter",
+    t: "O Funko Pop! número 686, com o Banguela sentadinho e os olhos verdes que conquistaram o mundo. Simples, fofo e indispensável.",
+    p: [
+      "Funko Pop! Movies #686",
+      "Vinil",
+      "Na caixa original",
+      "Perfeito para colecionar e presentear",
+    ],
+  },
+  bq10: {
+    h: "Prepare-se para a batalha",
+    t: "O Banguela de asas abertas lança projéteis pela boca e ainda vem com um canhão para a disputa ficar completa.",
+    p: [
+      "Figura do Banguela com asas abertas",
+      "Lança projéteis pela boca",
+      "Canhão com munição",
+      "Ótimo para brincar em dupla",
+    ],
+  },
+  bq11: {
+    h: "A amizade mais famosa da saga",
+    t: "Banguela e Soluço juntos, prontos para recriar o voo que mudou Berk para sempre. O Banguela tem 33 cm de envergadura.",
+    p: [
+      "Banguela + figura do Soluço",
+      "Cerca de 33 cm de envergadura",
+      "Asas texturizadas",
+      "Cauda articulada",
+    ],
+  },
+  bq12: {
+    h: "30 cm de dragão para brincar o dia todo",
+    t: "Um Banguela grande, com asas e partes articuladas que mudam de pose para cada aventura que a criança inventar.",
+    p: ["Cerca de 30 cm", "Asas articuladas", "Várias poses possíveis", "Resistente para brincar"],
+  },
+  bq13: {
+    h: "O momento em que ele vira o Alfa",
+    t: "O Funko Pop! Premium que eterniza a cena mais marcante do Banguela, com os detalhes azuis brilhando na pele de dragão.",
+    p: [
+      "Funko Pop! Premium",
+      "Cerca de 11 cm de altura",
+      "Detalhes azuis do Alfa",
+      "Peça indispensável para colecionadores",
+    ],
+  },
+  bq14: {
+    h: "Todo articulado, do focinho à cauda",
+    t: "Feito em impressão 3D, esse Banguela se mexe inteiro e surpreende pela quantidade de detalhes. Por esse preço, dá para levar um para cada amigo.",
+    p: [
+      "21 cm de comprimento x 18 cm de largura",
+      "Corpo todo articulado",
+      "Impressão 3D cheia de detalhes",
+      "Ótimo para brincar e para enfeitar",
+    ],
+  },
+  bq15: {
+    h: "O Banguela mais vivo que você já viu",
+    t: "Marionete e robótica juntas: ele mexe a boca e a cabeça, reage ao toque, fala mais de 50 frases e sons e ainda solta a rajada de plasma em luz e fumaça.",
+    p: [
+      "Mais de 50 frases e sons do filme",
+      "Boca e cabeça que se movem e reagem ao toque",
+      "Rajada de plasma com luz e fumaça",
+      "3 humores: carinhoso, protetor ou bravo",
+    ],
+  },
+  bq16: {
+    h: "Ele voa de verdade",
+    t: "Estique a cauda, solte e veja o Banguela sair voando. Diversão garantida no quintal, no parque ou na sala.",
+    p: [
+      "Lançamento pela cauda",
+      "Voa de verdade",
+      "Rico em detalhes",
+      "Leve para levar a qualquer lugar",
+    ],
+  },
+  bq18: {
+    h: "35 cm de dragão com som",
+    t: "Grande, articulado e com efeitos sonoros: esse Banguela transforma qualquer brincadeira em cena de cinema.",
+    p: ["Cerca de 35 cm", "Efeitos sonoros", "Articulado", "Para crianças e colecionadores"],
+  },
+  bq19: {
+    h: "Aperte o nariz e ouça o dragão",
+    t: "Faça carinho ou aperte o nariz do mini Banguela e ele responde com sons de dragão. Pequeno, fofo e viciante.",
+    p: [
+      "Sons ao apertar o nariz",
+      "Sons ao fazer carinho",
+      "Tamanho mini",
+      "Design fiel ao personagem",
+    ],
+  },
+  bq20: {
+    h: "Pronto para voar pelos céus vikings",
+    t: "O pequeno Banguela tem asas que se movem e cauda articulada para recriar os voos com o Soluço em qualquer cantinho da casa.",
+    p: [
+      "Asas que se movem",
+      "Cauda articulada",
+      "Fiel ao personagem",
+      "Tamanho ideal para levar junto",
+    ],
+  },
+  bq21: {
+    h: "A arena de treinamento de Berk em casa",
+    t: "Uma torre alta com braseiro no topo, muralha com portão e 4 mini figuras, entre elas o Banguela. É só montar e começar a batalha.",
+    p: [
+      "Torre de Fogo com braseiro",
+      "Muralha com portão destacável",
+      "4 mini figuras com o Banguela",
+      "Compatível com a linha World of Berk",
+    ],
+  },
+  bq22: {
+    h: "Será que os vikings capturam o Banguela?",
+    t: "O braço mecânico movimenta a rede para capturar dragões, e a criança decide quem vence: os vikings ou o Banguela.",
+    p: [
+      "Braço mecânico articulado com rede",
+      "Muralha com portão destacável",
+      "Banguela e um dragão verde translúcido",
+      "2 mini figuras de vikings",
+    ],
+  },
+  bq24: {
+    h: "Monte a sua própria Berk",
+    t: "O Banguela e mais 6 dragões da saga num só conjunto. Ideal para quem quer começar a coleção de uma vez ou dar um presente que impressiona.",
+    p: [
+      "7 figuras de dragões",
+      "Banguela incluso",
+      "Produto importado",
+      "Para brincar e para colecionar",
+    ],
+  },
+  bq25: {
+    h: "Um céu de estrelas no quarto",
+    t: "Abraçou, apertou, acendeu: a Pillow Pets do Banguela projeta estrelas coloridas no teto e transforma a hora de dormir no melhor momento do dia.",
+    p: [
+      "Cerca de 28 cm",
+      "Projeta luzes coloridas no teto",
+      "Pelúcia macia para abraçar",
+      "Perfeita como luz de dormir",
+    ],
+  },
+};
+
 export const brinquedos: Bundle[] = TOYS.map((t) => ({
   id: t.id,
   name: t.name,
@@ -524,6 +748,20 @@ export const brinquedos: Bundle[] = TOYS.map((t) => ({
     "Ótimo para presentear fãs de dragão",
   ],
   description: t.description,
+  richSections: [
+    { title: TOY_COPY[t.id].h, text: TOY_COPY[t.id].t, media: img(t.imgs[1]!) },
+    {
+      title: "Por que as crianças (e os adultos) amam",
+      text: t.description[0]!,
+      points: TOY_COPY[t.id].p,
+      media: img(t.imgs[2]!),
+    },
+    {
+      title: "Presente certeiro com 70% OFF",
+      text: `${t.description.some((d) => d.includes("licenciado")) ? "Produto original e licenciado de Como Treinar o Seu Dragão" : "Produto original"}, na embalagem do fabricante, por uma fração do preço. Para o aniversário, o Natal, o Dia das Crianças ou para aumentar a sua coleção.`,
+      ...(t.imgs[3] ? { media: img(t.imgs[3]) } : {}),
+    },
+  ],
   specs: [
     ...t.specs,
     ["Indicado para", "Fãs de Como Treinar o Seu Dragão; veja a idade na embalagem"],

@@ -5,6 +5,7 @@
  */
 
 import { BRINQUEDO_IDS, brinquedos } from "./brinquedos";
+import { PRODUCT_COPY } from "./copy";
 
 export const BUNDLE_IDS = [
   "mdpreto",
@@ -117,6 +118,14 @@ export const categories: readonly {
 
 export type ProductOption = { name: string; values: readonly string[] };
 
+/** Bloco da descrição: título, texto, lista de vantagens e uma foto ou GIF do produto ao lado. */
+export type RichSection = {
+  title: string;
+  text: string;
+  points?: readonly string[];
+  media?: string;
+};
+
 export type Bundle = {
   id: BundleId;
   name: string;
@@ -150,7 +159,7 @@ export type Bundle = {
   /** Texto curto mostrado embaixo de uma opção (chave = nome da opção sem "dela"/"dele"). */
   optionNotes?: Readonly<Record<string, string>>;
   /** Descrição em blocos abaixo do produto (texto + GIF/foto ao lado), como nas lojas grandes. */
-  richSections?: readonly { title: string; text: string; media?: string }[];
+  richSections?: readonly RichSection[];
   /** Avaliações selecionadas de clientes reais da loja internacional (traduzidas). */
   reviews?: readonly {
     author: string;
@@ -224,6 +233,28 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
       "Lavar na máquina no ciclo delicado, com água fria, do avesso. Não usar secadora.",
     ],
   ],
+  richSections: [
+    {
+      title: "Sair do cobertor nunca mais",
+      text: `Sabe aquele frio que faz você desistir de levantar do sofá? Com o Sleepo Dragão ${estampa} o cobertor vai junto: você veste em segundos, fica quentinho do pescoço aos joelhos e continua com as mãos livres para o celular, o controle ou a pipoca.`,
+      media: img(`md-${slug}-uso.jpg`),
+    },
+    {
+      title: "Macio por fora, felpudo por dentro",
+      text: "É como vestir um abraço: a flanela macia por fora e a sherpa felpuda por dentro seguram o calor nas noites mais frias.",
+      points: [
+        "Flanela por fora e sherpa quentinha por dentro",
+        "Capuz gigante com chifrinhos, olhos bordados e asinhas nas costas",
+        "Bolso canguru para esquentar as mãos",
+        "Tamanho único oversized: sem medo de errar o tamanho",
+      ],
+      media: img(`md-${slug}.jpg`),
+    },
+    {
+      title: "A família inteira de dragão",
+      text: "Tem versão adulta e infantil (4 a 8 e 9 a 14 anos) e 8 estampas para cada um escolher a sua. Um presente que acerta em cheio no aniversário, no Natal ou no Dia das Crianças.",
+    },
+  ],
   category: "moletons",
   checkoutProductName: `Sleepo Dragão ${estampa}`,
   checkoutProductDescription:
@@ -252,6 +283,8 @@ type KitDef = {
   material: string;
   clima: string;
   specsPeca: (readonly [string, string])[];
+  /** Vantagens do conjunto, usadas na descrição em blocos. */
+  pontos: string[];
   optionNotes?: Record<string, string>;
 };
 
@@ -351,6 +384,45 @@ function kit(k: KitDef): Bundle[] {
         ["Medidas", "Podem variar de 1 a 2 cm"],
         ["Cuidados", CUIDADOS],
       ],
+      richSections: [
+        {
+          title: {
+            casal: "Dormir combinando nunca foi tão fofo",
+            f: "O pijama de dragão que você merece",
+            m: "O pijama de dragão que você merece",
+            i: "Pijama de dragão para os pequenos",
+          }[modo],
+          text: {
+            casal:
+              "Um conjunto para você, outro para o seu amor: dois pijamas de dragão que juntos formam o par perfeito. É aquele pijama que rende foto, risada e muito chamego no sofá.",
+            f: `Camiseta e ${k.peca} de dragão para fechar o dia do jeito certo: confortável, fofo e com estampa que dá vontade de postar.`,
+            m: `Camiseta e ${k.peca} de dragão para fechar o dia do jeito certo: confortável, fofo e com estampa que dá vontade de postar.`,
+            i: `Camiseta e ${k.peca} com estampa de dragão para a criança dormir feliz e acordar pronta para a próxima aventura.`,
+          }[modo],
+          media: img(k.imgs[0]!),
+        },
+        {
+          title: "Conforto de verdade a noite toda",
+          text: `${k.material} ${k.clima}`,
+          points: k.pontos,
+          media: img(k.imgs[1] ?? k.imgs[0]!),
+        },
+        casal
+          ? {
+              title: "Mais barato que comprar separado",
+              text: "No combo casal cada um escolhe o seu modelo e o seu tamanho, e o kit sai mais barato que os dois conjuntos avulsos. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.",
+              ...(k.imgs[2] ? { media: img(k.imgs[2]) } : {}),
+            }
+          : modo === "i"
+            ? {
+                title: "Combina com o pijama dos pais",
+                text: "O conjunto infantil tem a mesma estampa dos conjuntos adultos, do 4 ao 12 anos. Monte a família inteira de dragão e garanta a foto do ano.",
+              }
+            : {
+                title: "Quer combinar com alguém?",
+                text: "Leve o combo casal, com os dois conjuntos e desconto, ou o conjunto infantil para as crianças combinarem com você.",
+              },
+      ],
       checkoutProductName: `${k.title} - ${conjunto[modo]}`,
       checkoutProductDescription: casal
         ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
@@ -393,6 +465,12 @@ const kits: Bundle[] = [
       ["Camiseta", "Algodão jersey fio 24/1"],
       ["Short", "Algodão, com elástico na cintura"],
     ],
+    pontos: [
+      "Camiseta de algodão jersey fio 24/1, macia e respirável",
+      "Short de algodão leve, com elástico na cintura",
+      "Dois modelos: Conjunto 1 (branco) e Conjunto 2 (preto e cinza)",
+      "Fresquinho para as noites quentes",
+    ],
   }),
   ...kit({
     group: "kitcalca",
@@ -421,10 +499,16 @@ const kits: Bundle[] = [
       ["Calça", "Felpa antialérgica, elástico na cintura e corte reto"],
       ["Cores da calça", "Branca com dragões brancos ou cinza com dragões pretos"],
     ],
+    pontos: [
+      "Camiseta de algodão jersey fio 24/1, macia e respirável",
+      "Calça de felpa antialérgica, com elástico na cintura e corte reto",
+      "Você combina as cores da camiseta e da calça",
+      "Quentinho para as noites frias",
+    ],
   }),
 ];
 
-export const bundles: Bundle[] = [
+const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
   {
@@ -468,22 +552,6 @@ export const bundles: Bundle[] = [
         "Cuidados",
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
       ],
-    ],
-    richSections: [
-      {
-        title: "Pijama de dragão 🌟 Sucesso entre os fãs",
-        text: "A calça de pijama de dragão conquistou quem ama dragões: conforto de sobra, tecido felpudo e macio e uma estampa fofa que faz sucesso em casa e nas fotos.",
-        media: img("pijama-gif-1.webp"),
-      },
-      {
-        title: "Qualidade incomparável 🧵",
-        text: "Feita com materiais de qualidade, que duram e continuam macios lavagem após lavagem. Pode esquecer o desgaste: é um pijama para te deixar quentinho por muitos invernos.",
-        media: img("pijama-gif-2.webp"),
-      },
-      {
-        title: "Conforto para todos 👨‍👨‍👧‍👦",
-        text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, a calça de pijama de dragão deixa todo mundo quentinho, confortável e feliz. Tem do infantil ao XGG.",
-      },
     ],
     reviews: [
       {
@@ -576,23 +644,6 @@ export const bundles: Bundle[] = [
         "Cuidados",
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
       ],
-    ],
-    richSections: [
-      {
-        title: "Snuggy Dragão 🌟 Sucesso entre os fãs",
-        text: "O macacão de dragão que conquistou quem ama dragões e os fãs de Como Treinar o Seu Dragão. Conforto de sobra, flanela macia de qualidade e um visual de dragão fofo que ganha qualquer um.",
-        media: img("snuggy-gif-1.webp"),
-      },
-      {
-        title: "Qualidade incomparável 🧵",
-        text: "Feito com materiais de qualidade, que duram e continuam macios por muito tempo. Pode esquecer o desgaste: o Snuggy foi feito para te deixar quentinho por muitos invernos.",
-        media: img("snuggy-gif-2.webp"),
-      },
-      {
-        title: "Conforto para todos 👨‍👨‍👧‍👦",
-        text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, o Snuggy Dragão tem tudo para deixar todo mundo quentinho e feliz. Tem versão adulta e infantil.",
-        media: img("snuggy-gif-3.webp"),
-      },
     ],
     reviews: [
       {
@@ -1029,6 +1080,10 @@ export const bundles: Bundle[] = [
     checkoutUrl: "/checkout?plano=colares",
   },
 ];
+
+export const bundles: Bundle[] = baseBundles.map((b) =>
+  PRODUCT_COPY[b.id] ? { ...b, richSections: PRODUCT_COPY[b.id] } : b,
+);
 
 /**
  * Produto com versão infantil vira dois irmãos do mesmo grupo: "Adulto" (aparece nas vitrines)

@@ -459,14 +459,29 @@ function Page() {
 
         {p.richSections && p.richSections.length > 0 && (
           <section className="mt-14 space-y-10 md:space-y-14">
-            {p.richSections.map((r, i) =>
-              r.media ? (
+            {p.richSections.map((r, i) => {
+              const points = r.points?.length ? (
+                <ul
+                  className={`mt-4 space-y-2 text-left text-[15px] text-[var(--ink)]/85 ${r.media ? "" : "mx-auto inline-block"}`}
+                >
+                  {r.points.map((pt) => (
+                    <li key={pt} className="flex gap-2.5">
+                      <Check
+                        className="mt-0.5 h-5 w-5 shrink-0 text-[var(--primary)]"
+                        strokeWidth={3}
+                      />
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null;
+              return r.media ? (
                 <div key={r.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-10">
                   <img
                     src={r.media}
-                    alt=""
+                    alt={r.title}
                     loading="lazy"
-                    className={`mx-auto w-full max-w-md rounded-[20px] bg-[var(--tile)] ${i % 2 ? "md:order-2" : ""}`}
+                    className={`mx-auto max-h-[540px] w-full max-w-md rounded-[20px] bg-[var(--tile)] object-cover ${i % 2 ? "md:order-2" : ""}`}
                   />
                   <div className="text-center md:text-left">
                     <h2 className="text-[22px] font-bold text-[var(--night)] md:text-[28px]">
@@ -475,6 +490,7 @@ function Page() {
                     <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink)]/75">
                       {r.text}
                     </p>
+                    {points}
                   </div>
                 </div>
               ) : (
@@ -483,9 +499,10 @@ function Page() {
                     {r.title}
                   </h2>
                   <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink)]/75">{r.text}</p>
+                  {points}
                 </div>
-              ),
-            )}
+              );
+            })}
           </section>
         )}
 
@@ -565,6 +582,43 @@ function Page() {
             </div>
           </section>
         )}
+
+        <section className="mx-auto mt-14 max-w-3xl rounded-[24px] bg-[var(--mint)] px-5 py-8 text-center md:px-10 md:py-10">
+          <h2 className="text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+            Leve o seu para casa
+          </h2>
+          <p className="mt-2 text-[15px] text-[var(--ink)]/75">
+            {p.name} por <b className="text-[var(--night)]">{brl(p.price)}</b>
+            {p.compareAtPrice && (
+              <>
+                {" "}
+                <s className="text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
+              </>
+            )}
+          </p>
+          <ul className="mx-auto mt-5 grid max-w-xl gap-2.5 text-left text-[14px] text-[var(--night)] sm:grid-cols-2">
+            {[
+              `Brinde: ${GIFT.short} em toda compra`,
+              bundleShippingLabel(p),
+              p.category === "conforto" || p.category === "moletons"
+                ? "Troca de tamanho em até 30 dias"
+                : "7 dias para desistir da compra",
+              `Pix ou cartão em até ${CARD_MAX_INSTALLMENTS}x`,
+            ].map((t) => (
+              <li key={t} className="flex gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" strokeWidth={3} />
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={buy}
+            className="mt-6 w-full max-w-sm rounded-full bg-[var(--night)] py-4 text-[14px] font-extrabold uppercase tracking-[0.08em] text-white transition hover:opacity-90"
+          >
+            {complete ? "Comprar agora" : buyLabel}
+          </button>
+        </section>
 
         <section className="mt-14">
           <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
