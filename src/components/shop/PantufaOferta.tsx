@@ -127,8 +127,8 @@ export function PantufaOferta({
             Quer levar as pantufas?
           </DialogTitle>
           <DialogDescription className="mt-1.5 text-center text-[14px] text-black/65">
-            Toque na cor que você quer. Levando as duas, você economiza{" "}
-            <b className="text-[var(--night)]">{brl(DESCONTO_DOIS_PARES)}</b>.
+            Pode levar <b className="text-[var(--night)]">só uma cor</b> ou as duas. Levando as
+            duas, você economiza <b className="text-[var(--night)]">{brl(DESCONTO_DOIS_PARES)}</b>.
           </DialogDescription>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
