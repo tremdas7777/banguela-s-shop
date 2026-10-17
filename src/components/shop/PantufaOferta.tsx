@@ -1,7 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Check, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { brl, FREE_SHIPPING_MIN, isFreeShippingEligible } from "@/lib/bundles";
+import { brl, isFreeShippingEligible } from "@/lib/bundles";
 import {
   DESCONTO_DOIS_PARES,
   PANTUFA_CORES,
@@ -17,18 +17,18 @@ import {
 import { cn } from "@/lib/utils";
 
 const COR_LABEL: Record<PantufaCor, string> = { Branco: "Branca", Preto: "Preta" };
-type Modo = "um" | "dois";
+const ADULTO = PANTUFA_TAMANHOS_ADULTO[0];
 
 function TamanhoSelect({
+  cor,
   value,
   onChange,
-  label,
   missing,
   infantil,
 }: {
+  cor: PantufaCor;
   value: PantufaTamanho | "";
   onChange: (t: PantufaTamanho) => void;
-  label: string;
   missing: boolean;
   infantil: boolean;
 }) {
@@ -38,73 +38,35 @@ function TamanhoSelect({
   ];
   if (infantil) grupos.reverse();
   return (
-    <label className="block flex-1 text-[12px] font-bold text-[var(--night)]">
-      {label}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as PantufaTamanho)}
-        className={cn(
-          "mt-1 block w-full rounded-xl border bg-white px-3 py-2.5 text-[14px] font-semibold",
-          missing ? "border-[var(--sale)]" : "border-black/15",
-        )}
-      >
-        <option value="" disabled>
-          Escolha o número
-        </option>
-        {grupos.map((g) => (
-          <optgroup key={g.label} label={g.label}>
-            {g.tamanhos.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Opcao({
-  on,
-  onSelect,
-  children,
-}: {
-  on: boolean;
-  onSelect: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      role="radio"
-      aria-checked={on}
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect()}
+    <select
+      aria-label={`Número da pantufa ${COR_LABEL[cor].toLowerCase()}`}
+      value={value}
+      onChange={(e) => onChange(e.target.value as PantufaTamanho)}
       className={cn(
-        "cursor-pointer rounded-2xl border-2 p-4 transition",
-        on ? "border-[var(--night)] bg-[var(--mint)]" : "border-black/10 bg-white",
+        "mt-2 block w-full rounded-xl border-2 bg-white px-2 py-2 text-center text-[14px] font-bold text-[var(--night)]",
+        missing ? "border-[var(--sale)]" : "border-black/15",
       )}
     >
-      {children}
-    </div>
+      <option value="" disabled>
+        Número
+      </option>
+      {grupos.map((g) => (
+        <optgroup key={g.label} label={g.label}>
+          {g.tamanhos.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
   );
 }
 
-function Radio({ on }: { on: boolean }) {
-  return (
-    <span
-      className={cn(
-        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-        on ? "border-[var(--night)] bg-[var(--night)] text-white" : "border-black/30",
-      )}
-    >
-      {on && <Check className="h-3 w-3" strokeWidth={3} />}
-    </span>
-  );
-}
-
-/** Popup do "Comprar" nos pijamas: oferece as pantufas (1 par ou as duas cores com desconto). */
+/**
+ * Popup do "Comprar" nos pijamas. A pessoa toca nas cores que quer (uma ou as duas) e escolhe o
+ * número; levando as duas, o desconto entra sozinho.
+ */
 export function PantufaOferta({
   open,
   productPrice,
@@ -113,15 +75,14 @@ export function PantufaOferta({
   onContinue,
 }: {
   open: boolean;
-  /** Pijama infantil: numeração infantil aparece primeiro. */
-  infantil?: boolean;
   /** Preço do pijama, para avisar quando as pantufas liberam o frete grátis. */
   productPrice: number;
+  /** Pijama infantil: numeração infantil aparece primeiro. */
+  infantil?: boolean;
   onClose: () => void;
   onContinue: (pares: PantufaPar[]) => void;
 }) {
-  const [modo, setModo] = useState<Modo>("dois");
-  const [cor, setCor] = useState<PantufaCor>("Branco");
+  const [sel, setSel] = useState<PantufaCor[]>([]);
   const [tam, setTam] = useState<Record<PantufaCor, PantufaTamanho | "">>({
     Branco: "",
     Preto: "",
@@ -131,23 +92,26 @@ export function PantufaOferta({
     if (open) setNudge(false);
   }, [open]);
 
-  const cores = modo === "dois" ? PANTUFA_CORES : [cor];
+  // Mantém a ordem branca, preta.
+  const cores = PANTUFA_CORES.filter((c) => sel.includes(c));
   const pares = cores.flatMap((c) => {
     const t = tam[c];
     return t ? [{ cor: c, tamanho: t }] : [];
   });
-  const completo = pares.length === cores.length;
-  const adulto = PANTUFA_TAMANHOS_ADULTO[0];
-  // Antes de escolher o número, mostra o preço do par adulto.
-  const umPreco = parPrice(tam[cor] || adulto);
-  const doisCheio = parPrice(tam.Branco || adulto) + parPrice(tam.Preto || adulto);
-  const doisPreco = Math.round((doisCheio - DESCONTO_DOIS_PARES) * 100) / 100;
-  const extra = completo ? pantufasTotal(pares) : modo === "dois" ? doisPreco : umPreco;
+  const completo = cores.length > 0 && pares.length === cores.length;
+  // Antes de escolher o número, conta o preço do par adulto.
+  const cheio = cores.reduce((s, c) => s + parPrice(tam[c] || ADULTO), 0);
+  const total = completo
+    ? pantufasTotal(pares)
+    : Math.round((cheio - (cores.length === 2 ? DESCONTO_DOIS_PARES : 0)) * 100) / 100;
+  const outra = PANTUFA_CORES.find((c) => !sel.includes(c));
   const freteGratis =
-    !isFreeShippingEligible(productPrice) && isFreeShippingEligible(productPrice + extra);
+    cores.length > 0 &&
+    !isFreeShippingEligible(productPrice) &&
+    isFreeShippingEligible(productPrice + total);
 
-  const setTamanho = (c: PantufaCor, t: PantufaTamanho) => {
-    setTam((s) => ({ ...s, [c]: t }));
+  const toggle = (c: PantufaCor) => {
+    setSel((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
     setNudge(false);
   };
   const confirmar = () => {
@@ -157,132 +121,123 @@ export function PantufaOferta({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[92vh] w-[calc(100%-24px)] max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6">
-        <DialogTitle className="pr-6 text-center text-[21px] font-extrabold leading-tight text-[var(--night)]">
-          Leve as pantufas do Banguela junto?
-        </DialogTitle>
-        <DialogDescription className="-mt-1 text-center text-[14px] text-black/65">
-          Forro de pelúcia e solado antiderrapante. Combinam com o pijama.
-        </DialogDescription>
+      <DialogContent className="flex max-h-[92vh] w-[calc(100%-24px)] max-w-md flex-col gap-0 overflow-hidden rounded-3xl p-0">
+        <div className="overflow-y-auto px-5 pb-4 pt-6">
+          <DialogTitle className="pr-6 text-center text-[22px] font-extrabold leading-tight text-[var(--night)]">
+            Quer levar as pantufas?
+          </DialogTitle>
+          <DialogDescription className="mt-1.5 text-center text-[14px] text-black/65">
+            Toque na cor que você quer. Levando as duas, você economiza{" "}
+            <b className="text-[var(--night)]">{brl(DESCONTO_DOIS_PARES)}</b>.
+          </DialogDescription>
 
-        <div className="grid grid-cols-2 gap-3">
-          {PANTUFA_CORES.map((c) => (
-            <figure key={c} className="overflow-hidden rounded-2xl bg-[var(--mint)]">
-              <img
-                src={PANTUFA_IMG[c]}
-                alt={`Pantufa ${COR_LABEL[c]}`}
-                className="aspect-square w-full object-cover"
-              />
-              <figcaption className="py-1.5 text-center text-[13px] font-bold text-[var(--night)]">
-                {COR_LABEL[c]}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-
-        <div role="radiogroup" className="space-y-3">
-          <Opcao on={modo === "dois"} onSelect={() => setModo("dois")}>
-            <div className="flex items-start gap-3">
-              <Radio on={modo === "dois"} />
-              <div className="flex-1">
-                <p className="text-[15px] font-extrabold text-[var(--night)]">
-                  As duas cores (branca + preta)
-                </p>
-                <p className="mt-0.5 text-[13px]">
-                  <s className="text-black/45">{brl(doisCheio)}</s>{" "}
-                  <b className="text-[var(--night)]">{brl(doisPreco)}</b>
-                </p>
-              </div>
-              <span className="rounded-full bg-[var(--sale)] px-2.5 py-1 text-[11px] font-extrabold text-white">
-                -{brl(DESCONTO_DOIS_PARES)}
-              </span>
-            </div>
-            {modo === "dois" && (
-              <div className="mt-3 flex gap-2">
-                {PANTUFA_CORES.map((c) => (
-                  <TamanhoSelect
-                    key={c}
-                    label={`Número da ${COR_LABEL[c].toLowerCase()}`}
-                    value={tam[c]}
-                    onChange={(t) => setTamanho(c, t)}
-                    missing={nudge && !tam[c]}
-                    infantil={infantil}
-                  />
-                ))}
-              </div>
-            )}
-          </Opcao>
-
-          <Opcao on={modo === "um"} onSelect={() => setModo("um")}>
-            <div className="flex items-start gap-3">
-              <Radio on={modo === "um"} />
-              <div className="flex-1">
-                <p className="text-[15px] font-extrabold text-[var(--night)]">Só 1 par</p>
-                <p className="mt-0.5 text-[13px] font-bold text-[var(--night)]">{brl(umPreco)}</p>
-              </div>
-            </div>
-            {modo === "um" && (
-              <div className="mt-3 space-y-3">
-                <div className="flex gap-2">
-                  {PANTUFA_CORES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCor(c);
-                      }}
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {PANTUFA_CORES.map((c) => {
+              const on = sel.includes(c);
+              return (
+                <div key={c}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => toggle(c)}
+                    className={cn(
+                      "relative block w-full overflow-hidden rounded-2xl border-2 bg-white text-left transition",
+                      on ? "border-[var(--night)] shadow-md" : "border-black/10",
+                    )}
+                  >
+                    <img
+                      src={PANTUFA_IMG[c]}
+                      alt={`Pantufa ${COR_LABEL[c].toLowerCase()}`}
+                      className="aspect-square w-full object-cover"
+                    />
+                    <span
                       className={cn(
-                        "flex-1 rounded-full border-2 py-2 text-[13px] font-extrabold",
-                        cor === c
+                        "absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border-2",
+                        on
                           ? "border-[var(--night)] bg-[var(--night)] text-white"
-                          : "border-black/15 bg-white text-[var(--night)]",
+                          : "border-white bg-white/80",
                       )}
                     >
-                      {COR_LABEL[c]}
-                    </button>
-                  ))}
+                      {on && <Check className="h-4 w-4" strokeWidth={3} />}
+                    </span>
+                    <span
+                      className={cn(
+                        "flex items-center justify-between px-3 py-2",
+                        on ? "bg-[var(--mint)]" : "bg-white",
+                      )}
+                    >
+                      <b className="text-[15px] text-[var(--night)]">{COR_LABEL[c]}</b>
+                      <span className="text-[13px] font-semibold text-black/70">
+                        {brl(parPrice(tam[c] || ADULTO))}
+                      </span>
+                    </span>
+                  </button>
+                  {on && (
+                    <TamanhoSelect
+                      cor={c}
+                      value={tam[c]}
+                      onChange={(t) => {
+                        setTam((s) => ({ ...s, [c]: t }));
+                        setNudge(false);
+                      }}
+                      missing={nudge && !tam[c]}
+                      infantil={infantil}
+                    />
+                  )}
                 </div>
-                <TamanhoSelect
-                  label="Número"
-                  value={tam[cor]}
-                  onChange={(t) => setTamanho(cor, t)}
-                  missing={nudge && !tam[cor]}
-                  infantil={infantil}
-                />
-              </div>
-            )}
-          </Opcao>
+              );
+            })}
+          </div>
+
+          {cores.length === 2 && (
+            <p className="mt-4 rounded-xl bg-[var(--mint)] px-3 py-2.5 text-center text-[14px] font-bold text-[var(--night)]">
+              As duas por <s className="font-semibold text-black/45">{brl(cheio)}</s> {brl(total)} ·
+              economia de {brl(DESCONTO_DOIS_PARES)}
+            </p>
+          )}
+          {cores.length === 1 && outra && (
+            <button
+              type="button"
+              onClick={() => toggle(outra)}
+              className="mt-4 w-full rounded-xl border-2 border-dashed border-[var(--night)]/40 px-3 py-2.5 text-[14px] font-bold text-[var(--night)]"
+            >
+              + Levar a {COR_LABEL[outra].toLowerCase()} também e economizar{" "}
+              {brl(DESCONTO_DOIS_PARES)}
+            </button>
+          )}
+          {freteGratis && (
+            <p className="mt-3 text-center text-[13px] font-bold text-[var(--ok,#1f9d41)]">
+              Com as pantufas, seu frete fica grátis
+            </p>
+          )}
+          {nudge && (
+            <p className="mt-3 text-center text-[13px] font-semibold text-[var(--sale)]">
+              {cores.length ? "Escolha o número da pantufa." : "Toque na cor da pantufa."}
+            </p>
+          )}
         </div>
 
-        {freteGratis && (
-          <p className="flex items-center justify-center gap-2 rounded-xl bg-[var(--mint)] py-2 text-[13px] font-bold text-[var(--night)]">
-            <Truck className="h-4 w-4" /> Com as pantufas, o frete fica grátis
-          </p>
-        )}
-        {nudge && (
-          <p className="text-center text-[13px] font-semibold text-[var(--sale)]">
-            Escolha o número da pantufa para continuar.
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={confirmar}
-          className="w-full rounded-full bg-[var(--night)] py-4 text-[14px] font-extrabold uppercase tracking-[0.06em] text-white transition hover:opacity-90"
-        >
-          Adicionar por + {brl(extra)}
-        </button>
-        <button
-          type="button"
-          onClick={() => onContinue([])}
-          className="-mt-1 w-full py-1 text-[13px] font-semibold text-black/55 underline underline-offset-2"
-        >
-          Não, quero só o pijama
-        </button>
-        <p className="-mt-2 text-center text-[11px] text-black/45">
-          Frete grátis em compras acima de R$ {FREE_SHIPPING_MIN}
-        </p>
+        <div className="border-t border-black/10 bg-white px-5 pb-5 pt-3">
+          <button
+            type="button"
+            onClick={confirmar}
+            className={cn(
+              "w-full rounded-full py-4 text-[14px] font-extrabold uppercase tracking-[0.06em] transition",
+              cores.length
+                ? "bg-[var(--night)] text-white hover:opacity-90"
+                : "bg-black/10 text-black/45",
+            )}
+          >
+            {cores.length ? `Adicionar por + ${brl(total)}` : "Escolha a cor acima"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onContinue([])}
+            className="mt-2 w-full py-1 text-[13px] font-semibold text-black/55 underline underline-offset-2"
+          >
+            Não, quero só o pijama
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

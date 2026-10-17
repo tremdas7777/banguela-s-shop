@@ -35,10 +35,10 @@ export const temOfertaPantufas = (id: BundleId) => PIJAMAS.includes(id);
 export const pijamaInfantil = (id: BundleId) =>
   (["pijamai", "kitshorti", "kitcalcai"] as BundleId[]).includes(id);
 
-const pantufa = getBundle("pantufa");
+/** Uma foto por cor (só o par daquela cor). */
 export const PANTUFA_IMG: Record<PantufaCor, string> = {
-  Branco: pantufa.optionImages?.["Branco"] ?? pantufa.img,
-  Preto: pantufa.optionImages?.["Preto"] ?? pantufa.img,
+  Branco: "/produtos/p3b.jpg",
+  Preto: "/produtos/p3c.jpg",
 };
 
 const isInfantil = (t: PantufaTamanho) =>
