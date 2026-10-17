@@ -17,7 +17,7 @@ export const FAQ: readonly { q: string; a: string }[] = [
   },
   {
     q: "Como escolho o tamanho?",
-    a: "Na página de cada produto você escolhe o tamanho e a cor antes de comprar. Os pijamas vão do infantil 2 anos ao adulto XGG, e nos conjuntos você escolhe o tamanho da camiseta e o da calça separadamente, as pantufas do 28 ao 45, e o Snuggy e os cobertores vestíveis têm tamanhos infantis (4 a 14 anos) e adulto.",
+    a: "Na página de cada produto você escolhe o tamanho e a cor antes de comprar. Os pijamas vão do infantil 2 anos ao plus size G3, e nos conjuntos você escolhe o tamanho da camiseta e o da calça separadamente, as pantufas do 28 ao 45, e o Snuggy e os cobertores vestíveis têm tamanhos infantis (4 a 14 anos) e adulto.",
   },
   {
     q: "Posso trocar se não servir?",

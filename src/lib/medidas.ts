@@ -1,4 +1,4 @@
-import type { BundleId } from "@/lib/bundles";
+import type { BundleId, ProductOption } from "@/lib/bundles";
 
 /**
  * Tabela de medidas dos pijamas: medidas da PEÇA esticada na mesa, em cm.
@@ -11,26 +11,26 @@ type Grade = { colunas: readonly string[]; linhas: readonly (readonly string[])[
 export const CAMISETA_ADULTO: Grade = {
   colunas: ["Tamanho", "Largura", "Comprimento"],
   linhas: [
-    ["PP", "46", "66"],
     ["P", "49", "68"],
     ["M", "52", "70"],
     ["G", "55", "72"],
     ["GG", "58", "74"],
-    ["XG", "61", "76"],
-    ["XGG", "64", "78"],
+    ["G1", "61", "76"],
+    ["G2", "64", "78"],
+    ["G3", "67", "80"],
   ],
 };
 
 export const CALCA_ADULTO: Grade = {
   colunas: ["Tamanho", "Cintura", "Quadril", "Comprimento"],
   linhas: [
-    ["PP", "32", "48", "98"],
     ["P", "34", "50", "100"],
     ["M", "36", "52", "102"],
     ["G", "39", "55", "104"],
     ["GG", "42", "58", "106"],
-    ["XG", "45", "61", "107"],
-    ["XGG", "48", "64", "108"],
+    ["G1", "45", "61", "107"],
+    ["G2", "48", "64", "108"],
+    ["G3", "51", "67", "109"],
   ],
 };
 
@@ -69,3 +69,6 @@ const COM_TABELA: Partial<Record<BundleId, readonly Peca[]>> = {
   pijamai: ["calca"],
 };
 export const pecasComTabela = (id: BundleId) => COM_TABELA[id] ?? null;
+
+/** Opções de tamanho viram menu suspenso na página do produto (as outras continuam como botões). */
+export const usaMenuDeTamanho = (o: ProductOption) => /^(Tamanho|Idade)/.test(o.name);

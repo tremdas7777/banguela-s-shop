@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { PantufaOferta } from "@/components/shop/PantufaOferta";
+import { SizeSelect } from "@/components/shop/SizeSelect";
 import { TabelaMedidas } from "@/components/shop/TabelaMedidas";
 import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
 import { temDestaquesPijama } from "@/lib/pijama-destaques";
@@ -22,7 +23,7 @@ import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
 import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
-import { pecasComTabela } from "@/lib/medidas";
+import { pecasComTabela, usaMenuDeTamanho } from "@/lib/medidas";
 import { addToCart, markCartCheckout, setCartOpen, setCartPantufas } from "@/lib/cart";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
@@ -433,7 +434,7 @@ function Page() {
                       )}
                       <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
                         {o.name.replace(CONJUNTO, "")}
-                        {sel[o.name] && (
+                        {sel[o.name] && !usaMenuDeTamanho(o) && (
                           <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
                         )}
                       </div>
@@ -442,27 +443,36 @@ function Page() {
                           {p.optionNotes[o.name.replace(CONJUNTO, "")]}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-2">
-                        {o.values.map((v) => {
-                          const on = sel[o.name] === v;
-                          return (
-                            <button
-                              key={v}
-                              type="button"
-                              onClick={() => choose(o.name, v)}
-                              aria-pressed={on}
-                              className={`inline-flex h-11 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition ${
-                                on
-                                  ? "border-[var(--night)] bg-[var(--night)] text-white"
-                                  : "border-[var(--ink)]/20 bg-white text-[var(--night)] hover:border-[var(--night)]"
-                              }`}
-                            >
-                              <Swatch value={v} />
-                              {v}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {usaMenuDeTamanho(o) ? (
+                        <SizeSelect
+                          option={o}
+                          value={sel[o.name]}
+                          onChange={(v) => choose(o.name, v)}
+                          missing={nudge}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {o.values.map((v) => {
+                            const on = sel[o.name] === v;
+                            return (
+                              <button
+                                key={v}
+                                type="button"
+                                onClick={() => choose(o.name, v)}
+                                aria-pressed={on}
+                                className={`inline-flex h-11 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-[14px] font-semibold transition ${
+                                  on
+                                    ? "border-[var(--night)] bg-[var(--night)] text-white"
+                                    : "border-[var(--ink)]/20 bg-white text-[var(--night)] hover:border-[var(--night)]"
+                                }`}
+                              >
+                                <Swatch value={v} />
+                                {v}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

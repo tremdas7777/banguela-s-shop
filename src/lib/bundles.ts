@@ -291,11 +291,12 @@ type KitDef = {
 };
 
 const TAM_INF = ["2 anos", "4 anos", "6 anos", "8 anos", "10 anos", "12 anos", "14 anos"];
-const TAM_ADULTO = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
-const TAM_F = TAM_ADULTO;
-const TAM_M = TAM_ADULTO;
-/** Combo casal: cada peça do infantil 2 anos ao adulto XGG. */
-const TAM_COMBO = [...TAM_INF, ...TAM_ADULTO];
+const TAM_ADULTO = ["P", "M", "G", "GG"];
+const TAM_PLUS = ["G1", "G2", "G3"];
+const TAM_F = [...TAM_ADULTO, ...TAM_PLUS];
+const TAM_M = TAM_F;
+/** Combo casal: cada peça do infantil 2 anos ao plus size G3. */
+const TAM_COMBO = [...TAM_INF, ...TAM_ADULTO, ...TAM_PLUS];
 /** "PP, P, M, G e GG" */
 const listaTamanhos = (t: readonly string[]) => `${t.slice(0, -1).join(", ")} e ${t.at(-1)}`;
 const CUIDADOS = "Lavar na máquina com água fria, do avesso. Não usar alvejante nem secadora.";
@@ -349,6 +350,7 @@ function kit(k: KitDef): Bundle[] {
     casal: [
       ["Tamanhos infantis", listaTamanhos(TAM_INF)],
       ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
+      ["Plus size", listaTamanhos(TAM_PLUS)],
       porPeca,
     ],
     f: [["Tamanhos", listaTamanhos(TAM_F)], porPeca],
@@ -375,7 +377,7 @@ function kit(k: KitDef): Bundle[] {
       benefits: casal
         ? [
             `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
-            "Tamanhos do infantil 2 anos ao adulto XGG",
+            "Tamanhos do infantil 2 anos ao plus size G3",
             "Cada um escolhe a cor e o tamanho de cada peça",
           ]
         : [
@@ -392,7 +394,7 @@ function kit(k: KitDef): Bundle[] {
           : `Conjunto ${quem} de camiseta e ${k.peca} com estampa de dragão. ${k.coresTexto}`,
         `${k.material} ${k.clima}`,
         casal
-          ? `Cada peça tem o seu tamanho, do infantil 2 anos ao adulto XGG: dá para montar o combo até com uma criança. Um presente lindo para namorados, aniversário de namoro ou casamento.`
+          ? `Cada peça tem o seu tamanho, do infantil 2 anos ao plus size G3: dá para montar o combo até com uma criança. Um presente lindo para namorados, aniversário de namoro ou casamento.`
           : "Também dá para levar o combo casal, com os dois conjuntos e desconto, ou o conjunto infantil para as crianças combinarem com os pais.",
       ],
       specs: [
@@ -431,7 +433,7 @@ function kit(k: KitDef): Bundle[] {
         casal
           ? {
               title: "Cada peça no tamanho certo",
-              text: `No combo casal cada um escolhe a cor e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao adulto XGG. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
+              text: `No combo casal cada um escolhe a cor e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
               ...(k.imgs[2] ? { media: img(k.imgs[2]) } : {}),
             }
           : modo === "i"
@@ -547,18 +549,18 @@ const baseBundles: Bundle[] = [
       ],
     },
     name: "Calça Pijama de Dragão",
-    tag: "Do infantil 2 ao XGG",
+    tag: "Do infantil 2 ao plus size G3",
     price: 90.9,
     compareAtPrice: 125.9,
     img: img("p1_pijama.jpg"),
     images: [img("p1_pijama.jpg"), img("p1_branco.jpg"), img("p1_preto.jpg"), img("p1_casal.jpg")],
     options: [
       { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
-      { name: "Tamanho", values: TAM_ADULTO },
+      { name: "Tamanho", values: [...TAM_ADULTO, ...TAM_PLUS] },
     ],
     optionImages: { "Dragão Branco": img("p1_branco.jpg"), "Dragão Preto": img("p1_preto.jpg") },
     benefits: [
-      "Tamanhos do infantil 2 ao adulto XGG",
+      "Tamanhos do infantil 2 anos ao plus size G3",
       "Algodão felpudo, macio e durável",
       "Cós com elástico e cordão ajustável",
     ],
@@ -572,6 +574,7 @@ const baseBundles: Bundle[] = [
       ["Cintura", "Elástico com cordão de ajuste"],
       ["Tamanhos infantis", "2, 4, 6, 8, 10, 12 e 14 (idade aproximada em anos)"],
       ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
+      ["Plus size", listaTamanhos(TAM_PLUS)],
       [
         "Cuidados",
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",
