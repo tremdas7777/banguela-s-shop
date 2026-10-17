@@ -345,7 +345,7 @@ function kit(k: KitDef): Bundle[] {
     return {
       ...base,
       id: k.ids[modo],
-      name: `${k.title} · ${conjunto[modo]}`,
+      name: casal ? k.title : `${k.title} · ${conjunto[modo]}`,
       groupLabel: label[modo],
       tag: casal ? `2 camisetas + 2 ${pecas}, para ela e para ele` : `1 camiseta + 1 ${k.peca}`,
       price,
@@ -423,7 +423,7 @@ function kit(k: KitDef): Bundle[] {
                 text: "Leve o combo casal, com os dois conjuntos e desconto, ou o conjunto infantil para as crianças combinarem com você.",
               },
       ],
-      checkoutProductName: `${k.title} - ${conjunto[modo]}`,
+      checkoutProductName: casal ? k.title : `${k.title} - ${conjunto[modo]}`,
       checkoutProductDescription: casal
         ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
         : `${conjunto[modo]} de pijama: 1 camiseta de algodão e 1 ${k.peca}.`,
