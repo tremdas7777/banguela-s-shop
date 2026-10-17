@@ -440,7 +440,7 @@ const kits: Bundle[] = [
   ...kit({
     group: "kitshort",
     ids: { casal: "kitcasal", f: "kitshortf", m: "kitshortm", i: "kitshorti" },
-    title: "Pijama Casal Dragões Short",
+    title: "Pijama Dragões Short + Camiseta",
     peca: "short",
     prices: { casal: [125.9, 174.9], avulso: [69.9, 90.9], infantil: [62.9, 83.9] },
     imgs: ["kit-casal.jpg", "kit-casal-b.jpg", "kit-casal-c.jpg"],
@@ -475,7 +475,7 @@ const kits: Bundle[] = [
   ...kit({
     group: "kitcalca",
     ids: { casal: "kitcalca", f: "kitcalcaf", m: "kitcalcam", i: "kitcalcai" },
-    title: "Pijama Casal Dragões Calça",
+    title: "Pijama Dragões Calça + Camiseta",
     peca: "calça",
     prices: { casal: [132.9, 181.9], avulso: [73.9, 94.9], infantil: [66.9, 87.9] },
     imgs: ["kit-casal-calca.jpg", "kit-casal-calca-b.jpg"],
