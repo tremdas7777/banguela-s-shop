@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { PantufaOferta } from "@/components/shop/PantufaOferta";
+import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
+import { temDestaquesPijama } from "@/lib/pijama-destaques";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Shelf } from "@/components/shop/Shelf";
 import { brand } from "@/lib/brand";
@@ -565,6 +567,7 @@ function Page() {
           </section>
         )}
 
+        {temDestaquesPijama(p.id) && <PijamaDestaques />}
 
         {p.compare && (
           <section className="mx-auto mt-14 max-w-xl">
