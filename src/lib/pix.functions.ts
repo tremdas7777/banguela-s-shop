@@ -10,7 +10,14 @@ import {
   FREE_SHIPPING_MIN,
 } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
-import { BUMP_IDS, bumpsTotal, getBumps } from "@/lib/order-bump";
+import { BUMP_IDS, getBumps } from "@/lib/order-bump";
+import {
+  PANTUFA_CORES,
+  PANTUFA_TAMANHOS,
+  pantufaItems,
+  paresOk,
+  type PantufaPar,
+} from "@/lib/pantufa-oferta";
 import {
   saveOrder,
   fetchGatewayStatus,
@@ -72,16 +79,27 @@ const customerSchema = z.object({
   bumps: z.array(z.enum(BUMP_IDS)).max(BUMP_IDS.length).default([]),
   /** Formato antigo (só o VIVI Cap): abas abertas antes da atualização ainda mandam assim. */
   bump: z.boolean().default(false),
+  /** Pantufas da oferta do pijama (até 2 pares, um de cada cor). Preço sempre do servidor. */
+  pantufas: z
+    .array(z.object({ cor: z.enum(PANTUFA_CORES), tamanho: z.enum(PANTUFA_TAMANHOS) }))
+    .max(2)
+    .refine(paresOk, "Escolha no máximo um par de cada cor.")
+    .default([]),
   utm: utmSchema,
 });
 
-/** Order bumps do pedido, com preço do servidor. */
-const chosenBumps = (d: { bumps: readonly string[]; bump: boolean }) =>
-  getBumps(d.bump ? [...d.bumps, "vivicap"] : d.bumps);
-const storedBumps = (d: { bumps: readonly string[]; bump: boolean }) =>
-  chosenBumps(d).map((b) => ({ id: b.id, name: b.fullName, price: b.price }));
-const orderName = (bundleName: string, d: { bumps: readonly string[]; bump: boolean }) =>
-  [bundleName, ...chosenBumps(d).map((b) => b.name), `Brinde: ${GIFT.name}`].join(" + ");
+type Extras = { bumps: readonly string[]; bump: boolean; pantufas: readonly PantufaPar[] };
+/** Itens além do produto (order bumps e pantufas da oferta), com preço do servidor. */
+const chosenExtras = (d: Extras) => [
+  ...getBumps(d.bump ? [...d.bumps, "vivicap"] : d.bumps),
+  ...pantufaItems(d.pantufas),
+];
+const extrasTotal = (d: Extras) =>
+  Math.round(chosenExtras(d).reduce((s, b) => s + b.price * 100, 0)) / 100;
+const storedBumps = (d: Extras) =>
+  chosenExtras(d).map((b) => ({ id: b.id, name: b.fullName, price: b.price }));
+const orderName = (bundleName: string, d: Extras) =>
+  [bundleName, ...chosenExtras(d).map((b) => b.name), `Brinde: ${GIFT.name}`].join(" + ");
 
 /** Produto + variação validados no servidor. O preço vem só do catálogo, nunca do cliente. */
 function resolveProduct(d: { plano: string; variante?: string }) {
@@ -117,10 +135,7 @@ export const createPixCharge = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<PixCharge> => {
     // Preço sempre definido no servidor — nunca confiar no cliente.
     const { bundle, itemName } = resolveProduct(data);
-    if (
-      data.frete === "gratis" &&
-      !isFreeShippingEligible(bundle.price + bumpsTotal(chosenBumps(data).map((b) => b.id)))
-    ) {
+    if (data.frete === "gratis" && !isFreeShippingEligible(bundle.price + extrasTotal(data))) {
       throw new Error(
         `Frete grátis disponível apenas para compras acima de R$ ${FREE_SHIPPING_MIN}.`,
       );
@@ -128,7 +143,7 @@ export const createPixCharge = createServerFn({ method: "POST" })
     const freteOpt = getFrete(data.frete);
     // Pix: 10% de desconto nos produtos (o frete não entra no desconto).
     const totals = checkoutTotals({
-      products: bundle.price + bumpsTotal(chosenBumps(data).map((b) => b.id)),
+      products: bundle.price + extrasTotal(data),
       frete: freteOpt.price,
       method: "pix",
       pixDiscount: await isCardEnabled().catch(() => false),
@@ -222,10 +237,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
     if (!isAdmin(data.adminPassword) && !(await isCardEnabled()))
       throw new Error("Pagamento com cartão indisponível. Pague com Pix.");
     const { bundle, itemName } = resolveProduct(data);
-    if (
-      data.frete === "gratis" &&
-      !isFreeShippingEligible(bundle.price + bumpsTotal(chosenBumps(data).map((b) => b.id)))
-    ) {
+    if (data.frete === "gratis" && !isFreeShippingEligible(bundle.price + extrasTotal(data))) {
       throw new Error(
         `Frete grátis disponível apenas para compras acima de R$ ${FREE_SHIPPING_MIN}.`,
       );
@@ -233,7 +245,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
     if (!data.address) throw new Error("Confira o CEP e o endereço de entrega.");
     const freteOpt = getFrete(data.frete);
     const totals = checkoutTotals({
-      products: bundle.price + bumpsTotal(chosenBumps(data).map((b) => b.id)),
+      products: bundle.price + extrasTotal(data),
       frete: freteOpt.price,
       method: "card",
       pixDiscount: false,
@@ -260,7 +272,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
       // Nome genérico (igual ao Pix) — sem detalhes do produto real na fatura.
       items: [
         { title: brand.gatewayName, unitPrice: Math.round(bundle.price * 100), quantity: 1 },
-        ...chosenBumps(data).map((b) => ({
+        ...chosenExtras(data).map((b) => ({
           title: b.gatewayName,
           unitPrice: Math.round(b.price * 100),
           quantity: 1,

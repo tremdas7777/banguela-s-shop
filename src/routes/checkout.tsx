@@ -44,6 +44,7 @@ import { SummaryDesktop, SummaryMobile } from "@/components/checkout/Summary";
 import { OrderBump } from "@/components/checkout/OrderBump";
 import { FreeShippingProgress } from "@/components/checkout/FreeShippingProgress";
 import { ORDER_BUMPS, bumpsTotal, getBumps, type BumpId } from "@/lib/order-bump";
+import { pantufaItems, pantufasTotal, parsePantufas } from "@/lib/pantufa-oferta";
 
 export const Route = createFileRoute("/checkout")({
   validateSearch: planSearchSchema,
@@ -144,8 +145,13 @@ function Page() {
   const variantValues = parseVariant(bundle, search.variante);
   const variant = variantValues?.length ? variantLabel(variantValues, bundle) : undefined;
   const itemName = productLabel(bundle, variantValues ?? []);
+  // Pantufas escolhidas no popup do pijama (vêm na URL; o cliente pode remover aqui).
+  const [pantufas, setPantufas] = useState(() => parsePantufas(search.pantufas));
   useEffect(() => {
-    metaTrack("InitiateCheckout", { value: bundle.price, contentName: bundle.name });
+    metaTrack("InitiateCheckout", {
+      value: bundle.price + pantufasTotal(pantufas),
+      contentName: bundle.name,
+    });
   }, [bundle.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const [step, setStep] = useState<Step>(1);
   const [id, setId] = useState({ name: "", email: "", cpf: "", phone: "" });
@@ -166,10 +172,10 @@ function Page() {
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvv: "" });
   const [installments, setInstallments] = useState(1);
   // Frete grátis só a partir de FREE_SHIPPING_MIN em produtos (validado também no servidor).
-  const subtotal = bundle.price + bumpsTotal(bumps);
+  const subtotal = bundle.price + bumpsTotal(bumps) + pantufasTotal(pantufas);
   const freeEligible = isFreeShippingEligible(subtotal);
   const [frete, setFrete] = useState<FreteId>(() =>
-    isFreeShippingEligible(bundle.price) ? "gratis" : "padrao",
+    isFreeShippingEligible(subtotal) ? "gratis" : "padrao",
   );
   const wasEligible = useRef(freeEligible);
   useEffect(() => {
@@ -185,7 +191,7 @@ function Page() {
 
   const freteOpt = getFrete(frete);
   const freteValue = freteOpt.price;
-  const products = bundle.price + bumpsTotal(bumps);
+  const products = subtotal;
   // Desconto do Pix só depois de liberar o cartão no admin (o servidor aplica a mesma regra).
   const [pixDiscountOn, setPixDiscountOn] = useState(false);
   const pixT = checkoutTotals({
@@ -258,8 +264,8 @@ function Page() {
               name: id.name,
               email: id.email,
               phone: id.phone,
-              bump: bumps.length > 0,
-              bumps: getBumps(bumps).map((b) => b.name),
+              bump: bumps.length + pantufas.length > 0,
+              bumps: [...getBumps(bumps), ...pantufaItems(pantufas)].map((b) => b.name),
               frete,
             }
           : {}),
@@ -298,6 +304,7 @@ function Page() {
     ...(variantValues?.length ? { variante: encodeVariant(variantValues) } : {}),
     frete,
     bumps,
+    pantufas,
     origin: window.location.origin,
     utm: getStoredUtms(),
     endereco: `${addr.rua}, ${addr.numero} ${addr.complemento} - ${addr.bairro}, ${addr.cidade}/${addr.uf} ${addr.cep}`,
@@ -310,7 +317,10 @@ function Page() {
     bundleName: itemName,
     units: 1,
     productPrice: bundle.price,
-    bumps: getBumps(bumps).map((b) => ({ name: b.fullName, price: b.price })),
+    bumps: [...getBumps(bumps), ...pantufaItems(pantufas)].map((b) => ({
+      name: b.fullName,
+      price: b.price,
+    })),
     frete: freteValue,
     createdAt: Date.now(),
     phone: id.phone.replace(/\D/g, ""),
@@ -830,6 +840,8 @@ function Page() {
         frete={freteValue}
         discount={discount}
         bumps={bumps}
+        pantufas={pantufas}
+        onRemovePantufas={() => setPantufas([])}
         variant={variant}
       />
       <main className="mx-auto grid w-full max-w-[1160px] gap-4 px-3 pb-24 pt-2 md:px-4 lg:grid-cols-3 lg:gap-4">
@@ -843,6 +855,8 @@ function Page() {
           frete={freteValue}
           discount={discount}
           bumps={bumps}
+          pantufas={pantufas}
+          onRemovePantufas={() => setPantufas([])}
           variant={variant}
         />
       </main>

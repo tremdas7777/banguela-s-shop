@@ -3,6 +3,7 @@ import { GIFT } from "@/lib/gift";
 import { ChevronDown } from "lucide-react";
 import type { Bundle } from "@/lib/bundles";
 import { bumpsTotal, getBumps, type BumpId } from "@/lib/order-bump";
+import { pantufaItems, pantufasTotal, type PantufaPar } from "@/lib/pantufa-oferta";
 import { brl } from "./parts";
 import { FreeShippingProgress } from "./FreeShippingProgress";
 
@@ -12,22 +13,26 @@ type Props = {
   frete: number;
   discount: number;
   bumps?: BumpId[];
+  /** Pantufas escolhidas no popup do pijama. */
+  pantufas?: PantufaPar[];
+  onRemovePantufas?: () => void;
   variant?: string;
 };
 
-const totalOf = ({ bundle, frete, discount, bumps = [] }: Props) =>
-  bundle.price - discount + frete + bumpsTotal(bumps);
+const productsOf = ({ bundle, bumps = [], pantufas = [] }: Props) =>
+  bundle.price + bumpsTotal(bumps) + pantufasTotal(pantufas);
+const totalOf = (p: Props) => productsOf(p) - p.discount + p.frete;
 
 function Body(p: Props) {
-  const { bundle, frete, discount, bumps = [], variant } = p;
+  const { bundle, frete, discount, bumps = [], pantufas = [], variant } = p;
   const total = totalOf(p);
   return (
     <>
-      <FreeShippingProgress subtotal={bundle.price + bumpsTotal(bumps)} className="mb-5" />
+      <FreeShippingProgress subtotal={productsOf(p)} className="mb-5" />
       <div className="space-y-2 text-[13px]">
         <div className="flex justify-between">
           <span>Produtos</span>
-          <span>{brl(bundle.price + bumpsTotal(bumps))}</span>
+          <span>{brl(productsOf(p))}</span>
         </div>
         <div className="flex justify-between">
           <span>Frete</span>
@@ -74,6 +79,32 @@ function Body(p: Props) {
         </div>
         <span className="text-[13px] font-semibold text-[var(--ck-ok)]">Grátis</span>
       </div>
+      {pantufaItems(pantufas).map((b, i) => (
+        <div key={b.name} className="mt-4 flex gap-3">
+          <img
+            src={b.img}
+            alt=""
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-md border border-border object-cover"
+          />
+          <div className="flex-1 text-[13px]">
+            <p>{b.fullName}</p>
+            <p className="mt-1 text-muted-foreground">
+              1 par{pantufas.length === 2 ? " · desconto das duas cores" : ""}
+              {p.onRemovePantufas && i === pantufas.length - 1 && (
+                <>
+                  {" · "}
+                  <button type="button" onClick={p.onRemovePantufas} className="underline">
+                    remover
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+          <span className="text-[13px]">{brl(b.price)}</span>
+        </div>
+      ))}
       {getBumps(bumps).map((b) => (
         <div key={b.id} className="mt-4 flex gap-3">
           <img
@@ -113,7 +144,9 @@ export function SummaryMobile(p: Props) {
         aria-expanded={open}
         className="flex w-full items-center justify-between px-5 py-3"
       >
-        <span className="text-[13px]">Resumo do pedido ({2 + getBumps(p.bumps ?? []).length})</span>
+        <span className="text-[13px]">
+          Resumo do pedido ({2 + getBumps(p.bumps ?? []).length + (p.pantufas?.length ?? 0)})
+        </span>
         <span className="flex items-center gap-2 text-lg font-medium">
           {brl(totalOf(p))}{" "}
           <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />

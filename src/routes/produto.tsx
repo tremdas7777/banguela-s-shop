@@ -3,6 +3,7 @@ import { GIFT } from "@/lib/gift";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ChevronRight, Lock, RefreshCw, Truck } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
+import { PantufaOferta } from "@/components/shop/PantufaOferta";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Shelf } from "@/components/shop/Shelf";
 import { brand } from "@/lib/brand";
@@ -11,6 +12,13 @@ import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
+import {
+  encodePantufas,
+  pantufasTotal,
+  pijamaInfantil,
+  temOfertaPantufas,
+  type PantufaPar,
+} from "@/lib/pantufa-oferta";
 import {
   availableBundles,
   groupBundles,
@@ -98,23 +106,33 @@ function Page() {
     if (optionImg) setImg(optionImg);
   };
 
+  // Pijamas: antes do checkout, oferece as pantufas (popup).
+  const [oferta, setOferta] = useState(false);
+  const goCheckout = (pantufas: PantufaPar[]) => {
+    const chosen = values as string[];
+    trackCheckoutClick({
+      source: "product_page",
+      bundleId: p.id,
+      bundleName: productLabel(p, chosen),
+      value: p.price + pantufasTotal(pantufas),
+    });
+    navigate({
+      to: "/checkout",
+      search: {
+        plano: p.id,
+        ...(chosen.length ? { variante: encodeVariant(chosen) } : {}),
+        ...(pantufas.length ? { pantufas: encodePantufas(pantufas) } : {}),
+      },
+    });
+  };
   const buy = () => {
     if (!complete) {
       setNudge(true);
       optionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    const chosen = values as string[];
-    trackCheckoutClick({
-      source: "product_page",
-      bundleId: p.id,
-      bundleName: productLabel(p, chosen),
-      value: p.price,
-    });
-    navigate({
-      to: "/checkout",
-      search: { plano: p.id, ...(chosen.length ? { variante: encodeVariant(chosen) } : {}) },
-    });
+    if (temOfertaPantufas(p.id)) setOferta(true);
+    else goCheckout([]);
   };
 
   const buyLabel = complete
@@ -174,6 +192,13 @@ function Page() {
 
   return (
     <SiteLayout>
+      <PantufaOferta
+        open={oferta}
+        productPrice={p.price}
+        infantil={pijamaInfantil(p.id)}
+        onClose={() => setOferta(false)}
+        onContinue={goCheckout}
+      />
       <div className="container-edge pb-28 pt-4 md:pb-20 md:pt-8">
         <nav
           aria-label="Navegação"
