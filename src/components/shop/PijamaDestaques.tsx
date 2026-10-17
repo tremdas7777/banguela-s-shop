@@ -53,18 +53,18 @@ export function PijamaDestaques() {
       ))}
 
       <div>
-        <h2 className={`${titulo} mb-5 text-center`}>Branca ou cinza?</h2>
+        <h2 className={`${titulo} mb-5 text-center`}>Antes e depois</h2>
         <div className="mx-auto w-full max-w-md">
           <BeforeAfter
             left={{
-              src: "/pijama/compara-branca.jpg",
-              label: "Branca",
-              alt: "Felpa da calça branca com os dragõezinhos",
+              src: "/pijama/antes.webp",
+              label: "Antes",
+              alt: "Tecido de pijama comum gasto, com bolinhas",
             }}
             right={{
-              src: "/pijama/compara-cinza.jpg",
-              label: "Cinza",
-              alt: "Felpa da calça cinza com o Banguela",
+              src: "/pijama/depois.webp",
+              label: "Depois",
+              alt: "Felpa da calça cinza com o Banguela, macia e sem bolinhas",
             }}
           />
         </div>

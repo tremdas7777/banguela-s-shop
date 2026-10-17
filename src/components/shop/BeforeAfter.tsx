@@ -96,10 +96,10 @@ export function BeforeAfter({ left, right }: { left: Lado; right: Lado }) {
         className="absolute inset-0 h-full w-full object-cover"
         style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
       />
-      <span className="absolute bottom-3 left-3 rounded-full bg-[var(--night)] px-3 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] text-white">
+      <span className="absolute bottom-4 left-4 rounded-md bg-black px-3.5 py-2 text-[13px] font-extrabold uppercase tracking-[0.04em] text-white">
         {left.label}
       </span>
-      <span className="absolute bottom-3 right-3 rounded-full bg-[var(--night)] px-3 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] text-white">
+      <span className="absolute bottom-4 right-4 rounded-md bg-black px-3.5 py-2 text-[13px] font-extrabold uppercase tracking-[0.04em] text-white">
         {right.label}
       </span>
       <div
