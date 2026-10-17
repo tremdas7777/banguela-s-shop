@@ -536,7 +536,8 @@ function Page() {
           </div>
         </div>
 
-        {p.richSections && p.richSections.length > 0 && (
+        {/* Pijamas de calça usam a descrição própria (PijamaDestaques) no lugar destes blocos. */}
+        {!temDestaquesPijama(p.id) && p.richSections && p.richSections.length > 0 && (
           <section className="mt-14 space-y-10 md:space-y-14">
             {p.richSections.map((r, i) => {
               const points = r.points?.length ? (
@@ -587,7 +588,7 @@ function Page() {
 
         {temDestaquesPijama(p.id) && <PijamaDestaques />}
 
-        {p.compare && (
+        {!temDestaquesPijama(p.id) && p.compare && (
           <section className="mx-auto mt-14 max-w-xl">
             <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
               {p.compare.title}
