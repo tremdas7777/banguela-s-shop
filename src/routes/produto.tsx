@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { GIFT } from "@/lib/gift";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { PantufaOferta } from "@/components/shop/PantufaOferta";
+import { TabelaMedidas } from "@/components/shop/TabelaMedidas";
 import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
 import { temDestaquesPijama } from "@/lib/pijama-destaques";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -21,6 +22,7 @@ import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
 import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
+import { pecasComTabela } from "@/lib/medidas";
 import { addToCart, markCartCheckout, setCartOpen, setCartPantufas } from "@/lib/cart";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
@@ -46,6 +48,11 @@ import {
 
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
+  // Conjuntos que não são mais vendidos sozinhos (ex.: kit avulso) abrem o combo.
+  beforeLoad: ({ search }) => {
+    const to = getBundle(bundleIdFromSearch(search)).redirectTo;
+    if (to) throw redirect({ to: "/produto", search: { plano: to }, replace: true });
+  },
   loaderDeps: ({ search }) => ({ plano: search.plano }),
   loader: ({ deps }) => ({ id: bundleIdFromSearch({ plano: deps.plano }) }),
   head: ({ loaderData }) => {
@@ -393,6 +400,15 @@ function Page() {
                 </div>
               </div>
             )}
+
+            {(() => {
+              const pecas = pecasComTabela(p.id);
+              return pecas ? (
+                <div className="mt-6 flex justify-end">
+                  <TabelaMedidas pecas={pecas} infantilPrimeiro={p.id === "pijamai"} />
+                </div>
+              ) : null;
+            })()}
 
             {p.options.length > 0 && (
               <div

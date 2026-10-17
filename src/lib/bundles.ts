@@ -172,6 +172,8 @@ export type Bundle = {
   compare?: { title: string; rows: readonly string[] };
   /** false = não aparece nas vitrines (só pela página do grupo). */
   listed?: boolean;
+  /** Produto que não é mais vendido sozinho: a página leva para este. */
+  redirectTo?: BundleId;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
   kids?: {
     id: BundleId;
@@ -288,9 +290,14 @@ type KitDef = {
   optionNotes?: Record<string, string>;
 };
 
-const TAM_INF = ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"];
-const TAM_F = ["PP", "P", "M", "G", "GG"];
-const TAM_M = ["P", "M", "G", "GG"];
+const TAM_INF = ["2 anos", "4 anos", "6 anos", "8 anos", "10 anos", "12 anos", "14 anos"];
+const TAM_ADULTO = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
+const TAM_F = TAM_ADULTO;
+const TAM_M = TAM_ADULTO;
+/** Combo casal: cada peça do infantil 2 anos ao adulto XGG. */
+const TAM_COMBO = [...TAM_INF, ...TAM_ADULTO];
+/** "PP, P, M, G e GG" */
+const listaTamanhos = (t: readonly string[]) => `${t.slice(0, -1).join(", ")} e ${t.at(-1)}`;
 const CUIDADOS = "Lavar na máquina com água fria, do avesso. Não usar alvejante nem secadora.";
 
 function kit(k: KitDef): Bundle[] {
@@ -299,7 +306,6 @@ function kit(k: KitDef): Bundle[] {
     img: img(k.imgs[0]!),
     images: k.imgs.map(img),
     category: "conforto" as const,
-    group: k.group,
   };
   const label: Record<KitModo, string> = {
     casal: "Combo casal",
@@ -317,25 +323,34 @@ function kit(k: KitDef): Bundle[] {
     ...o,
     name: o.name.replace(/ (dela|dele|infantil)$/, ""),
   });
-  const options: Record<KitModo, ProductOption[]> = {
-    casal: [
-      ...k.cores("dela"),
-      { name: "Tamanho dela", values: TAM_F },
-      ...k.cores("dele"),
-      { name: "Tamanho dele", values: TAM_M },
-    ],
-    f: [...k.cores("dela").map(sem), { name: "Tamanho", values: TAM_F }],
-    m: [...k.cores("dele").map(sem), { name: "Tamanho", values: TAM_M }],
-    i: [...k.cores("infantil").map(sem), { name: "Idade", values: TAM_INF }],
+  // Camiseta e calça (ou short) com tamanhos separados, logo depois da cor de cada peça.
+  const pecaTam = k.peca === "short" ? "do short" : "da calça";
+  const montar = (quem: "dela" | "dele" | "infantil", values: string[]): ProductOption[] => {
+    const suf = quem === "infantil" ? "" : ` ${quem}`;
+    const camiseta = { name: `Tamanho da camiseta${suf}`, values };
+    const peca = { name: `Tamanho ${pecaTam}${suf}`, values };
+    const cores = k.cores(quem);
+    return cores.length === 2 ? [cores[0]!, camiseta, cores[1]!, peca] : [...cores, camiseta, peca];
   };
+  const options: Record<KitModo, ProductOption[]> = {
+    casal: [...montar("dela", TAM_COMBO), ...montar("dele", TAM_COMBO)],
+    f: montar("dela", TAM_F).map(sem),
+    m: montar("dele", TAM_M).map(sem),
+    i: montar("infantil", TAM_INF).map(sem),
+  };
+  const porPeca = [
+    "Por peça",
+    `Tamanho da camiseta e ${pecaTam} escolhidos separadamente`,
+  ] as const;
   const tamanhos: Record<KitModo, (readonly [string, string])[]> = {
     casal: [
-      ["Tamanhos dela", "PP, P, M, G e GG"],
-      ["Tamanhos dele", "P, M, G e GG"],
+      ["Tamanhos infantis", listaTamanhos(TAM_INF)],
+      ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
+      porPeca,
     ],
-    f: [["Tamanhos", "PP, P, M, G e GG"]],
-    m: [["Tamanhos", "P, M, G e GG"]],
-    i: [["Tamanhos", "4, 6, 8, 10 e 12 anos"]],
+    f: [["Tamanhos", listaTamanhos(TAM_F)], porPeca],
+    m: [["Tamanhos", listaTamanhos(TAM_M)], porPeca],
+    i: [["Tamanhos", listaTamanhos(TAM_INF)], porPeca],
   };
   const make = (modo: KitModo): Bundle => {
     const casal = modo === "casal";
@@ -355,14 +370,15 @@ function kit(k: KitDef): Bundle[] {
       benefits: casal
         ? [
             `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
-            "Sai mais barato que comprar os dois conjuntos separados",
-            "Cada um escolhe o seu modelo e o seu tamanho",
+            "Tamanhos do infantil 2 anos ao adulto XGG",
+            "Cada um escolhe a cor e o tamanho de cada peça",
           ]
         : [
             `${conjunto[modo]}: 1 camiseta e 1 ${k.peca}`,
             "Camiseta de algodão jersey fio 24/1",
+            `Tamanho da camiseta e ${pecaTam} escolhidos separadamente`,
             modo === "i"
-              ? "Tamanhos de 4 a 12 anos"
+              ? "Tamanhos de 2 a 14 anos"
               : "Quer para os dois? O combo casal sai com desconto",
           ],
       description: [
@@ -371,7 +387,7 @@ function kit(k: KitDef): Bundle[] {
           : `Conjunto ${quem} de camiseta e ${k.peca} com estampa de dragão. ${k.coresTexto}`,
         `${k.material} ${k.clima}`,
         casal
-          ? "Os tamanhos dela e dele são escolhidos separadamente, e o combo sai mais barato que os dois conjuntos avulsos. Um presente lindo para namorados, aniversário de namoro ou casamento."
+          ? `Cada peça tem o seu tamanho, do infantil 2 anos ao adulto XGG: dá para montar o combo até com uma criança. Um presente lindo para namorados, aniversário de namoro ou casamento.`
           : "Também dá para levar o combo casal, com os dois conjuntos e desconto, ou o conjunto infantil para as crianças combinarem com os pais.",
       ],
       specs: [
@@ -409,14 +425,14 @@ function kit(k: KitDef): Bundle[] {
         },
         casal
           ? {
-              title: "Mais barato que comprar separado",
-              text: "No combo casal cada um escolhe o seu modelo e o seu tamanho, e o kit sai mais barato que os dois conjuntos avulsos. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.",
+              title: "Cada peça no tamanho certo",
+              text: `No combo casal cada um escolhe a cor e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao adulto XGG. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
               ...(k.imgs[2] ? { media: img(k.imgs[2]) } : {}),
             }
           : modo === "i"
             ? {
                 title: "Combina com o pijama dos pais",
-                text: "O conjunto infantil tem a mesma estampa dos conjuntos adultos, do 4 ao 12 anos. Monte a família inteira de dragão e garanta a foto do ano.",
+                text: "O conjunto infantil tem a mesma estampa dos conjuntos adultos, do 2 ao 14 anos. Monte a família inteira de dragão e garanta a foto do ano.",
               }
             : {
                 title: "Quer combinar com alguém?",
@@ -428,7 +444,10 @@ function kit(k: KitDef): Bundle[] {
         ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
         : `${conjunto[modo]} de pijama: 1 camiseta de algodão e 1 ${k.peca}.`,
       checkoutUrl: `/checkout?plano=${k.ids[modo]}`,
-      ...(casal ? { badge: "Kit casal" } : { listed: false }),
+      // Só o combo casal está à venda; os conjuntos avulsos levam para ele.
+      ...(casal
+        ? { badge: "Kit casal", group: k.group }
+        : { listed: false, redirectTo: k.ids.casal }),
     };
   };
   return (["casal", "f", "m", "i"] as const).map(make);
@@ -519,22 +538,22 @@ const baseBundles: Bundle[] = [
       compareAtPrice: 104.9,
       options: [
         { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
-        { name: "Idade", values: ["4 anos", "6 anos", "8 anos", "10 anos", "12 anos"] },
+        { name: "Idade", values: TAM_INF },
       ],
     },
     name: "Calça Pijama de Dragão",
-    tag: "Do infantil 4 ao XGG",
+    tag: "Do infantil 2 ao XGG",
     price: 90.9,
     compareAtPrice: 125.9,
     img: img("p1_pijama.jpg"),
     images: [img("p1_pijama.jpg"), img("p1_branco.jpg"), img("p1_preto.jpg"), img("p1_casal.jpg")],
     options: [
       { name: "Modelo", values: ["Dragão Branco", "Dragão Preto"] },
-      { name: "Tamanho", values: ["P", "M", "G", "GG", "XGG"] },
+      { name: "Tamanho", values: TAM_ADULTO },
     ],
     optionImages: { "Dragão Branco": img("p1_branco.jpg"), "Dragão Preto": img("p1_preto.jpg") },
     benefits: [
-      "Tamanhos do infantil 4 ao adulto XGG",
+      "Tamanhos do infantil 2 ao adulto XGG",
       "Algodão felpudo, macio e durável",
       "Cós com elástico e cordão ajustável",
     ],
@@ -546,8 +565,8 @@ const baseBundles: Bundle[] = [
       ["Modelos", "Dragão Branco e Dragão Preto"],
       ["Tecido", "Algodão felpudo, macio por dentro"],
       ["Cintura", "Elástico com cordão de ajuste"],
-      ["Tamanhos infantis", "4, 6, 8, 10 e 12 (idade aproximada em anos)"],
-      ["Tamanhos adultos", "P, M, G, GG e XGG"],
+      ["Tamanhos infantis", "2, 4, 6, 8, 10, 12 e 14 (idade aproximada em anos)"],
+      ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
       [
         "Cuidados",
         "Lavar à mão ou na máquina no ciclo delicado, com água fria. Não usar secadora nem alvejante.",

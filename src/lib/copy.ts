@@ -23,7 +23,7 @@ export const PRODUCT_COPY: Readonly<Record<string, readonly RichSection[]>> = {
     },
     {
       title: "Conforto para a família toda 👨‍👩‍👧‍👦",
-      text: "Para relaxar sozinho, ficar agarradinho com o seu amor ou combinar com as crianças: tem do infantil 4 anos ao adulto XGG. Escolha um modelo para cada um e transforme a noite de filme em noite de dragões.",
+      text: "Para relaxar sozinho, ficar agarradinho com o seu amor ou combinar com as crianças: tem do infantil 2 anos ao adulto XGG. Escolha um modelo para cada um e transforme a noite de filme em noite de dragões.",
       media: img("p1_casal.jpg"),
     },
   ],
