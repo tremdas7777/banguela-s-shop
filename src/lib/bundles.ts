@@ -156,7 +156,7 @@ export type Bundle = {
   group?: string;
   /** Rótulo da opção dentro do grupo ("Combo casal", "Só feminino"...). */
   groupLabel?: string;
-  /** Texto curto mostrado embaixo de uma opção (chave = nome da opção sem "dela"/"dele"). */
+  /** Texto curto mostrado embaixo de uma opção (chave = nome da opção sem o "(1º/2º conjunto)"). */
   optionNotes?: Readonly<Record<string, string>>;
   /** Descrição em blocos abaixo do produto (texto + GIF/foto ao lado), como nas lojas grandes. */
   richSections?: readonly RichSection[];
@@ -319,24 +319,27 @@ function kit(k: KitDef): Bundle[] {
     m: "Conjunto masculino",
     i: "Conjunto infantil",
   };
-  const sem = (o: ProductOption): ProductOption => ({
-    ...o,
-    name: o.name.replace(/ (dela|dele|infantil)$/, ""),
-  });
   // Camiseta e calça (ou short) com tamanhos separados, logo depois da cor de cada peça.
+  // No combo, as peças de cada pessoa ficam sob "1º conjunto" / "2º conjunto".
   const pecaTam = k.peca === "short" ? "do short" : "da calça";
-  const montar = (quem: "dela" | "dele" | "infantil", values: string[]): ProductOption[] => {
-    const suf = quem === "infantil" ? "" : ` ${quem}`;
+  const montar = (
+    quem: "dela" | "dele" | "infantil",
+    values: string[],
+    n?: 1 | 2,
+  ): ProductOption[] => {
+    const suf = n ? ` (${n}º conjunto)` : "";
     const camiseta = { name: `Tamanho da camiseta${suf}`, values };
     const peca = { name: `Tamanho ${pecaTam}${suf}`, values };
-    const cores = k.cores(quem);
+    const cores = k
+      .cores(quem)
+      .map((o) => ({ ...o, name: `${o.name.replace(/ (dela|dele|infantil)$/, "")}${suf}` }));
     return cores.length === 2 ? [cores[0]!, camiseta, cores[1]!, peca] : [...cores, camiseta, peca];
   };
   const options: Record<KitModo, ProductOption[]> = {
-    casal: [...montar("dela", TAM_COMBO), ...montar("dele", TAM_COMBO)],
-    f: montar("dela", TAM_F).map(sem),
-    m: montar("dele", TAM_M).map(sem),
-    i: montar("infantil", TAM_INF).map(sem),
+    casal: [...montar("dela", TAM_COMBO, 1), ...montar("dele", TAM_COMBO, 2)],
+    f: montar("dela", TAM_F),
+    m: montar("dele", TAM_M),
+    i: montar("infantil", TAM_INF),
   };
   const porPeca = [
     "Por peça",
@@ -362,7 +365,9 @@ function kit(k: KitDef): Bundle[] {
       id: k.ids[modo],
       name: casal ? k.title : `${k.title} · ${conjunto[modo]}`,
       groupLabel: label[modo],
-      tag: casal ? `2 camisetas + 2 ${pecas}, para ela e para ele` : `1 camiseta + 1 ${k.peca}`,
+      tag: casal
+        ? `2 camisetas + 2 ${pecas}, um conjunto para cada pessoa`
+        : `1 camiseta + 1 ${k.peca}`,
       price,
       compareAtPrice,
       options: options[modo],
@@ -393,7 +398,7 @@ function kit(k: KitDef): Bundle[] {
       specs: [
         [
           "Vem no pedido",
-          casal ? `2 camisetas + 2 ${pecas} (dela e dele)` : `1 camiseta + 1 ${k.peca}`,
+          casal ? `2 camisetas + 2 ${pecas} (dois conjuntos)` : `1 camiseta + 1 ${k.peca}`,
         ],
         ...k.specsPeca,
         ...tamanhos[modo],
@@ -1225,7 +1230,7 @@ export function parseVariant(b: Bundle, raw: string | undefined | null): string[
 }
 
 /**
- * Variação legível. Com o produto, inclui o nome de cada opção ("Tamanho dela: M"),
+ * Variação legível. Com o produto, inclui o nome de cada opção ("Tamanho da calça (1º conjunto): M"),
  * para o pedido não ficar ambíguo em kits com várias opções do mesmo tipo.
  */
 export const variantLabel = (values: readonly string[], b?: Bundle) =>

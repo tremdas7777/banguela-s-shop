@@ -46,6 +46,9 @@ import {
   productLabel,
 } from "@/lib/bundles";
 
+/** Sufixo das opções do combo: "Camiseta (1º conjunto)". */
+const CONJUNTO = / \(([12])º conjunto\)$/;
+
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
   // Conjuntos que não são mais vendidos sozinhos (ex.: kit avulso) abrem o combo.
@@ -416,28 +419,27 @@ function Page() {
                 className={`mt-6 space-y-5 rounded-2xl transition ${nudge ? "bg-[var(--sale)]/5 p-4 ring-2 ring-[var(--sale)]/40" : ""}`}
               >
                 {p.options.map((o, i) => {
-                  // Combo casal: opções "... dela"/"... dele" agrupadas sob um título por pessoa.
-                  const quem = / (dela|dele)$/.exec(o.name)?.[1];
-                  const prev =
-                    i > 0 ? / (dela|dele)$/.exec(p.options[i - 1]!.name)?.[1] : undefined;
+                  // Combo casal: opções "... (1º conjunto)"/"... (2º conjunto)" agrupadas sob um título.
+                  const quem = CONJUNTO.exec(o.name)?.[1];
+                  const prev = i > 0 ? CONJUNTO.exec(p.options[i - 1]!.name)?.[1] : undefined;
                   return (
                     <div key={o.name}>
                       {quem && quem !== prev && (
                         <div
                           className={`mb-3 border-b border-[var(--border)] pb-1.5 text-[15px] font-extrabold text-[var(--night)] ${i > 0 ? "pt-3" : ""}`}
                         >
-                          {quem === "dela" ? "Conjunto dela" : "Conjunto dele"}
+                          {quem}º conjunto
                         </div>
                       )}
                       <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
-                        {quem ? o.name.replace(/ (dela|dele)$/, "") : o.name}
+                        {o.name.replace(CONJUNTO, "")}
                         {sel[o.name] && (
                           <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
                         )}
                       </div>
-                      {p.optionNotes?.[o.name.replace(/ (dela|dele)$/, "")] && (
+                      {p.optionNotes?.[o.name.replace(CONJUNTO, "")] && (
                         <p className="-mt-1.5 mb-2.5 text-[12.5px] text-[var(--ink)]/60">
-                          {p.optionNotes[o.name.replace(/ (dela|dele)$/, "")]}
+                          {p.optionNotes[o.name.replace(CONJUNTO, "")]}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2">
