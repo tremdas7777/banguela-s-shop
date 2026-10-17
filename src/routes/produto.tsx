@@ -523,10 +523,6 @@ function Page() {
             <h2 className="text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
               O que dizem os clientes
             </h2>
-            <p className="mx-auto mt-1.5 max-w-md text-center text-[12.5px] text-[var(--ink)]/55">
-              Avaliações selecionadas de clientes da nossa loja internacional, traduzidas para o
-              português.
-            </p>
             <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {p.reviews.map((r) => (
                 <article
