@@ -1,16 +1,16 @@
 import { Check, Frown } from "lucide-react";
 import { BeforeAfter } from "@/components/shop/BeforeAfter";
 
-/** Blocos foto + texto, na ordem da página de referência. */
+/** Blocos imagem + texto, na ordem da página de referência (os dois primeiros são WebP animado, como GIF). */
 const BLOCOS = [
   {
-    img: "/pijama/destaque-fas.webp",
+    img: "/pijama/gif-fas.webp",
     alt: "Calça branca e calça cinza do pijama de dragão lado a lado",
     title: "Pijama de Dragão 🌟 – O queridinho dos fãs!",
     text: "Nossos pijamas de dragão conquistaram quem é fã do Banguela. Com muito conforto, felpa macia e estampa de dragão fofinha, viraram o pijama favorito de quem ama a saga.",
   },
   {
-    img: "/pijama/destaque-qualidade.webp",
+    img: "/pijama/gif-qualidade.webp",
     alt: "Mão passando no tecido felpudo da calça cinza",
     title: "Qualidade incomparável 🧵",
     text: "Feito com felpa macia e antialérgica, que dura e continua confortável por muito tempo. Nada de se preocupar com desgaste: o tecido é resistente e deixa você quentinho noite após noite.",
