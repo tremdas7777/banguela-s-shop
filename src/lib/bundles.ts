@@ -151,6 +151,14 @@ export type Bundle = {
   optionNotes?: Readonly<Record<string, string>>;
   /** Descrição em blocos abaixo do produto (texto + GIF/foto ao lado), como nas lojas grandes. */
   richSections?: readonly { title: string; text: string; media?: string }[];
+  /** Avaliações selecionadas de clientes reais da loja internacional (traduzidas). */
+  reviews?: readonly {
+    author: string;
+    rating: number;
+    text: string;
+    date: string;
+    photos?: readonly string[];
+  }[];
   /** Quadro comparativo "Banguela Shop x Outras": cada linha é uma vantagem. */
   compare?: { title: string; rows: readonly string[] };
   /** false = não aparece nas vitrines (só pela página do grupo). */
@@ -477,6 +485,41 @@ export const bundles: Bundle[] = [
         text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, a calça de pijama de dragão deixa todo mundo quentinho, confortável e feliz. Tem do infantil ao XGG.",
       },
     ],
+    reviews: [
+      {
+        author: "Cliente",
+        rating: 5,
+        text: "Meu Deus, é a melhor coisa que já comprei. Essas calças são as melhores: confortáveis, no tamanho certo e ainda com folga, vieram exatamente como esperado. São lindas e já quero comprar o macacão também. As melhores calças de todos os tempos!",
+        date: "25/02/2026",
+        photos: [img("rev-pijama-1.jpg")],
+      },
+      {
+        author: "Cliente",
+        rating: 5,
+        text: "Amei demais esse conjunto, não vejo a hora de dar o do meu namorado. É muito macio e felpudo por dentro. A comunicação foi ótima e a espera valeu a pena. O tamanho é certinho.",
+        date: "15/12/2025",
+        photos: [img("rev-pijama-2.jpg")],
+      },
+      {
+        author: "Cliente",
+        rating: 5,
+        text: "Fiquei surpresa, estava desconfiada, mas a qualidade é ótima, super felpudo e muito fofo. Zero arrependimento! Com certeza vou comprar mais.",
+        date: "23/12/2025",
+        photos: [img("rev-pijama-3.jpg")],
+      },
+      {
+        author: "Ben",
+        rating: 5,
+        text: "Qualidade incrível, valeu muito a pena. Estou muito feliz com o produto. Só recomendo pedir com antecedência se for presente para uma data especial.",
+        date: "11/02/2026",
+      },
+      {
+        author: "Anouk D.",
+        rating: 5,
+        text: "EU AMEEEEI as calças de pijama! Era presente de Natal para o meu namorado, mas eu amei demais. Recebi atualizações do pedido e adorei a qualidade, como é macia e quentinha. Recomendo muito! 🤍",
+        date: "20/12/2025",
+      },
+    ],
     compare: {
       title: "Feita para o conforto, feita para fãs",
       rows: [
@@ -549,6 +592,27 @@ export const bundles: Bundle[] = [
         title: "Conforto para todos 👨‍👨‍👧‍👦",
         text: "Seja para relaxar sozinho, ficar agarradinho com o seu amor ou curtir com a família, o Snuggy Dragão tem tudo para deixar todo mundo quentinho e feliz. Tem versão adulta e infantil.",
         media: img("snuggy-gif-3.webp"),
+      },
+    ],
+    reviews: [
+      {
+        author: "Christofer G.",
+        rating: 5,
+        text: "EU AMEI, TEM MUITA QUALIDADE, É SUPER CONFORTÁVEL E LINDO, EU AMOOOO!! 😍",
+        date: "06/11/2024",
+      },
+      {
+        author: "Cliente",
+        rating: 5,
+        text: "É muito quentinho e confortável para dormir no inverno. E esse macacão é muito fofo 😁",
+        date: "05/12/2024",
+        photos: [img("rev-snuggy-1.jpg"), img("rev-snuggy-2.jpg")],
+      },
+      {
+        author: "Salvatore C.",
+        rating: 5,
+        text: "Ótima qualidade, entrega rápida. Excelente!",
+        date: "08/01/2026",
       },
     ],
     compare: {

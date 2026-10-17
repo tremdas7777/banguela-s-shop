@@ -518,6 +518,54 @@ function Page() {
           </section>
         )}
 
+        {p.reviews && p.reviews.length > 0 && (
+          <section className="mt-14">
+            <h2 className="text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+              O que dizem os clientes
+            </h2>
+            <p className="mx-auto mt-1.5 max-w-md text-center text-[12.5px] text-[var(--ink)]/55">
+              Avaliações selecionadas de clientes da nossa loja internacional, traduzidas para o
+              português.
+            </p>
+            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {p.reviews.map((r) => (
+                <article
+                  key={r.author + r.date}
+                  className="rounded-[20px] border border-[var(--border)] bg-white p-5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span
+                      className="text-[15px] tracking-[0.1em] text-[var(--star)]"
+                      aria-label={`${r.rating} de 5 estrelas`}
+                    >
+                      {"★".repeat(r.rating)}
+                      <span className="text-[var(--ink)]/15">{"★".repeat(5 - r.rating)}</span>
+                    </span>
+                    <span className="text-[12px] text-[var(--ink)]/45">{r.date}</span>
+                  </div>
+                  <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/80">{r.text}</p>
+                  {r.photos && r.photos.length > 0 && (
+                    <div className="mt-3 flex gap-2">
+                      {r.photos.map((src) => (
+                        <img
+                          key={src}
+                          src={src}
+                          alt="Foto enviada pelo cliente"
+                          loading="lazy"
+                          className="h-20 w-20 rounded-xl object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-[var(--night)]">
+                    {r.author}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="mt-14">
           <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
             Complete o visual
