@@ -667,7 +667,10 @@ function Page() {
                 </p>
                 {mutation.isError && (
                   <p role="alert" className="px-4 pb-3 text-sm text-destructive">
-                    Não foi possível gerar o Pix agora. Confira seus dados e tente novamente.
+                    {/* Mensagem do gateway quando legível; erro técnico de validação vira o texto padrão. */}
+                    {mutation.error instanceof Error && /^[^[{]/.test(mutation.error.message)
+                      ? mutation.error.message
+                      : "Não foi possível gerar o Pix agora. Confira seus dados e tente novamente."}
                   </p>
                 )}
                 <GreenButton

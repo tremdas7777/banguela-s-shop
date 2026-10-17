@@ -13,9 +13,12 @@ export const Route = createFileRoute("/api/public/pix-webhook")({
         const isUmbrella = gw === "um";
         // SagacePay notifica com ?gw=sg e { event: "sale.paid", data: { id } }; o pedido é salvo com prefixo "sg_".
         const isSagace = gw === "sg";
+        // PayShark notifica com ?gw=ps e { id, status, externalRef }; o pedido é salvo com prefixo "ps_".
+        const isPayShark = gw === "ps";
         const rawId =
           (isUmbrella ? (body?.objectId ?? body?.data?.id ?? body?.id) : undefined) ??
           (isSagace ? (body?.data?.id ?? body?.id ?? body?.sale?.id) : undefined) ??
+          (isPayShark ? (body?.id ?? body?.data?.id) : undefined) ??
           body?.transaction_id ??
           body?.id ??
           body?.transaction?.id ??
@@ -23,7 +26,15 @@ export const Route = createFileRoute("/api/public/pix-webhook")({
           body?.data?.id;
         // HyperCash (cartão) notifica nesta mesma rota com ?gw=hc; o pedido é salvo com prefixo "hc_".
         const isCard = gw === "hc";
-        const prefix = isCard ? "hc_" : isUmbrella ? "um_" : isSagace ? "sg_" : "";
+        const prefix = isCard
+          ? "hc_"
+          : isUmbrella
+            ? "um_"
+            : isSagace
+              ? "sg_"
+              : isPayShark
+                ? "ps_"
+                : "";
         const id = rawId == null ? "" : `${prefix}${String(rawId)}`;
         console.log("pix-webhook", body?.event, id);
         if (!/^[\w-]{1,64}$/.test(id)) return Response.json({ ok: true });

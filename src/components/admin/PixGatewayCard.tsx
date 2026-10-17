@@ -5,21 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  deletePaySharkKeyFn,
   deletePixgateKeyFn,
   deleteSagacePayKeyFn,
   deleteUmbrellaKeyFn,
   getPixGatewayStatus,
+  savePaySharkKeyFn,
   savePixgateKeyFn,
   saveSagacePayKeyFn,
   saveUmbrellaKeyFn,
   setPixGatewayFn,
+  testPaySharkFn,
   testPixgateFn,
   testSagacePayFn,
   testUmbrellaFn,
 } from "@/lib/pix-gateway.functions";
 
-type Gateway = "pixgate" | "umbrella" | "sagacepay";
-const GATEWAYS = ["pixgate", "umbrella", "sagacepay"] as const;
+type Gateway = "pixgate" | "umbrella" | "sagacepay" | "payshark";
+const GATEWAYS = ["pixgate", "umbrella", "sagacepay", "payshark"] as const;
 type KeyInfo = { key: string | null; source: "admin" | "secret" | null };
 type Status = {
   selected: Gateway;
@@ -32,14 +35,16 @@ const LABEL: Record<Gateway, string> = {
   pixgate: "PixGate",
   umbrella: "Umbrella",
   sagacepay: "SagacePay",
+  payshark: "PayShark",
 };
 const SECRET: Record<Gateway, string> = {
   pixgate: "PIXGATE_API_KEY",
   umbrella: "UMBRELLA_API_KEY",
   sagacepay: "SAGACEPAY_API_KEY",
+  payshark: "PAYSHARK_API_KEY",
 };
 
-/** Escolha do gateway do Pix (PixGate, Umbrella ou SagacePay) + chave de cada um. */
+/** Escolha do gateway do Pix (PixGate, Umbrella, SagacePay ou PayShark) + chave de cada um. */
 export function PixGatewayCard({ password }: { password: string }) {
   const statusFn = useServerFn(getPixGatewayStatus);
   const setFn = useServerFn(setPixGatewayFn);
@@ -52,10 +57,14 @@ export function PixGatewayCard({ password }: { password: string }) {
   const saveSagaceFn = useServerFn(saveSagacePayKeyFn);
   const deleteSagaceFn = useServerFn(deleteSagacePayKeyFn);
   const testSagace = useServerFn(testSagacePayFn);
+  const savePaySharkFn = useServerFn(savePaySharkKeyFn);
+  const deletePaySharkFn = useServerFn(deletePaySharkKeyFn);
+  const testPayShark = useServerFn(testPaySharkFn);
   const keyFns = {
     pixgate: { save: savePixgateFn, remove: deletePixgateFn, test: testPixgate },
     umbrella: { save: saveUmbrellaFn, remove: deleteUmbrellaFn, test: testUmbrella },
     sagacepay: { save: saveSagaceFn, remove: deleteSagaceFn, test: testSagace },
+    payshark: { save: savePaySharkFn, remove: deletePaySharkFn, test: testPayShark },
   };
 
   const [status, setStatus] = useState<Status | null>(null);
