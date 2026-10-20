@@ -502,7 +502,8 @@ function kit(k: KitDef): Bundle[] {
   return (["casal", "f", "m", "i"] as const).map(make);
 }
 
-const MODELOS = ["Conjunto 1", "Conjunto 2"];
+/** Os dois kits de pijama têm o mesmo par de conjuntos: preto (camiseta preta) e branco. */
+const MODELOS = ["Conjunto preto", "Conjunto branco"];
 
 const kits: Bundle[] = [
   ...kit({
@@ -514,7 +515,7 @@ const kits: Bundle[] = [
     imgs: ["kit-casal.jpg", "kit-casal-b.jpg", "kit-casal-c.jpg"],
     optionNotes: {
       Modelo:
-        "Conjunto 1: camiseta branca + short branco · Conjunto 2: camiseta preta + short cinza",
+        "Conjunto preto: camiseta preta + short cinza · Conjunto branco: camiseta branca + short branco",
     },
     cores: (quem) => [
       {
@@ -523,20 +524,20 @@ const kits: Bundle[] = [
       },
     ],
     coresTexto:
-      "São dois conjuntos: o Conjunto 1, de camiseta branca com olhinhos azuis e short branco estampado, e o Conjunto 2, de camiseta preta com olhinhos verdes e short cinza estampado.",
+      "São dois conjuntos: o Conjunto preto, de camiseta preta com olhinhos verdes e short cinza estampado, e o Conjunto branco, de camiseta branca com olhinhos azuis e short branco estampado.",
     material:
       "A camiseta é de algodão jersey fio 24/1, macia e respirável, e o short é de algodão leve com elástico na cintura.",
     clima: "Perfeito para as noites quentes.",
     specsPeca: [
-      ["Conjunto 1", "Camiseta branca com olhos azuis e short branco estampado"],
-      ["Conjunto 2", "Camiseta preta com olhos verdes e short cinza estampado"],
+      ["Conjunto preto", "Camiseta preta com olhos verdes e short cinza estampado"],
+      ["Conjunto branco", "Camiseta branca com olhos azuis e short branco estampado"],
       ["Camiseta", "Algodão jersey fio 24/1"],
       ["Short", "Algodão, com elástico na cintura"],
     ],
     pontos: [
       "Camiseta de algodão jersey fio 24/1, macia e respirável",
       "Short de algodão leve, com elástico na cintura",
-      "Dois modelos: Conjunto 1 (branco) e Conjunto 2 (preto e cinza)",
+      "Dois modelos: Conjunto preto e Conjunto branco",
       "Fresquinho para as noites quentes",
     ],
   }),
@@ -554,7 +555,7 @@ const kits: Bundle[] = [
     cores: (quem) => [
       {
         name: `Modelo ${quem}`,
-        values: ["Conjunto preto", "Conjunto branco"],
+        values: MODELOS,
       },
     ],
     coresTexto:
