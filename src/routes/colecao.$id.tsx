@@ -3,16 +3,37 @@ import { ChevronRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { brand } from "@/lib/brand";
-import { categories, findCollection } from "@/lib/bundles";
+import { categories, findCollection, getBundle, type CollectionBanner } from "@/lib/bundles";
+import { titulo, type MaisVendidos } from "@/lib/mais-vendidos";
+import { getMaisVendidos } from "@/lib/mais-vendidos.functions";
+
+/** "Mais vendidos" vem dos pedidos (servidor); as outras coleções saem do catálogo. */
+const MAIS_VENDIDOS = "mais-vendidos";
+const colecaoMaisVendidos = (m: MaisVendidos) => ({
+  id: MAIS_VENDIDOS,
+  name: titulo(m),
+  desc: m.reais
+    ? "Os produtos que os clientes da loja mais estão levando"
+    : "Os produtos que a gente mais recomenda",
+  img: getBundle(m.ids[0]).img,
+  banner: undefined as CollectionBanner | undefined,
+  items: m.ids.map((id) => getBundle(id)),
+});
 
 export const Route = createFileRoute("/colecao/$id")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    if (params.id === MAIS_VENDIDOS)
+      return { id: params.id, maisVendidos: await getMaisVendidos() };
     const c = findCollection(params.id);
     if (!c) throw notFound();
-    return { id: c.id };
+    return { id: c.id, maisVendidos: null };
   },
   head: ({ loaderData }) => {
-    const c = loaderData ? findCollection(loaderData.id) : undefined;
+    const c = loaderData?.maisVendidos
+      ? colecaoMaisVendidos(loaderData.maisVendidos)
+      : loaderData
+        ? findCollection(loaderData.id)
+        : undefined;
     if (!c) return {};
     const title = `${c.name} | ${brand.name}`;
     return {
@@ -29,8 +50,8 @@ export const Route = createFileRoute("/colecao/$id")({
 });
 
 function Page() {
-  const { id } = Route.useLoaderData();
-  const c = findCollection(id)!;
+  const { id, maisVendidos } = Route.useLoaderData();
+  const c = maisVendidos ? colecaoMaisVendidos(maisVendidos) : findCollection(id)!;
   const items = c.items;
 
   return (

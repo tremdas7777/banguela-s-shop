@@ -130,6 +130,22 @@ function Drawer({ onClose }: { onClose: () => void }) {
             <li>
               <Link
                 to="/colecao/$id"
+                params={{ id: "mais-vendidos" }}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-2xl py-2 pr-2"
+              >
+                <img
+                  src="/produtos/p2_snuggy.jpg"
+                  alt=""
+                  className="h-12 w-12 rounded-xl object-cover"
+                />
+                <span className="flex-1 text-[15px] font-semibold">Mais vendidos</span>
+                <ChevronRight className="h-4 w-4 text-[var(--ink)]/35" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/colecao/$id"
                 params={{ id: "kigurumi" }}
                 onClick={onClose}
                 className="flex items-center gap-3 rounded-2xl py-2 pr-2"
@@ -287,6 +303,13 @@ export function Header() {
         </Link>
 
         <nav className="hidden flex-1 justify-center gap-5 text-[14px] font-semibold text-[var(--night)] lg:flex xl:gap-7">
+          <Link
+            to="/colecao/$id"
+            params={{ id: "mais-vendidos" }}
+            className="py-2 transition-colors hover:text-[var(--primary)]"
+          >
+            Mais vendidos
+          </Link>
           <Link
             to="/colecao/$id"
             params={{ id: "kigurumi" }}

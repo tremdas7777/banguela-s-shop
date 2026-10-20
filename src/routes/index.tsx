@@ -6,10 +6,13 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { Shelf } from "@/components/shop/Shelf";
 import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
-import { bundlesByCategory, categories, type BundleId } from "@/lib/bundles";
+import { bundlesByCategory, categories, getBundle, type BundleId } from "@/lib/bundles";
+import { titulo, type MaisVendidos } from "@/lib/mais-vendidos";
+import { getMaisVendidos } from "@/lib/mais-vendidos.functions";
 
 // Sem head() aqui: a home herda título/descrição/og do __root.tsx.
 export const Route = createFileRoute("/")({
+  loader: () => getMaisVendidos(),
   component: Home,
 });
 
@@ -191,6 +194,27 @@ function SectionHead({ title, more }: { title: string; more?: ReactNode }) {
 const moreLink =
   "inline-flex shrink-0 items-center gap-0.5 text-[12.5px] font-bold uppercase tracking-[0.06em] text-[var(--night)] hover:text-[var(--primary)]";
 
+/** "Mais vendidos": pedidos da loja (pagos e pendentes), com os kigurumis na frente. */
+function MaisVendidosShelf({ m }: { m: MaisVendidos }) {
+  return (
+    <section className="container-edge pt-8 md:pt-12">
+      <SectionHead
+        title={titulo(m)}
+        more={
+          <Link to="/colecao/$id" params={{ id: "mais-vendidos" }} className={moreLink}>
+            Ver tudo <ChevronRight className="h-4 w-4" />
+          </Link>
+        }
+      />
+      <Shelf label={titulo(m)}>
+        {m.ids.map((id) => (
+          <ProductCard key={id} p={getBundle(id)} />
+        ))}
+      </Shelf>
+    </section>
+  );
+}
+
 /** "Explore por coleção": uma prateleira por coleção, produtos deslizando para o lado. */
 function Shelves() {
   return (
@@ -223,6 +247,7 @@ function Shelves() {
 
 /** collection: abre a página da coleção em vez de um produto. */
 const TYPES: { id: BundleId; label: string; img: string; collection?: string }[] = [
+  { id: "kgban2", label: "Kigurumi", img: img("kg-grupo.jpg"), collection: "kigurumi" },
   { id: "mdpreto", label: "Sleepo", img: img("md-preto.jpg"), collection: "moletons" },
   { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg"), collection: "pijamas" },
   { id: "bq15", label: "Brinquedos", img: img("bq15-1.jpg"), collection: "brinquedos" },
@@ -365,9 +390,11 @@ function FaqPreview() {
 }
 
 function Home() {
+  const maisVendidos = Route.useLoaderData();
   return (
     <SiteLayout>
       <Hero />
+      <MaisVendidosShelf m={maisVendidos} />
       <Shelves />
       <Categories />
       <PromoBanners />
