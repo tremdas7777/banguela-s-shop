@@ -212,8 +212,6 @@ export type Bundle = {
   optionCards?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Combo de pijamas: a página oferece ursinhos extras e, ao comprar, as pantufas. */
   comboExtras?: boolean;
-  /** Personagem do produto (pijama kigurumi): é o 1º pijama do combo. */
-  personagem?: string;
   /** Fica fora da promoção de 50% (ofertas com preço fechado, como os combos). */
   semPromo?: boolean;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
@@ -581,7 +579,7 @@ const kits: Bundle[] = [
 
 /**
  * Pijamas kigurumi de personagem: um produto por personagem, vendido em combo de 2 ou 4 (só o de 4
- * ganha ursinho de brinde). O 1º pijama é o da página; os outros podem ser de qualquer personagem. Na
+ * ganha ursinho de brinde). O cliente escolhe o personagem de cada pijama do combo. Na
  * página o cliente também pode levar pantufas dos personagens e ursinhos extras (produtos abaixo,
  * que não aparecem sozinhos nas vitrines).
  */
@@ -672,10 +670,6 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
   const foto = (sufixo = "") => img(`kg-${SLUG[k.nome]}${sufixo}.jpg`);
   // Ursinho de brinde só no combo de 4; no de 2 ele pode ser comprado à parte.
   const brinde = n === 4;
-  const outros =
-    n === 2
-      ? "o 2º pode ser de qualquer personagem"
-      : "os outros 3 podem ser de qualquer personagem";
   return {
     id: k.ids[n],
     name: `Pijama Kigurumi ${k.nome}`,
@@ -684,13 +678,10 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
     img: foto(),
     images: [foto(), foto("-capuz"), foto("-tecido"), foto("-ziper"), img("kg-grupo.jpg")],
     options: [
-      { name: `Tamanho (1º pijama: ${k.nome})`, values: TAM_COMBO },
-      ...ate(n)
-        .slice(1)
-        .flatMap((i) => [
-          { name: `Personagem (${i}º pijama)`, values: PERSONAGENS },
-          { name: `Tamanho (${i}º pijama)`, values: TAM_COMBO },
-        ]),
+      ...ate(n).flatMap((i) => [
+        { name: `Personagem (${i}º pijama)`, values: PERSONAGENS },
+        { name: `Tamanho (${i}º pijama)`, values: TAM_COMBO },
+      ]),
       ...(brinde ? [{ name: "Ursinho de brinde", values: PERSONAGENS }] : []),
     ],
     optionCards: { Personagem: KIGURUMI_FOTOS, "Ursinho de brinde": URSINHO_FOTOS },
@@ -700,7 +691,7 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
     },
     benefits: [
       `Combo de ${n} por ${brl(price)}: ${brl(price / n)} cada pijama`,
-      `O 1º é o ${k.de} ${k.nome} e ${outros}`,
+      "Você escolhe o personagem de cada pijama e pode repetir",
       "Do infantil 2 anos ao plus size G3",
       brinde
         ? "Ursinho de pelúcia de brinde no pedido"
@@ -708,15 +699,14 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
     ],
     description: [
       `Pijama kigurumi de corpo inteiro ${k.visual}. O tecido é macio e peluciado, gostoso na pele e quentinho para os dias frios.`,
-      `É vendido em combo: no combo de ${n}, o 1º pijama é o ${k.de} ${k.nome} e ${outros} (Stitch, Angel, Banguela ou Fúria da Luz). Cada um tem o seu tamanho, do infantil 2 anos ao plus size G3, para montar o combo do casal, dos filhos ou dos amigos.`,
+      `É vendido em combo: no combo de ${n} você escolhe o personagem de cada pijama (Stitch, Angel, Banguela ou Fúria da Luz) e pode repetir o mesmo quantas vezes quiser. Cada um tem o seu tamanho, do infantil 2 anos ao plus size G3, para montar o combo do casal, dos filhos ou dos amigos.`,
       brinde
         ? "No combo de 4 você ganha um ursinho de pelúcia de brinde, do personagem que escolher."
         : "Levando o combo de 4, você ganha também um ursinho de pelúcia de brinde.",
     ],
     specs: [
       ["Vem no pedido", `${n} pijamas kigurumi${brinde ? " + 1 ursinho de brinde" : ""}`],
-      ["1º pijama", k.nome],
-      ["Outros personagens", "Stitch, Angel, Banguela e Fúria da Luz"],
+      ["Personagens", "Stitch, Angel, Banguela e Fúria da Luz"],
       ["Tecido", "Pelúcia macia e peluciada"],
       ["Modelagem", "Macacão com capuz e zíper na frente, soltinho no corpo"],
       ["Tamanhos infantis", "2, 4, 6, 8, 10, 12 e 14"],
@@ -764,7 +754,6 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
     groupTitle: "Escolha o combo",
     unidades: n,
     comboExtras: true,
-    personagem: k.nome,
     semPromo: true,
     // Nas vitrines aparece o combo de 2; o de 4 fica no seletor da página.
     ...(n === 4 ? { listed: false } : {}),

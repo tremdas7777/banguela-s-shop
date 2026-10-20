@@ -58,11 +58,8 @@ import {
   productLabel,
 } from "@/lib/bundles";
 
-/**
- * Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)",
- * "Tamanho (1º pijama: Stitch)", "Numeração (2º par)".
- */
-const CONJUNTO = / \((\dº (?:conjunto|pijama|par)(?:: [^)]+)?)\)$/;
+/** Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)", "Tamanho (2º pijama)". */
+const CONJUNTO = / \((\dº (?:conjunto|pijama|par))\)$/;
 
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
@@ -142,12 +139,9 @@ function Page() {
   const extra = p.comboExtras ? comboExtrasItens(extras) : null;
   const extraItens = extra?.itens ?? [];
   const extraTotal = extra?.total ?? 0;
-  // Personagem de cada pijama do combo (o 1º é o da página), para oferecer as pantufas iguais.
-  const personagens = p.personagem
-    ? [
-        p.personagem,
-        ...p.options.filter((o) => o.name.startsWith("Personagem (")).map((o) => sel[o.name] ?? ""),
-      ]
+  // Personagem de cada pijama do combo, para oferecer as pantufas iguais.
+  const personagens = p.comboExtras
+    ? p.options.filter((o) => o.name.startsWith("Personagem (")).map((o) => sel[o.name] ?? "")
     : [];
 
   const choose = (name: string, value: string) => {
