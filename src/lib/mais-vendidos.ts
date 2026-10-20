@@ -24,7 +24,7 @@ export const DESTAQUES: readonly BundleId[] = [
   "kitcalca",
   "mdpreto",
   "pijama",
-  "pantufa",
+  "pantufa2",
 ];
 
 export const titulo = (m: MaisVendidos) => (m.reais ? "Mais vendidos" : "Destaques da loja");

@@ -11,24 +11,35 @@ import {
 import { pacotePantufas, PANTUFA_PACOTES, type ParPantufa } from "@/lib/combo-extras";
 import { cn } from "@/lib/utils";
 
-const INFANTIL = PANTUFA_NUMEROS.filter((n) => Number(n) <= 34);
-const ADULTO = PANTUFA_NUMEROS.filter((n) => Number(n) > 34);
+const GRUPOS = [
+  { label: "Infantil", numeros: PANTUFA_NUMEROS.filter((n) => Number(n) <= 34) },
+  { label: "Adulto", numeros: PANTUFA_NUMEROS.filter((n) => Number(n) > 34) },
+];
 
 /**
- * Popup do "Comprar" nos pijamas kigurumi: oferece as pantufas dos MESMOS personagens dos pijamas
- * escolhidos (uma por pijama, já marcadas). Saem em pacote de 2 ou 4 pares; o cliente só escolhe a
- * numeração e pode desmarcar as que não quer.
+ * Popup do "Comprar" nos pijamas: oferece as pantufas que combinam com os pijamas escolhidos (já
+ * marcadas). Saem em pacote de 2 ou 4 pares; o cliente só escolhe a numeração e pode desmarcar as
+ * que não quer.
  */
-export function KigurumiPantufas({
+export function OfertaPantufas({
   open,
   personagens,
+  rotulos,
+  descricao,
+  infantilPrimeiro = false,
   productPrice,
   onClose,
   onContinue,
 }: {
   open: boolean;
-  /** Personagem de cada pijama do combo, na ordem. */
+  /** Personagem de cada pantufa sugerida, na ordem. */
   personagens: readonly string[];
+  /** Linha embaixo do nome de cada pantufa ("do 1º pijama"). */
+  rotulos?: readonly string[];
+  /** Por que essas pantufas (ex.: "nas cores do seu pijama"). */
+  descricao: string;
+  /** Pijama infantil: a numeração infantil aparece primeiro. */
+  infantilPrimeiro?: boolean;
   /** Total do pedido sem as pantufas, para avisar quando elas liberam o frete grátis. */
   productPrice: number;
   onClose: () => void;
@@ -70,7 +81,7 @@ export function KigurumiPantufas({
             Pantufas para combinar com os pijamas
           </DialogTitle>
           <DialogDescription className="mt-1.5 text-center text-[14px] text-black/65">
-            Separamos as pantufas dos mesmos personagens que você escolheu:{" "}
+            Separamos as pantufas {descricao}:{" "}
             <b className="text-[var(--night)]">{precos.join(" ou ")}</b>.
           </DialogDescription>
 
@@ -113,9 +124,9 @@ export function KigurumiPantufas({
                       )}
                     >
                       {nome}
-                      {personagens.length > 1 && (
+                      {rotulos?.[i] && (
                         <span className="block text-[11.5px] font-semibold text-black/55">
-                          do {i + 1}º pijama
+                          {rotulos[i]}
                         </span>
                       )}
                     </span>
@@ -137,20 +148,15 @@ export function KigurumiPantufas({
                       <option value="" disabled>
                         Número
                       </option>
-                      <optgroup label="Infantil">
-                        {INFANTIL.map((n) => (
-                          <option key={n} value={n}>
-                            {n}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="Adulto">
-                        {ADULTO.map((n) => (
-                          <option key={n} value={n}>
-                            {n}
-                          </option>
-                        ))}
-                      </optgroup>
+                      {(infantilPrimeiro ? GRUPOS : [...GRUPOS].reverse()).map((g) => (
+                        <optgroup key={g.label} label={g.label}>
+                          {g.numeros.map((n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   )}
                 </div>

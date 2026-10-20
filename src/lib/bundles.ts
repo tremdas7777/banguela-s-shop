@@ -761,27 +761,52 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
   };
 }
 
+/** Pantufas: uma preta (Banguela), uma branca (Fúria da Luz), Stitch e Angel, em combo de 2 ou 4 pares. */
+const PANTUFA_ORDEM: readonly Personagem[] = ["Banguela", "Fúria da Luz", "Stitch", "Angel"];
+
 function comboPantufas(id: BundleId, n: 2 | 4, price: number): Bundle {
-  const nome = `${n} Pantufas de Personagem`;
   return {
     id,
-    name: nome,
-    tag: "Para combinar com os pijamas kigurumi",
+    name: "Pantufas de Pelúcia",
+    tag: "Banguela, Fúria da Luz, Stitch e Angel",
     price,
-    img: PANTUFA_P_FOTOS.Stitch!,
-    images: PERSONAGENS.map((p) => PANTUFA_P_FOTOS[p]!),
+    img: PANTUFA_P_FOTOS.Banguela!,
+    images: PANTUFA_ORDEM.map((p) => PANTUFA_P_FOTOS[p]!),
     options: ate(n).flatMap((i) => [
-      { name: `Personagem (${i}º par)`, values: PERSONAGENS },
+      { name: `Personagem (${i}º par)`, values: PANTUFA_ORDEM },
       { name: `Numeração (${i}º par)`, values: PANTUFA_NUMEROS },
     ]),
     optionCards: { Personagem: PANTUFA_P_FOTOS },
-    benefits: ["Pantufas de pelúcia dos personagens", "Numeração do 22 ao 46"],
+    benefits: [
+      `${n} pares por ${brl(price)}: ${brl(price / n)} cada par`,
+      "Você escolhe o personagem e a numeração de cada par",
+      "Numeração infantil e adulta, do 22 ao 46",
+    ],
+    description: [
+      "Pantufas de pelúcia fechadinhas e fofas, com o rostinho do personagem: o Banguela preto de olhos verdes, a Fúria da Luz branca de olhos azuis, o Stitch e a Angel.",
+      `São vendidas em combo: ${n} pares por ${brl(price)}. Você escolhe o personagem e a numeração de cada par, pode repetir e misturar, e monta o kit da família inteira.`,
+      "O forro de pelúcia segura o calor e deixa o pé quentinho do quarto até a cozinha. Combinam com os pijamas kigurumi e os pijamas de dragão da loja.",
+    ],
+    specs: [
+      ["Vem no pedido", `${n} pares de pantufas`],
+      ["Personagens", "Banguela, Fúria da Luz, Stitch e Angel"],
+      ["Material", "Pelúcia macia, fechada na frente e atrás"],
+      ["Numeração infantil", "Do 22 ao 34"],
+      ["Numeração adulta", "Do 35 ao 46"],
+      ["Dica", "Se estiver entre dois números, escolha o maior"],
+      ["Cuidados", "Lavar à mão com água fria e secar à sombra"],
+    ],
     category: "conforto",
-    checkoutProductName: nome,
-    checkoutProductDescription: `${n} pares de pantufas de pelúcia dos personagens.`,
+    checkoutProductName: `${n} Pantufas de Pelúcia`,
+    checkoutProductDescription: `${n} pares de pantufas de pelúcia de personagem.`,
     checkoutUrl: `/checkout?plano=${id}`,
-    listed: false,
-    redirectTo: "kgban2",
+    group: "pantufas",
+    groupLabel: `${n} pares`,
+    groupTitle: "Escolha o combo",
+    unidades: n,
+    badge: `${n} por ${brl(price)}`,
+    // Nas vitrines aparece o combo de 2; o de 4 fica no seletor da página.
+    ...(n === 4 ? { listed: false } : {}),
   };
 }
 
@@ -996,6 +1021,10 @@ const baseBundles: Bundle[] = [
         { name: "Tamanho", values: ["28-29", "30-31", "32-33", "34-35"] },
       ],
     },
+    // Saiu das vitrines: a página leva para as Pantufas de Pelúcia. Continua no catálogo para
+    // pedidos e carrinhos antigos.
+    listed: false,
+    redirectTo: "pantufa2",
     name: "Pantufas de Dragão",
     tag: "Quentinhas e antiderrapantes",
     price: 69.9,
@@ -1485,9 +1514,9 @@ export const extraCollections: readonly {
   {
     id: "pantufas",
     name: "Pantufas e Chinelos",
-    desc: "Pantufas e chinelos de dragão para a família toda",
-    img: "/produtos/p3b.jpg",
-    ids: ["pantufa", "chinelo"],
+    desc: "Pantufas de pelúcia e chinelos para a família toda",
+    img: "/produtos/pantufa-furia.jpg",
+    ids: ["pantufa2", "chinelo"],
   },
 ];
 

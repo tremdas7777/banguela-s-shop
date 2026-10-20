@@ -11,7 +11,7 @@ import { availableBundles, brl, categories, listedBundles, type BundleId } from 
 const nav: { id: BundleId; label: string; collection?: string }[] = [
   { id: "pijama", label: "Pijamas", collection: "pijamas" },
   { id: "snuggy", label: "Snuggy" },
-  { id: "pantufa", label: "Pantufas", collection: "pantufas" },
+  { id: "pantufa2", label: "Pantufas", collection: "pantufas" },
   { id: "aneis", label: "Anéis" },
   { id: "colares", label: "Colares" },
   { id: "carro", label: "Para o carro" },

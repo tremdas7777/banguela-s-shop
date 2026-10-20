@@ -57,11 +57,11 @@ const BANNERS: Banner[] = [
   },
   {
     key: "pantufas",
-    alt: "Pantufas de dragão com forro de pelúcia e solado antiderrapante, do 36 ao 45",
-    mobile: "/banners/pantufas-m.webp",
-    desktop: "/banners/pantufas-d.webp",
+    alt: "Pantufas de pelúcia Banguela, Fúria da Luz, Stitch e Angel: 2 pares por R$ 49,90 ou 4 por R$ 79,90",
+    mobile: "/banners/pantufas2-m.webp",
+    desktop: "/banners/pantufas2-d.webp",
     link: (c) => (
-      <Link to="/produto" search={{ plano: "pantufa" }} className={linkClass}>
+      <Link to="/produto" search={{ plano: "pantufa2" }} className={linkClass}>
         {c}
       </Link>
     ),
@@ -252,7 +252,7 @@ const TYPES: { id: BundleId; label: string; img: string; collection?: string }[]
   { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg"), collection: "pijamas" },
   { id: "bq15", label: "Brinquedos", img: img("bq15-1.jpg"), collection: "brinquedos" },
   { id: "snuggy", label: "Snuggy", img: img("p2_snuggy.jpg") },
-  { id: "pantufa", label: "Pantufas", img: img("p3b.jpg"), collection: "pantufas" },
+  { id: "pantufa2", label: "Pantufas", img: img("pantufa-furia.jpg"), collection: "pantufas" },
   { id: "aneis", label: "Anéis", img: img("p5_aneis.jpg") },
   { id: "colares", label: "Colares", img: img("p6_colares.jpg") },
   { id: "carro", label: "Para o carro", img: img("p4_carro.jpg") },

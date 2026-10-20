@@ -12,9 +12,8 @@ import {
   Truck,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
-import { PantufaOferta } from "@/components/shop/PantufaOferta";
 import { ComboExtras } from "@/components/shop/ComboExtras";
-import { KigurumiPantufas } from "@/components/shop/KigurumiPantufas";
+import { OfertaPantufas } from "@/components/shop/OfertaPantufas";
 import { OptionCards } from "@/components/shop/OptionCards";
 import { SizeSelect } from "@/components/shop/SizeSelect";
 import { MedidasKigurumi, TabelaMedidas } from "@/components/shop/TabelaMedidas";
@@ -27,24 +26,19 @@ import { FAQ } from "@/lib/faq";
 import { metaTrack } from "@/lib/meta-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
 import { pecasComTabela, usaMenuDeTamanho } from "@/lib/medidas";
-import { addToCart, markCartCheckout, setCartOpen, setCartPantufas } from "@/lib/cart";
+import { addToCart, markCartCheckout, setCartOpen } from "@/lib/cart";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import {
   comboExtrasItens,
   itensTotal,
   pantufaItem,
+  pantufasSugeridas,
   SEM_EXTRAS,
   type ComboExtras as Extras,
 } from "@/lib/combo-extras";
 import type { CartItem } from "@/lib/cart";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
-import {
-  encodePantufas,
-  pantufasTotal,
-  pijamaInfantil,
-  temOfertaPantufas,
-  type PantufaPar,
-} from "@/lib/pantufa-oferta";
+import { pijamaInfantil } from "@/lib/pantufa-oferta";
 import {
   availableBundles,
   groupBundles,
@@ -139,10 +133,8 @@ function Page() {
   const extra = p.comboExtras ? comboExtrasItens(extras) : null;
   const extraItens = extra?.itens ?? [];
   const extraTotal = extra?.total ?? 0;
-  // Personagem de cada pijama do combo, para oferecer as pantufas iguais.
-  const personagens = p.comboExtras
-    ? p.options.filter((o) => o.name.startsWith("Personagem (")).map((o) => sel[o.name] ?? "")
-    : [];
+  // Pijamas: pantufas que combinam com o que foi escolhido, oferecidas no popup ao comprar.
+  const sugestao = pantufasSugeridas(p, sel);
 
   const choose = (name: string, value: string) => {
     setSel((s) => ({ ...s, [name]: value }));
@@ -152,12 +144,9 @@ function Page() {
     if (optionImg) setImg(optionImg);
   };
 
-  // Pijamas: antes do checkout, oferece as pantufas (popup).
-  // "comprar" vai direto ao checkout; "carrinho" adiciona e abre o carrinho.
+  // Popup das pantufas: "comprar" vai direto ao checkout; "carrinho" adiciona e abre o carrinho.
   const [oferta, setOferta] = useState<null | "comprar" | "carrinho">(null);
-  // Kigurumi: popup com as pantufas dos mesmos personagens dos pijamas.
-  const [ofertaKg, setOfertaKg] = useState<null | "comprar" | "carrinho">(null);
-  const goCheckout = (pantufas: PantufaPar[], mais: CartItem[] = []) => {
+  const goCheckout = (mais: CartItem[] = []) => {
     const chosen = values as string[];
     const itens = [...extraItens, ...mais];
     markCartCheckout(false);
@@ -165,30 +154,24 @@ function Page() {
       source: "product_page",
       bundleId: p.id,
       bundleName: productLabel(p, chosen),
-      value: p.price + pantufasTotal(pantufas) + itensTotal(itens),
+      value: p.price + itensTotal(itens),
     });
     navigate({
       to: "/checkout",
       search: {
         plano: p.id,
         ...(chosen.length ? { variante: encodeVariant(chosen) } : {}),
-        ...(pantufas.length ? { pantufas: encodePantufas(pantufas) } : {}),
         ...(itens.length ? { itens } : {}),
       },
     });
   };
-  const goCart = (pantufas: PantufaPar[], mais: CartItem[] = []) => {
+  const goCart = (mais: CartItem[] = []) => {
     const chosen = values as string[];
     const itens = [...extraItens, ...mais];
     addToCart({ plano: p.id, ...(chosen.length ? { variante: encodeVariant(chosen) } : {}) });
     for (const it of itens) addToCart(it, it.qtd);
-    if (pantufas.length) setCartPantufas(pantufas);
-    metaTrack("AddToCart", {
-      value: p.price + pantufasTotal(pantufas) + itensTotal(itens),
-      contentName: p.name,
-    });
+    metaTrack("AddToCart", { value: p.price + itensTotal(itens), contentName: p.name });
     setOferta(null);
-    setOfertaKg(null);
     setCartOpen(true);
   };
   const ready = () => {
@@ -199,15 +182,13 @@ function Page() {
   };
   const buy = () => {
     if (!ready()) return;
-    if (p.comboExtras) setOfertaKg("comprar");
-    else if (temOfertaPantufas(p.id)) setOferta("comprar");
-    else goCheckout([]);
+    if (sugestao) setOferta("comprar");
+    else goCheckout();
   };
   const addCart = () => {
     if (!ready()) return;
-    if (p.comboExtras) setOfertaKg("carrinho");
-    else if (temOfertaPantufas(p.id)) setOferta("carrinho");
-    else goCart([]);
+    if (sugestao) setOferta("carrinho");
+    else goCart();
   };
 
   const buyLabel = complete
@@ -272,24 +253,20 @@ function Page() {
 
   return (
     <SiteLayout>
-      <PantufaOferta
-        open={oferta !== null}
-        productPrice={p.price}
-        infantil={pijamaInfantil(p.id)}
-        onClose={() => setOferta(null)}
-        onContinue={(pares) => (oferta === "carrinho" ? goCart(pares) : goCheckout(pares))}
-      />
-      {p.comboExtras && (
-        <KigurumiPantufas
-          open={ofertaKg !== null}
-          personagens={personagens}
+      {sugestao && (
+        <OfertaPantufas
+          open={oferta !== null}
+          personagens={sugestao.personagens}
+          rotulos={sugestao.rotulos}
+          descricao={sugestao.descricao}
+          infantilPrimeiro={pijamaInfantil(p.id)}
           productPrice={p.price + extraTotal}
-          onClose={() => setOfertaKg(null)}
+          onClose={() => setOferta(null)}
           onContinue={(pares) => {
             const item = pantufaItem(pares);
             const mais = item ? [item] : [];
-            if (ofertaKg === "carrinho") goCart([], mais);
-            else goCheckout([], mais);
+            if (oferta === "carrinho") goCart(mais);
+            else goCheckout(mais);
           }}
         />
       )}
