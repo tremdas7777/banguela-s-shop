@@ -19,6 +19,7 @@ export const comFixos = (ids: readonly BundleId[]) =>
   [...FIXOS, ...ids.filter((id) => !FIXOS.includes(id))].slice(0, MAX_MAIS_VENDIDOS);
 /** Escolhidos à mão, usados até a loja ter vendas suficientes. */
 export const DESTAQUES: readonly BundleId[] = [
+  "pantufa2",
   "aneis",
   "colares",
   "snuggy",
@@ -26,7 +27,6 @@ export const DESTAQUES: readonly BundleId[] = [
   "kitcalca",
   "mdpreto",
   "pijama",
-  "pantufa2",
 ];
 
 export const titulo = (m: MaisVendidos) => (m.reais ? "Mais vendidos" : "Destaques da loja");
