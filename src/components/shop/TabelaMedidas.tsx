@@ -6,6 +6,8 @@ import {
   CALCA_INFANTIL,
   CAMISETA_ADULTO,
   CAMISETA_INFANTIL,
+  KIGURUMI_ADULTO,
+  KIGURUMI_INFANTIL,
   type Peca,
 } from "@/lib/medidas";
 import { cn } from "@/lib/utils";
@@ -66,6 +68,8 @@ export function TabelaMedidas({
   const [open, setOpen] = useState(false);
   const [aba, setAba] = useState<"adulto" | "infantil">(infantilPrimeiro ? "infantil" : "adulto");
   const adulto = aba === "adulto";
+  // Kigurumi: a tabela é do corpo (altura e peso), não da peça.
+  const corpo = pecas.includes("kigurumi");
   return (
     <>
       <button
@@ -81,7 +85,9 @@ export function TabelaMedidas({
             Tabela de medidas
           </DialogTitle>
           <DialogDescription className="text-[13px] text-black/60">
-            Medidas da peça em centímetros. Compare com um pijama que fica bem em você.
+            {corpo
+              ? "Escolha pela altura de quem vai usar. A modelagem é soltinha no corpo."
+              : "Medidas da peça em centímetros. Compare com um pijama que fica bem em você."}
           </DialogDescription>
           <div className="grid grid-cols-2 gap-2 rounded-full bg-black/5 p-1">
             {(["adulto", "infantil"] as const).map((a) => (
@@ -98,13 +104,34 @@ export function TabelaMedidas({
               </button>
             ))}
           </div>
+          {corpo && (
+            <Tabela
+              titulo={adulto ? "Adulto e plus size" : "Infantil"}
+              t={adulto ? KIGURUMI_ADULTO : KIGURUMI_INFANTIL}
+            />
+          )}
           {pecas.includes("camiseta") && (
             <Tabela titulo="Camiseta" t={adulto ? CAMISETA_ADULTO : CAMISETA_INFANTIL} />
           )}
           {pecas.includes("calca") && (
             <Tabela titulo="Calça" t={adulto ? CALCA_ADULTO : CALCA_INFANTIL} />
           )}
-          <div className="rounded-2xl bg-[var(--mint)] p-3 text-[12px] leading-relaxed text-[var(--night)]">
+          {corpo && (
+            <div className="rounded-2xl bg-[var(--mint)] p-3 text-[12px] leading-relaxed text-[var(--night)]">
+              <p>
+                {adulto
+                  ? "Ficou entre dois tamanhos? Escolha o maior, para mais conforto."
+                  : "Para criança, use a altura como principal referência."}{" "}
+                As medidas podem variar de 1 a 3 cm.
+              </p>
+            </div>
+          )}
+          <div
+            className={cn(
+              "rounded-2xl bg-[var(--mint)] p-3 text-[12px] leading-relaxed text-[var(--night)]",
+              corpo && "hidden",
+            )}
+          >
             <p className="mb-1 font-extrabold">Como medir (peça esticada na mesa)</p>
             {pecas.includes("camiseta") && (
               <p>

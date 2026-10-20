@@ -35,6 +35,17 @@ function Page() {
 
   return (
     <SiteLayout>
+      {c.banner && (
+        <picture className="block">
+          <source media="(min-width: 768px)" srcSet={c.banner.desktop} />
+          <img
+            src={c.banner.mobile}
+            alt={c.banner.alt}
+            fetchPriority="high"
+            className="aspect-[3/2] w-full object-cover md:aspect-[8/3]"
+          />
+        </picture>
+      )}
       <section className="bg-[var(--mint)]">
         <div className="container-edge py-8 text-center md:py-12">
           <nav

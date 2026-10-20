@@ -1,4 +1,4 @@
-import type { BundleId, ProductOption } from "@/lib/bundles";
+import { KIGURUMI_IDS, type BundleId, type ProductOption } from "@/lib/bundles";
 
 /**
  * Tabela de medidas dos pijamas: medidas da PEÇA esticada na mesa, em cm.
@@ -60,7 +60,34 @@ export const CALCA_INFANTIL: Grade = {
   ],
 };
 
-export type Peca = "camiseta" | "calca";
+/** Kigurumi: medidas do CORPO (tabela do fornecedor), escolhidas pela altura. */
+export const KIGURUMI_ADULTO: Grade = {
+  colunas: ["Tamanho", "Altura (cm)", "Peso (kg)"],
+  linhas: [
+    ["P", "150 a 160", "45 a 60"],
+    ["M", "160 a 170", "55 a 70"],
+    ["G", "170 a 180", "65 a 85"],
+    ["GG", "180 a 190", "80 a 100"],
+    ["G1", "180 a 190", "100 a 115"],
+    ["G2", "185 a 195", "115 a 130"],
+    ["G3", "190 a 200", "130 a 145"],
+  ],
+};
+
+export const KIGURUMI_INFANTIL: Grade = {
+  colunas: ["Tamanho", "Idade", "Altura (cm)"],
+  linhas: [
+    ["2", "1 a 2 anos", "85 a 95"],
+    ["4", "3 a 4 anos", "95 a 105"],
+    ["6", "5 a 6 anos", "105 a 115"],
+    ["8", "7 a 8 anos", "115 a 125"],
+    ["10", "9 a 10 anos", "125 a 135"],
+    ["12", "11 a 12 anos", "135 a 145"],
+    ["14", "13 a 14 anos", "145 a 155"],
+  ],
+};
+
+export type Peca = "camiseta" | "calca" | "kigurumi";
 
 /** Pijamas com o botão "Tabela de medidas" e as peças que cada um tem. */
 const COM_TABELA: Partial<Record<BundleId, readonly Peca[]>> = {
@@ -68,7 +95,8 @@ const COM_TABELA: Partial<Record<BundleId, readonly Peca[]>> = {
   pijama: ["calca"],
   pijamai: ["calca"],
 };
-export const pecasComTabela = (id: BundleId) => COM_TABELA[id] ?? null;
+export const pecasComTabela = (id: BundleId): readonly Peca[] | null =>
+  COM_TABELA[id] ?? (KIGURUMI_IDS.includes(id) ? ["kigurumi"] : null);
 
 /** Opções de tamanho viram menu suspenso na página do produto (as outras continuam como botões). */
-export const usaMenuDeTamanho = (o: ProductOption) => /^(Tamanho|Idade)/.test(o.name);
+export const usaMenuDeTamanho = (o: ProductOption) => /^(Tamanho|Idade|Numeração)/.test(o.name);

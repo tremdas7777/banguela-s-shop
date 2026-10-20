@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { PantufaOferta } from "@/components/shop/PantufaOferta";
+import { ComboExtras } from "@/components/shop/ComboExtras";
+import { KigurumiPantufas } from "@/components/shop/KigurumiPantufas";
+import { OptionCards } from "@/components/shop/OptionCards";
 import { SizeSelect } from "@/components/shop/SizeSelect";
 import { TabelaMedidas } from "@/components/shop/TabelaMedidas";
 import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
@@ -26,6 +29,14 @@ import { trackCheckoutClick } from "@/lib/analytics";
 import { pecasComTabela, usaMenuDeTamanho } from "@/lib/medidas";
 import { addToCart, markCartCheckout, setCartOpen, setCartPantufas } from "@/lib/cart";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
+import {
+  comboExtrasItens,
+  itensTotal,
+  pantufaItem,
+  SEM_EXTRAS,
+  type ComboExtras as Extras,
+} from "@/lib/combo-extras";
+import type { CartItem } from "@/lib/cart";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import {
   encodePantufas,
@@ -47,8 +58,11 @@ import {
   productLabel,
 } from "@/lib/bundles";
 
-/** Sufixo das opções do combo: "Camiseta (1º conjunto)". */
-const CONJUNTO = / \(([12])º conjunto\)$/;
+/**
+ * Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)",
+ * "Tamanho (1º pijama: Stitch)", "Numeração (2º par)".
+ */
+const CONJUNTO = / \((\dº (?:conjunto|pijama|par)(?:: [^)]+)?)\)$/;
 
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
@@ -105,14 +119,17 @@ function Page() {
   const [sel, setSel] = useState<Record<string, string>>({});
   const [img, setImg] = useState(p.img);
   const [nudge, setNudge] = useState(false);
+  const [extras, setExtras] = useState<Extras>(SEM_EXTRAS);
   const optionsRef = useRef<HTMLDivElement>(null);
 
   // Troca de produto (ex.: pelos relacionados): zera as escolhas e a foto.
+  // Os extras do combo continuam ao trocar entre combo de 2 e de 4.
   useEffect(() => {
     setSel({});
     setImg(p.img);
     setNudge(false);
-  }, [p.id, p.img]);
+    if (!p.comboExtras) setExtras(SEM_EXTRAS);
+  }, [p.id, p.img, p.comboExtras]);
 
   useEffect(() => {
     metaTrack("ViewContent", { value: p.price, contentName: p.name });
@@ -121,25 +138,40 @@ function Page() {
   const values = p.options.map((o) => sel[o.name]);
   const complete = values.every(Boolean);
   const missing = p.options.filter((o) => !sel[o.name]).map((o) => o.name.toLowerCase());
+  // Pijamas kigurumi: ursinhos extras entram como itens a mais no pedido.
+  const extra = p.comboExtras ? comboExtrasItens(extras) : null;
+  const extraItens = extra?.itens ?? [];
+  const extraTotal = extra?.total ?? 0;
+  // Personagem de cada pijama do combo (o 1º é o da página), para oferecer as pantufas iguais.
+  const personagens = p.personagem
+    ? [
+        p.personagem,
+        ...p.options.filter((o) => o.name.startsWith("Personagem (")).map((o) => sel[o.name] ?? ""),
+      ]
+    : [];
 
   const choose = (name: string, value: string) => {
     setSel((s) => ({ ...s, [name]: value }));
     setNudge(false);
-    const optionImg = p.optionImages?.[value];
+    const optionImg =
+      p.optionCards?.[name.replace(CONJUNTO, "")]?.[value] ?? p.optionImages?.[value];
     if (optionImg) setImg(optionImg);
   };
 
   // Pijamas: antes do checkout, oferece as pantufas (popup).
   // "comprar" vai direto ao checkout; "carrinho" adiciona e abre o carrinho.
   const [oferta, setOferta] = useState<null | "comprar" | "carrinho">(null);
-  const goCheckout = (pantufas: PantufaPar[]) => {
+  // Kigurumi: popup com as pantufas dos mesmos personagens dos pijamas.
+  const [ofertaKg, setOfertaKg] = useState<null | "comprar" | "carrinho">(null);
+  const goCheckout = (pantufas: PantufaPar[], mais: CartItem[] = []) => {
     const chosen = values as string[];
+    const itens = [...extraItens, ...mais];
     markCartCheckout(false);
     trackCheckoutClick({
       source: "product_page",
       bundleId: p.id,
       bundleName: productLabel(p, chosen),
-      value: p.price + pantufasTotal(pantufas),
+      value: p.price + pantufasTotal(pantufas) + itensTotal(itens),
     });
     navigate({
       to: "/checkout",
@@ -147,15 +179,22 @@ function Page() {
         plano: p.id,
         ...(chosen.length ? { variante: encodeVariant(chosen) } : {}),
         ...(pantufas.length ? { pantufas: encodePantufas(pantufas) } : {}),
+        ...(itens.length ? { itens } : {}),
       },
     });
   };
-  const goCart = (pantufas: PantufaPar[]) => {
+  const goCart = (pantufas: PantufaPar[], mais: CartItem[] = []) => {
     const chosen = values as string[];
+    const itens = [...extraItens, ...mais];
     addToCart({ plano: p.id, ...(chosen.length ? { variante: encodeVariant(chosen) } : {}) });
+    for (const it of itens) addToCart(it, it.qtd);
     if (pantufas.length) setCartPantufas(pantufas);
-    metaTrack("AddToCart", { value: p.price + pantufasTotal(pantufas), contentName: p.name });
+    metaTrack("AddToCart", {
+      value: p.price + pantufasTotal(pantufas) + itensTotal(itens),
+      contentName: p.name,
+    });
     setOferta(null);
+    setOfertaKg(null);
     setCartOpen(true);
   };
   const ready = () => {
@@ -166,12 +205,14 @@ function Page() {
   };
   const buy = () => {
     if (!ready()) return;
-    if (temOfertaPantufas(p.id)) setOferta("comprar");
+    if (p.comboExtras) setOfertaKg("comprar");
+    else if (temOfertaPantufas(p.id)) setOferta("comprar");
     else goCheckout([]);
   };
   const addCart = () => {
     if (!ready()) return;
-    if (temOfertaPantufas(p.id)) setOferta("carrinho");
+    if (p.comboExtras) setOfertaKg("carrinho");
+    else if (temOfertaPantufas(p.id)) setOferta("carrinho");
     else goCart([]);
   };
 
@@ -182,6 +223,12 @@ function Page() {
       : "Escolha as opções";
   const related = listedBundles.filter((b) => b.id !== p.id && (!p.group || b.group !== p.group));
   const group = groupBundles(p);
+  // Combos com nº de peças: o de menor preço por peça ganha o selo "Melhor valor".
+  const porPeca = group.filter((g) => g.unidades);
+  const melhorValor =
+    porPeca.length > 1
+      ? porPeca.reduce((a, b) => (b.price / b.unidades! < a.price / a.unidades! ? b : a))
+      : undefined;
   // Estampas da mesma versão (adulto com adulto, infantil com infantil).
   const estampas = availableBundles.filter(
     (b) => b.category === p.category && b.estampa && b.groupLabel === p.groupLabel,
@@ -222,10 +269,9 @@ function Page() {
     { title: "Entrega e frete", body: `${FAQ[0]!.a} ${bundleShippingLabel(p)}.` },
     {
       title: "Trocas e devoluções",
-      body:
-        p.category === "conforto" || p.category === "moletons"
-          ? "Você tem 7 dias para desistir da compra e até 30 dias para trocar por outro tamanho ou cor, sem uso e com a etiqueta."
-          : "Você tem 7 dias após o recebimento para desistir da compra, com o produto sem uso e na embalagem original.",
+      body: ["conforto", "moletons", "kigurumi"].includes(p.category)
+        ? "Você tem 7 dias para desistir da compra e até 30 dias para trocar por outro tamanho ou cor, sem uso e com a etiqueta."
+        : "Você tem 7 dias após o recebimento para desistir da compra, com o produto sem uso e na embalagem original.",
     },
     { title: "Pagamento seguro", body: FAQ[2]!.a },
   ];
@@ -239,6 +285,20 @@ function Page() {
         onClose={() => setOferta(null)}
         onContinue={(pares) => (oferta === "carrinho" ? goCart(pares) : goCheckout(pares))}
       />
+      {p.comboExtras && (
+        <KigurumiPantufas
+          open={ofertaKg !== null}
+          personagens={personagens}
+          productPrice={p.price + extraTotal}
+          onClose={() => setOfertaKg(null)}
+          onContinue={(pares) => {
+            const item = pantufaItem(pares);
+            const mais = item ? [item] : [];
+            if (ofertaKg === "carrinho") goCart([], mais);
+            else goCheckout([], mais);
+          }}
+        />
+      )}
       <div className="container-edge pb-28 pt-4 md:pb-20 md:pt-8">
         <nav
           aria-label="Navegação"
@@ -330,7 +390,10 @@ function Page() {
             {group.length > 1 && (
               <div className="mt-6">
                 <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
-                  {group.some((g) => g.groupLabel === "Combo casal") ? "Escolha o kit" : "Versão"}
+                  {group.find((g) => g.groupTitle)?.groupTitle ??
+                    (group.some((g) => g.groupLabel === "Combo casal")
+                      ? "Escolha o kit"
+                      : "Versão")}
                 </div>
                 <div
                   className={`grid gap-2 ${group.length > 3 ? "grid-cols-2 sm:grid-cols-4" : group.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}
@@ -342,6 +405,7 @@ function Page() {
                       (x) => x.groupLabel === "Só feminino" || x.groupLabel === "Só masculino",
                     );
                     const saving = combo ? avulsos.reduce((s, x) => s + x.price, 0) - g.price : 0;
+                    const melhor = g.unidades && g.id === melhorValor?.id;
                     return (
                       <Link
                         key={g.id}
@@ -361,12 +425,22 @@ function Page() {
                             Economize {brl(saving)}
                           </span>
                         )}
+                        {melhor && (
+                          <span className="absolute -top-2.5 rounded-full bg-[var(--night)] px-2 py-0.5 text-[10.5px] font-bold text-white">
+                            Melhor valor
+                          </span>
+                        )}
                         <span className="text-[13px] font-bold leading-tight text-[var(--night)]">
                           {g.groupLabel}
                         </span>
                         <span className="mt-1 text-[14px] font-extrabold text-[var(--night)]">
                           {brl(g.price)}
                         </span>
+                        {g.unidades && (
+                          <span className="text-[11.5px] text-[var(--ink)]/60">
+                            {brl(g.price / g.unidades)} cada
+                          </span>
+                        )}
                       </Link>
                     );
                   })}
@@ -423,13 +497,18 @@ function Page() {
                   // Combo casal: opções "... (1º conjunto)"/"... (2º conjunto)" agrupadas sob um título.
                   const quem = CONJUNTO.exec(o.name)?.[1];
                   const prev = i > 0 ? CONJUNTO.exec(p.options[i - 1]!.name)?.[1] : undefined;
+                  const cards = p.optionCards?.[o.name.replace(CONJUNTO, "")];
                   return (
-                    <div key={o.name}>
+                    <div
+                      key={o.name}
+                      // Opção solta depois de um grupo (ex.: "Ursinho de brinde"): separa com uma linha.
+                      className={!quem && prev ? "border-t border-[var(--border)] pt-5" : undefined}
+                    >
                       {quem && quem !== prev && (
                         <div
                           className={`mb-3 border-b border-[var(--border)] pb-1.5 text-[15px] font-extrabold text-[var(--night)] ${i > 0 ? "pt-3" : ""}`}
                         >
-                          {quem}º conjunto
+                          {quem}
                         </div>
                       )}
                       <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
@@ -443,7 +522,15 @@ function Page() {
                           {p.optionNotes[o.name.replace(CONJUNTO, "")]}
                         </p>
                       )}
-                      {usaMenuDeTamanho(o) ? (
+                      {cards ? (
+                        <OptionCards
+                          values={o.values}
+                          images={cards}
+                          value={sel[o.name]}
+                          onPick={(v) => choose(o.name, v)}
+                          missing={nudge}
+                        />
+                      ) : usaMenuDeTamanho(o) ? (
                         <SizeSelect
                           option={o}
                           value={sel[o.name]}
@@ -476,6 +563,7 @@ function Page() {
                     </div>
                   );
                 })}
+                {p.comboExtras && <ComboExtras value={extras} onChange={setExtras} />}
                 {nudge && (
                   <p className="text-[13px] font-semibold text-[var(--sale)]">
                     Escolha {missing.join(" e ")} para continuar.
@@ -688,7 +776,7 @@ function Page() {
             {[
               `Brinde: ${GIFT.short} em toda compra`,
               bundleShippingLabel(p),
-              p.category === "conforto" || p.category === "moletons"
+              ["conforto", "moletons", "kigurumi"].includes(p.category)
                 ? "Troca de tamanho em até 30 dias"
                 : "7 dias para desistir da compra",
               `Pix ou cartão em até ${CARD_MAX_INSTALLMENTS}x`,
@@ -724,7 +812,9 @@ function Page() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)] bg-white/95 px-4 py-3 backdrop-blur md:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3">
           <div className="leading-tight">
-            <div className="text-[18px] font-extrabold text-[var(--night)]">{brl(p.price)}</div>
+            <div className="text-[18px] font-extrabold text-[var(--night)]">
+              {brl(p.price + extraTotal)}
+            </div>
             {p.compareAtPrice && (
               <s className="text-[12px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
             )}

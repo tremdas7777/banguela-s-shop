@@ -10,6 +10,11 @@ function rotulo(v: string): { grupo: string; label: string } {
   if (idade) return { grupo: "Infantil", label: `Infantil • ${idade[1]}` };
   if (ADULTO.has(v)) return { grupo: "Adulto", label: `Adulto • ${v}` };
   if (/^G\d$/.test(v)) return { grupo: "Plus Size", label: `Plus Size • ${v}` };
+  // Numeração de pantufa: infantil até o 34, adulto do 35 em diante.
+  if (/^\d{2}$/.test(v)) {
+    const grupo = Number(v) <= 34 ? "Infantil" : "Adulto";
+    return { grupo, label: `${grupo} • ${v}` };
+  }
   return { grupo: "", label: v };
 }
 
@@ -51,7 +56,7 @@ export function SizeSelect({
         )}
       >
         <option value="" disabled>
-          Escolha o tamanho
+          {/^Numeração/.test(option.name) ? "Escolha a numeração" : "Escolha o tamanho"}
         </option>
         {grupos.map((g) =>
           g.nome ? (

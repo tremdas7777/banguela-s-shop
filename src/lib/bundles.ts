@@ -24,6 +24,17 @@ export const BUNDLE_IDS = [
   "mdrosai",
   "mdfogoi",
   "mdazuli",
+  "kgsti2",
+  "kgsti4",
+  "kgang2",
+  "kgang4",
+  "kgban2",
+  "kgban4",
+  "kgfur2",
+  "kgfur4",
+  "pantufa2",
+  "pantufa4",
+  "ursinho",
   "pijama",
   "pijamai",
   "kitcasal",
@@ -64,14 +75,29 @@ export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
 export type CategoryId =
-  "moletons" | "conforto" | "brinquedos" | "casa" | "escola" | "joias" | "auto";
+  "kigurumi" | "moletons" | "conforto" | "brinquedos" | "casa" | "escola" | "joias" | "auto";
+
+/** Banner do topo da página da coleção (celular 1080×720 e PC 1920×720). */
+export type CollectionBanner = { mobile: string; desktop: string; alt: string };
 
 export const categories: readonly {
   id: CategoryId;
   name: string;
   desc: string;
   img: string;
+  banner?: CollectionBanner;
 }[] = [
+  {
+    id: "kigurumi",
+    name: "Pijamas Kigurumi",
+    desc: "Stitch, Angel, Banguela e Fúria da Luz: 2 por R$ 79 ou 4 por R$ 129, com ursinho de brinde",
+    img: "/produtos/kg-grupo.jpg",
+    banner: {
+      mobile: "/banners/kigurumi-c.webp",
+      desktop: "/banners/kigurumi-cd.webp",
+      alt: "Pijamas Kigurumi: 2 por R$ 79 ou 4 por R$ 129, com ursinho de brinde",
+    },
+  },
   {
     id: "conforto",
     name: "Conforto & Dormir",
@@ -174,6 +200,18 @@ export type Bundle = {
   listed?: boolean;
   /** Produto que não é mais vendido sozinho: a página leva para este. */
   redirectTo?: BundleId;
+  /** Título do seletor do grupo na página ("Escolha o combo"). */
+  groupTitle?: string;
+  /** Peças no combo: o seletor mostra o preço de cada uma e destaca o melhor valor. */
+  unidades?: number;
+  /** Opções mostradas como cartões com foto (nome da opção sem o "(1º pijama)" → valor → foto). */
+  optionCards?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** Combo de pijamas: a página oferece ursinhos extras e, ao comprar, as pantufas. */
+  comboExtras?: boolean;
+  /** Personagem do produto (pijama kigurumi): é o 1º pijama do combo. */
+  personagem?: string;
+  /** Fica fora da promoção de 50% (ofertas com preço fechado, como os combos). */
+  semPromo?: boolean;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
   kids?: {
     id: BundleId;
@@ -184,6 +222,8 @@ export type Bundle = {
     images?: readonly string[];
   };
 };
+
+export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const img = (f: string) => `/produtos/${f}`;
 
@@ -535,9 +575,208 @@ const kits: Bundle[] = [
   }),
 ];
 
+/**
+ * Pijamas kigurumi de personagem: um produto por personagem, vendido em combo de 2 ou 4 com
+ * ursinho de brinde. O 1º pijama é o da página; os outros podem ser de qualquer personagem. Na
+ * página o cliente também pode levar pantufas dos personagens e ursinhos extras (produtos abaixo,
+ * que não aparecem sozinhos nas vitrines).
+ */
+export const PERSONAGENS = ["Stitch", "Angel", "Banguela", "Fúria da Luz"] as const;
+type Personagem = (typeof PERSONAGENS)[number];
+const SLUG: Record<Personagem, string> = {
+  Stitch: "stitch",
+  Angel: "angel",
+  Banguela: "banguela",
+  "Fúria da Luz": "furia",
+};
+const fotosPersonagem = (prefixo: string, sufixo = "") =>
+  Object.fromEntries(PERSONAGENS.map((n) => [n, img(`${prefixo}-${SLUG[n]}${sufixo}.jpg`)]));
+export const KIGURUMI_FOTOS = fotosPersonagem("kg");
+export const URSINHO_FOTOS = fotosPersonagem("urso");
+export const PANTUFA_P_FOTOS = fotosPersonagem("pantufa");
+/** Numeração das pantufas de personagem: infantil do 22 ao 34, adulto do 35 ao 46. */
+export const PANTUFA_NUMEROS = Array.from({ length: 25 }, (_, i) => String(22 + i));
+const ate = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+
+/** Preço de cada combo (igual para todos os personagens). */
+const KIGURUMI_COMBOS = { 2: 79, 4: 129 } as const;
+const KIGURUMIS: { nome: Personagem; de: string; visual: string; ids: Record<2 | 4, BundleId> }[] =
+  [
+    {
+      nome: "Stitch",
+      de: "do",
+      visual: "azul, com a barriga azul-clara e o capuz com as orelhas grandes do Stitch",
+      ids: { 2: "kgsti2", 4: "kgsti4" },
+    },
+    {
+      nome: "Angel",
+      de: "da",
+      visual: "rosa, com a barriga rosa-clara e o capuz com as anteninhas da Angel",
+      ids: { 2: "kgang2", 4: "kgang4" },
+    },
+    {
+      nome: "Banguela",
+      de: "do",
+      visual: "preto, com o capuz do dragão de olhos verdes, asinhas nas costas e cauda",
+      ids: { 2: "kgban2", 4: "kgban4" },
+    },
+    {
+      nome: "Fúria da Luz",
+      de: "da",
+      visual: "branco, com o capuz da dragoa de olhos azuis, asinhas nas costas e cauda",
+      ids: { 2: "kgfur2", 4: "kgfur4" },
+    },
+  ];
+export const KIGURUMI_IDS: readonly BundleId[] = KIGURUMIS.flatMap((k) => [k.ids[2], k.ids[4]]);
+
+function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
+  const price = KIGURUMI_COMBOS[n];
+  const foto = (sufixo = "") => img(`kg-${SLUG[k.nome]}${sufixo}.jpg`);
+  const outros =
+    n === 2
+      ? "o 2º pode ser de qualquer personagem"
+      : "os outros 3 podem ser de qualquer personagem";
+  return {
+    id: k.ids[n],
+    name: `Pijama Kigurumi ${k.nome}`,
+    tag: `Combo de ${n} com ursinho de brinde`,
+    price,
+    img: foto(),
+    images: [foto(), foto("-capuz"), foto("-tecido"), foto("-ziper"), img("kg-grupo.jpg")],
+    options: [
+      { name: `Tamanho (1º pijama: ${k.nome})`, values: TAM_COMBO },
+      ...ate(n)
+        .slice(1)
+        .flatMap((i) => [
+          { name: `Personagem (${i}º pijama)`, values: PERSONAGENS },
+          { name: `Tamanho (${i}º pijama)`, values: TAM_COMBO },
+        ]),
+      { name: "Ursinho de brinde", values: PERSONAGENS },
+    ],
+    optionCards: { Personagem: KIGURUMI_FOTOS, "Ursinho de brinde": URSINHO_FOTOS },
+    optionNotes: {
+      "Ursinho de brinde":
+        "Todo pedido leva 1 ursinho grátis. Quer mais? Escolha os extras abaixo.",
+    },
+    benefits: [
+      `Combo de ${n} por ${brl(price)}: ${brl(price / n)} cada pijama`,
+      `O 1º é o ${k.de} ${k.nome} e ${outros}`,
+      "Do infantil 2 anos ao plus size G3",
+      "Ursinho de pelúcia de brinde no pedido",
+    ],
+    description: [
+      `Pijama kigurumi de corpo inteiro ${k.visual}. O tecido é macio e peluciado, gostoso na pele e quentinho para os dias frios.`,
+      `É vendido em combo: no combo de ${n}, o 1º pijama é o ${k.de} ${k.nome} e ${outros} (Stitch, Angel, Banguela ou Fúria da Luz). Cada um tem o seu tamanho, do infantil 2 anos ao plus size G3, para montar o combo do casal, dos filhos ou dos amigos.`,
+      "Todo pedido leva um ursinho de pelúcia de brinde, do personagem que você escolher.",
+    ],
+    specs: [
+      ["Vem no pedido", `${n} pijamas kigurumi + 1 ursinho de brinde`],
+      ["1º pijama", k.nome],
+      ["Outros personagens", "Stitch, Angel, Banguela e Fúria da Luz"],
+      ["Tecido", "Pelúcia macia e peluciada"],
+      ["Modelagem", "Macacão com capuz e zíper na frente, soltinho no corpo"],
+      ["Tamanhos infantis", "2, 4, 6, 8, 10, 12 e 14"],
+      ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
+      ["Plus size", listaTamanhos(TAM_PLUS)],
+      ["Medidas", "Podem variar de 1 a 3 cm"],
+      ["Cuidados", "Lavar com água fria, não usar alvejante e secar à sombra"],
+    ],
+    richSections: [
+      {
+        title: "Conforto, fofura e praticidade no mesmo pijama",
+        text: "Feito para quem ama conforto e um visual divertido para usar em casa: no sofá, na cama ou na noite do pijama.",
+        points: [
+          "Tecido macio e peluciado, gostoso na pele",
+          "Modelagem soltinha para dormir ou ficar no sofá",
+          `Capuz com o rostinho ${k.de} ${k.nome}`,
+          "Perfeito para combinar em casal, com os filhos ou com os amigos",
+        ],
+        media: foto("-tecido"),
+      },
+      {
+        title: "Um tamanho para cada pessoa",
+        text: "Cada pijama do combo tem o seu tamanho: dá para montar um combo com um adulto M, um plus size G2 e duas crianças. Confira a tabela de medidas antes de escolher e, se ficar entre dois tamanhos, escolha o maior.",
+        media: img("kg-modelagem.jpg"),
+      },
+      {
+        title: "Capricho em cada detalhe",
+        text: "Capuz com orelhinhas e olhos do personagem, zíper na frente para vestir fácil e punhos com acabamento que seguram o calor.",
+        media: foto("-capuz"),
+      },
+      {
+        title: "Ursinho de brinde em todo pedido",
+        text: "Você escolhe o ursinho do seu personagem favorito e ele vai junto no pedido, sem pagar nada a mais. Quer outros? Cada ursinho extra sai por R$ 29,90.",
+        media: URSINHO_FOTOS[k.nome]!,
+      },
+    ],
+    category: "kigurumi",
+    checkoutProductName: `Combo ${n} Pijamas Kigurumi (${k.nome})`,
+    checkoutProductDescription: `${n} pijamas kigurumi de personagem e 1 ursinho de brinde.`,
+    checkoutUrl: `/checkout?plano=${k.ids[n]}`,
+    badge: "Ursinho de brinde",
+    group: `kg-${SLUG[k.nome]}`,
+    groupLabel: `Combo de ${n}`,
+    groupTitle: "Escolha o combo",
+    unidades: n,
+    comboExtras: true,
+    personagem: k.nome,
+    semPromo: true,
+    // Nas vitrines aparece o combo de 2; o de 4 fica no seletor da página.
+    ...(n === 4 ? { listed: false } : {}),
+  };
+}
+
+function comboPantufas(id: BundleId, n: 2 | 4, price: number): Bundle {
+  const nome = `${n} Pantufas de Personagem`;
+  return {
+    id,
+    name: nome,
+    tag: "Para combinar com os pijamas kigurumi",
+    price,
+    img: PANTUFA_P_FOTOS.Stitch!,
+    images: PERSONAGENS.map((p) => PANTUFA_P_FOTOS[p]!),
+    options: ate(n).flatMap((i) => [
+      { name: `Personagem (${i}º par)`, values: PERSONAGENS },
+      { name: `Numeração (${i}º par)`, values: PANTUFA_NUMEROS },
+    ]),
+    optionCards: { Personagem: PANTUFA_P_FOTOS },
+    benefits: ["Pantufas de pelúcia dos personagens", "Numeração do 22 ao 46"],
+    category: "conforto",
+    checkoutProductName: nome,
+    checkoutProductDescription: `${n} pares de pantufas de pelúcia dos personagens.`,
+    checkoutUrl: `/checkout?plano=${id}`,
+    listed: false,
+    redirectTo: "kgban2",
+  };
+}
+
+const kigurumis: Bundle[] = [
+  ...KIGURUMIS.flatMap((k) => [kigurumi(k, 2), kigurumi(k, 4)]),
+  comboPantufas("pantufa2", 2, 49.9),
+  comboPantufas("pantufa4", 4, 79.9),
+  {
+    id: "ursinho",
+    name: "Ursinho de Pelúcia",
+    tag: "Ursinho extra do personagem",
+    price: 29.9,
+    img: URSINHO_FOTOS.Stitch!,
+    images: PERSONAGENS.map((p) => URSINHO_FOTOS[p]!),
+    options: [{ name: "Personagem", values: PERSONAGENS }],
+    optionCards: { Personagem: URSINHO_FOTOS },
+    benefits: ["Ursinho de pelúcia do personagem"],
+    category: "brinquedos",
+    checkoutProductName: "Ursinho de Pelúcia Extra",
+    checkoutProductDescription: "Ursinho de pelúcia de personagem.",
+    checkoutUrl: "/checkout?plano=ursinho",
+    listed: false,
+    redirectTo: "kgban2",
+  },
+];
+
 const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
+  ...kigurumis,
   {
     id: "pijama",
     kids: {
@@ -1122,7 +1361,7 @@ const promoOff = (txt: string) =>
   txt.replace(/\d+% OFF/, `${Math.round(PROMO_DESCONTO * 100)}% OFF`);
 
 function promo(b: Bundle): Bundle {
-  if (!PROMO_DESCONTO || b.price <= PROMO_MIN) return b;
+  if (!PROMO_DESCONTO || b.semPromo || b.price <= PROMO_MIN) return b;
   return {
     ...b,
     price: comDesconto(b.price),
@@ -1226,6 +1465,7 @@ export function findCollection(id: string) {
       name: c.name,
       desc: c.desc,
       img: c.img,
+      banner: c.banner,
       items: bundlesByCategory(c.id),
     };
   const e = extraCollections.find((x) => x.id === id);
@@ -1271,5 +1511,3 @@ export const variantLabel = (values: readonly string[], b?: Bundle) =>
 /** Nome do item com a variação, como vai para o pedido no admin. */
 export const productLabel = (b: Bundle, values: readonly string[]) =>
   values.length ? `${b.name} — ${variantLabel(values, b)}` : b.name;
-
-export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
