@@ -90,12 +90,12 @@ export const categories: readonly {
   {
     id: "kigurumi",
     name: "Pijamas Kigurumi",
-    desc: "Stitch, Angel, Banguela e Fúria da Luz: 2 por R$ 79 ou 4 por R$ 129, com ursinho de brinde",
+    desc: "Stitch, Angel, Banguela e Fúria da Luz: 2 por R$ 79 ou 4 por R$ 129 com ursinho de brinde",
     img: "/produtos/kg-grupo.jpg",
     banner: {
       mobile: "/banners/kigurumi-c.webp",
       desktop: "/banners/kigurumi-cd.webp",
-      alt: "Pijamas Kigurumi: 2 por R$ 79 ou 4 por R$ 129, com ursinho de brinde",
+      alt: "Pijamas Kigurumi: 2 por R$ 79 ou 4 por R$ 129 com ursinho de brinde",
     },
   },
   {
@@ -576,8 +576,8 @@ const kits: Bundle[] = [
 ];
 
 /**
- * Pijamas kigurumi de personagem: um produto por personagem, vendido em combo de 2 ou 4 com
- * ursinho de brinde. O 1º pijama é o da página; os outros podem ser de qualquer personagem. Na
+ * Pijamas kigurumi de personagem: um produto por personagem, vendido em combo de 2 ou 4 (só o de 4
+ * ganha ursinho de brinde). O 1º pijama é o da página; os outros podem ser de qualquer personagem. Na
  * página o cliente também pode levar pantufas dos personagens e ursinhos extras (produtos abaixo,
  * que não aparecem sozinhos nas vitrines).
  */
@@ -632,6 +632,8 @@ export const KIGURUMI_IDS: readonly BundleId[] = KIGURUMIS.flatMap((k) => [k.ids
 function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
   const price = KIGURUMI_COMBOS[n];
   const foto = (sufixo = "") => img(`kg-${SLUG[k.nome]}${sufixo}.jpg`);
+  // Ursinho de brinde só no combo de 4; no de 2 ele pode ser comprado à parte.
+  const brinde = n === 4;
   const outros =
     n === 2
       ? "o 2º pode ser de qualquer personagem"
@@ -639,7 +641,7 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
   return {
     id: k.ids[n],
     name: `Pijama Kigurumi ${k.nome}`,
-    tag: `Combo de ${n} com ursinho de brinde`,
+    tag: brinde ? "Combo de 4 com ursinho de brinde" : "Combo de 2 pijamas",
     price,
     img: foto(),
     images: [foto(), foto("-capuz"), foto("-tecido"), foto("-ziper"), img("kg-grupo.jpg")],
@@ -651,26 +653,30 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
           { name: `Personagem (${i}º pijama)`, values: PERSONAGENS },
           { name: `Tamanho (${i}º pijama)`, values: TAM_COMBO },
         ]),
-      { name: "Ursinho de brinde", values: PERSONAGENS },
+      ...(brinde ? [{ name: "Ursinho de brinde", values: PERSONAGENS }] : []),
     ],
     optionCards: { Personagem: KIGURUMI_FOTOS, "Ursinho de brinde": URSINHO_FOTOS },
     optionNotes: {
       "Ursinho de brinde":
-        "Todo pedido leva 1 ursinho grátis. Quer mais? Escolha os extras abaixo.",
+        "No combo de 4 você ganha 1 ursinho. Quer mais? Escolha os extras abaixo.",
     },
     benefits: [
       `Combo de ${n} por ${brl(price)}: ${brl(price / n)} cada pijama`,
       `O 1º é o ${k.de} ${k.nome} e ${outros}`,
       "Do infantil 2 anos ao plus size G3",
-      "Ursinho de pelúcia de brinde no pedido",
+      brinde
+        ? "Ursinho de pelúcia de brinde no pedido"
+        : "Levando o combo de 4, você ganha um ursinho de brinde",
     ],
     description: [
       `Pijama kigurumi de corpo inteiro ${k.visual}. O tecido é macio e peluciado, gostoso na pele e quentinho para os dias frios.`,
       `É vendido em combo: no combo de ${n}, o 1º pijama é o ${k.de} ${k.nome} e ${outros} (Stitch, Angel, Banguela ou Fúria da Luz). Cada um tem o seu tamanho, do infantil 2 anos ao plus size G3, para montar o combo do casal, dos filhos ou dos amigos.`,
-      "Todo pedido leva um ursinho de pelúcia de brinde, do personagem que você escolher.",
+      brinde
+        ? "No combo de 4 você ganha um ursinho de pelúcia de brinde, do personagem que escolher."
+        : "Levando o combo de 4, você ganha também um ursinho de pelúcia de brinde.",
     ],
     specs: [
-      ["Vem no pedido", `${n} pijamas kigurumi + 1 ursinho de brinde`],
+      ["Vem no pedido", `${n} pijamas kigurumi${brinde ? " + 1 ursinho de brinde" : ""}`],
       ["1º pijama", k.nome],
       ["Outros personagens", "Stitch, Angel, Banguela e Fúria da Luz"],
       ["Tecido", "Pelúcia macia e peluciada"],
@@ -704,18 +710,18 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
         media: foto("-capuz"),
       },
       {
-        title: "Ursinho de brinde em todo pedido",
-        text: "Você escolhe o ursinho do seu personagem favorito e ele vai junto no pedido, sem pagar nada a mais. Quer outros? Cada ursinho extra sai por R$ 29,90.",
+        title: "Leve 4 e ganhe um ursinho",
+        text: "No combo de 4 pijamas você escolhe o ursinho do seu personagem favorito e ele vai junto no pedido, sem pagar nada a mais. Quer outros, ou está levando o combo de 2? Cada ursinho sai por R$ 29,90.",
         media: URSINHO_FOTOS[k.nome]!,
       },
     ],
     category: "kigurumi",
     checkoutProductName: `Combo ${n} Pijamas Kigurumi (${k.nome})`,
-    checkoutProductDescription: `${n} pijamas kigurumi de personagem e 1 ursinho de brinde.`,
+    checkoutProductDescription: `${n} pijamas kigurumi de personagem${brinde ? " e 1 ursinho de brinde" : ""}.`,
     checkoutUrl: `/checkout?plano=${k.ids[n]}`,
-    badge: "Ursinho de brinde",
+    badge: brinde ? "Ursinho de brinde" : "Ursinho grátis levando 4",
     group: `kg-${SLUG[k.nome]}`,
-    groupLabel: `Combo de ${n}`,
+    groupLabel: brinde ? "Combo de 4 + ursinho" : "Combo de 2",
     groupTitle: "Escolha o combo",
     unidades: n,
     comboExtras: true,

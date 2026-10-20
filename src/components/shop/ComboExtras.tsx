@@ -3,8 +3,17 @@ import { brl, getBundle, PERSONAGENS, URSINHO_FOTOS } from "@/lib/bundles";
 import { MAX_URSINHOS, type ComboExtras as Extras } from "@/lib/combo-extras";
 import { cn } from "@/lib/utils";
 
-/** Ursinhos extras na página dos pijamas kigurumi (o primeiro já vai de brinde). */
-export function ComboExtras({ value, onChange }: { value: Extras; onChange: (v: Extras) => void }) {
+/** Ursinhos à parte na página dos pijamas kigurumi (no combo de 4, um já vai de brinde). */
+export function ComboExtras({
+  value,
+  onChange,
+  brinde,
+}: {
+  value: Extras;
+  onChange: (v: Extras) => void;
+  /** O combo já leva um ursinho de brinde. */
+  brinde: boolean;
+}) {
   const ursinho = getBundle("ursinho").price;
   const setUrsinhos = (nome: string, qtd: number) =>
     onChange({ ...value, ursinhos: { ...value.ursinhos, [nome]: qtd } });
@@ -12,11 +21,13 @@ export function ComboExtras({ value, onChange }: { value: Extras; onChange: (v: 
   return (
     <div className="mt-6">
       <div className="mb-1 border-b border-[var(--border)] pb-1.5 text-[15px] font-extrabold text-[var(--night)]">
-        Ursinhos extras{" "}
+        {brinde ? "Ursinhos extras" : "Ursinhos de pelúcia"}{" "}
         <span className="text-[13px] font-semibold text-[var(--ink)]/50">(opcional)</span>
       </div>
       <p className="mb-3 text-[12.5px] text-[var(--ink)]/60">
-        O primeiro já vai de brinde. Cada ursinho a mais sai por {brl(ursinho)}.
+        {brinde
+          ? `O primeiro já vai de brinde. Cada ursinho a mais sai por ${brl(ursinho)}.`
+          : `Cada ursinho sai por ${brl(ursinho)}. No combo de 4, um vai de brinde.`}
       </p>
       <div className="grid grid-cols-4 gap-2">
         {PERSONAGENS.map((nome) => {

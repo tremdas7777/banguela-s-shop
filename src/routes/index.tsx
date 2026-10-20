@@ -32,7 +32,7 @@ const linkClass = "block h-full w-full";
 const BANNERS: Banner[] = [
   {
     key: "kigurumi",
-    alt: "Pijamas Kigurumi Stitch, Angel, Banguela e Fúria da Luz: 2 por R$ 79 ou 4 por R$ 129, com ursinho de brinde",
+    alt: "Pijamas Kigurumi Stitch, Angel, Banguela e Fúria da Luz: 2 por R$ 79 ou 4 por R$ 129 com ursinho de brinde",
     mobile: "/banners/kigurumi-m.webp",
     desktop: "/banners/kigurumi-d.webp",
     link: (c) => (

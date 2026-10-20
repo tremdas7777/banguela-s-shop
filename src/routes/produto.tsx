@@ -563,7 +563,13 @@ function Page() {
                     </div>
                   );
                 })}
-                {p.comboExtras && <ComboExtras value={extras} onChange={setExtras} />}
+                {p.comboExtras && (
+                  <ComboExtras
+                    value={extras}
+                    onChange={setExtras}
+                    brinde={p.options.some((o) => o.name === "Ursinho de brinde")}
+                  />
+                )}
                 {nudge && (
                   <p className="text-[13px] font-semibold text-[var(--sale)]">
                     Escolha {missing.join(" e ")} para continuar.
