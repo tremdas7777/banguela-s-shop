@@ -17,7 +17,7 @@ import { ComboExtras } from "@/components/shop/ComboExtras";
 import { KigurumiPantufas } from "@/components/shop/KigurumiPantufas";
 import { OptionCards } from "@/components/shop/OptionCards";
 import { SizeSelect } from "@/components/shop/SizeSelect";
-import { TabelaMedidas } from "@/components/shop/TabelaMedidas";
+import { MedidasKigurumi, TabelaMedidas } from "@/components/shop/TabelaMedidas";
 import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
 import { temDestaquesPijama } from "@/lib/pijama-destaques";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -692,6 +692,8 @@ function Page() {
 
         {temDestaquesPijama(p.id) && <PijamaDestaques />}
 
+        {pecasComTabela(p.id)?.includes("kigurumi") && <MedidasKigurumi />}
+
         {!temDestaquesPijama(p.id) && p.compare && (
           <section className="mx-auto mt-14 max-w-xl">
             <h2 className="mb-5 text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
@@ -729,7 +731,7 @@ function Page() {
             <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {p.reviews.map((r) => (
                 <article
-                  key={r.author + r.date}
+                  key={r.author + (r.date ?? "")}
                   className="rounded-[20px] border border-[var(--border)] bg-white p-5"
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -740,18 +742,29 @@ function Page() {
                       {"★".repeat(r.rating)}
                       <span className="text-[var(--ink)]/15">{"★".repeat(5 - r.rating)}</span>
                     </span>
-                    <span className="text-[12px] text-[var(--ink)]/45">{r.date}</span>
+                    {r.date && <span className="text-[12px] text-[var(--ink)]/45">{r.date}</span>}
                   </div>
                   <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/80">{r.text}</p>
-                  {r.photos && r.photos.length > 0 && (
+                  {(r.photos?.length || r.videos?.length) && (
                     <div className="mt-3 flex gap-2">
-                      {r.photos.map((src) => (
+                      {r.photos?.map((src) => (
                         <img
                           key={src}
                           src={src}
                           alt="Foto enviada pelo cliente"
                           loading="lazy"
-                          className="h-20 w-20 rounded-xl object-cover"
+                          className="h-32 w-24 rounded-xl object-cover"
+                        />
+                      ))}
+                      {/* Vídeo do cliente: o "#t" mostra um quadro como capa antes de tocar. */}
+                      {r.videos?.map((src) => (
+                        <video
+                          key={src}
+                          src={`${src}#t=0.5`}
+                          controls
+                          preload="metadata"
+                          aria-label="Vídeo enviado pelo cliente"
+                          className="h-32 w-24 rounded-xl bg-black object-cover"
                         />
                       ))}
                     </div>

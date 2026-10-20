@@ -158,3 +158,30 @@ export function TabelaMedidas({
     </>
   );
 }
+
+/** Tabela de medidas do kigurumi aberta na página (altura e peso), além do botão. */
+export function MedidasKigurumi() {
+  return (
+    <section className="mx-auto mt-14 max-w-3xl">
+      <h2 className="text-center text-[22px] font-bold text-[var(--night)] md:text-[28px]">
+        Tabela de medidas
+      </h2>
+      <p className="mt-2 text-center text-[15px] text-[var(--ink)]/70">
+        Escolha pela altura de quem vai usar. A modelagem é soltinha no corpo.
+      </p>
+      <div className="mt-6 grid gap-6 rounded-[20px] border border-[var(--border)] bg-white p-4 md:grid-cols-2 md:p-6">
+        <Tabela titulo="Adulto e plus size" t={KIGURUMI_ADULTO} />
+        <Tabela titulo="Infantil" t={KIGURUMI_INFANTIL} />
+      </div>
+      <div className="mt-3 rounded-2xl bg-[var(--mint)] p-4 text-[13px] leading-relaxed text-[var(--night)]">
+        <p>
+          <b>Ficou entre dois tamanhos?</b> Escolha o maior, para mais conforto. Para criança, use a
+          altura como principal referência.
+        </p>
+        <p className="mt-1">
+          As medidas podem variar de 1 a 3 cm. Lavar com água fria, sem alvejante, e secar à sombra.
+        </p>
+      </div>
+    </section>
+  );
+}

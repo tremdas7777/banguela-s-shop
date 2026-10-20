@@ -152,6 +152,16 @@ export type RichSection = {
   media?: string;
 };
 
+/** Avaliação de cliente. Sem data quando a fonte não tem a data real. */
+export type Review = {
+  author: string;
+  rating: number;
+  text: string;
+  date?: string;
+  photos?: readonly string[];
+  videos?: readonly string[];
+};
+
 export type Bundle = {
   id: BundleId;
   name: string;
@@ -187,13 +197,7 @@ export type Bundle = {
   /** Descrição em blocos abaixo do produto (texto + GIF/foto ao lado), como nas lojas grandes. */
   richSections?: readonly RichSection[];
   /** Avaliações selecionadas de clientes reais da loja internacional (traduzidas). */
-  reviews?: readonly {
-    author: string;
-    rating: number;
-    text: string;
-    date: string;
-    photos?: readonly string[];
-  }[];
+  reviews?: readonly Review[];
   /** Quadro comparativo "Banguela Shop x Outras": cada linha é uma vantagem. */
   compare?: { title: string; rows: readonly string[] };
   /** false = não aparece nas vitrines (só pela página do grupo). */
@@ -627,6 +631,40 @@ const KIGURUMIS: { nome: Personagem; de: string; visual: string; ids: Record<2 |
       ids: { 2: "kgfur2", 4: "kgfur4" },
     },
   ];
+/** Avaliações de clientes dos kigurumis (vindas da loja Combinadinhos, mesmo produto). */
+const KIGURUMI_REVIEWS: readonly Review[] = [
+  {
+    author: "Juliana M.",
+    rating: 5,
+    text: "Filmei pra mostrar pra galera o quanto ficou bom, a modelagem é super confortável!",
+    videos: [img("rev-kg-juliana.mp4")],
+  },
+  {
+    author: "Ana & Gabriel",
+    rating: 5,
+    text: "Compramos o combo casal e amamos, super quentinho pra dormir junto no friozinho 💙",
+    photos: [img("rev-kg-ana-gabriel.webp")],
+  },
+  {
+    author: "Camila B.",
+    rating: 5,
+    text: "Meu filho ficou tão feliz que nem quis tirar o pijama do Stitch, olha o sorriso dele! 🥹",
+    videos: [img("rev-kg-camila.mp4")],
+  },
+  {
+    author: "Pedro H.",
+    rating: 5,
+    text: "Meu filho ficou pulando de alegria, foi a primeira coisa que ele vestiu quando chegou 😍",
+    photos: [img("rev-kg-pedro.webp")],
+  },
+  {
+    author: "Bia S.",
+    rating: 5,
+    text: "Larguei a vergonha e usei o dia todo em casa, ficou super estiloso e leve!",
+    photos: [img("rev-kg-bia.webp")],
+  },
+];
+
 export const KIGURUMI_IDS: readonly BundleId[] = KIGURUMIS.flatMap((k) => [k.ids[2], k.ids[4]]);
 
 function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
@@ -715,6 +753,7 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
         media: URSINHO_FOTOS[k.nome]!,
       },
     ],
+    reviews: KIGURUMI_REVIEWS,
     category: "kigurumi",
     checkoutProductName: `Combo ${n} Pijamas Kigurumi (${k.nome})`,
     checkoutProductDescription: `${n} pijamas kigurumi de personagem${brinde ? " e 1 ursinho de brinde" : ""}.`,
