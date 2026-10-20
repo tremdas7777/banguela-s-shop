@@ -167,7 +167,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
                 className="flex items-center gap-3 rounded-2xl py-2 pr-2"
               >
                 <img
-                  src="/produtos/md-preto.jpg"
+                  src="/produtos/sleepo-preto-uso.jpg"
                   alt=""
                   className="h-12 w-12 rounded-xl object-cover"
                 />

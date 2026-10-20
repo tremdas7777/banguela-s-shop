@@ -108,7 +108,7 @@ export const categories: readonly {
     id: "moletons",
     name: "Sleepo Dragão",
     desc: "Cobertor vestível com capuz de dragão",
-    img: "/produtos/md-preto.jpg",
+    img: "/produtos/sleepo-preto.jpg",
   },
   {
     id: "brinquedos",
@@ -253,8 +253,9 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
   tag: "Cobertor vestível de dragão com sherpa por dentro",
   price: 139.9,
   compareAtPrice: 195.9,
-  img: img(`md-${slug}.jpg`),
-  images: [img(`md-${slug}.jpg`), img(`md-${slug}-uso.jpg`)],
+  // Foto principal com a pessoa vestindo; a segunda só a peça.
+  img: img(`sleepo-${slug}-uso.jpg`),
+  images: [img(`sleepo-${slug}-uso.jpg`), img(`sleepo-${slug}.jpg`)],
   options: [],
   benefits: [
     "Flanela macia por fora e sherpa quentinha por dentro",
@@ -281,7 +282,7 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
     {
       title: "Sair do cobertor nunca mais",
       text: `Sabe aquele frio que faz você desistir de levantar do sofá? Com o Sleepo Dragão ${estampa} o cobertor vai junto: você veste em segundos, fica quentinho do pescoço aos joelhos e continua com as mãos livres para o celular, o controle ou a pipoca.`,
-      media: img(`md-${slug}-uso.jpg`),
+      media: img(`sleepo-${slug}-uso.jpg`),
     },
     {
       title: "Macio por fora, felpudo por dentro",
@@ -292,7 +293,7 @@ const moletons: Bundle[] = MOLETONS.map(({ id, estampa, slug }) => ({
         "Bolso canguru para esquentar as mãos",
         "Tamanho único oversized: sem medo de errar o tamanho",
       ],
-      media: img(`md-${slug}.jpg`),
+      media: img(`sleepo-${slug}.jpg`),
     },
     {
       title: "A família inteira de dragão",
