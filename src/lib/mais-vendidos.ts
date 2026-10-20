@@ -19,6 +19,8 @@ export const comFixos = (ids: readonly BundleId[]) =>
   [...FIXOS, ...ids.filter((id) => !FIXOS.includes(id))].slice(0, MAX_MAIS_VENDIDOS);
 /** Escolhidos à mão, usados até a loja ter vendas suficientes. */
 export const DESTAQUES: readonly BundleId[] = [
+  "aneis",
+  "colares",
   "snuggy",
   "kitcasal",
   "kitcalca",
