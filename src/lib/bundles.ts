@@ -433,7 +433,7 @@ function kit(k: KitDef): Bundle[] {
         casal
           ? {
               title: "Cada peça no tamanho certo",
-              text: `No combo casal cada um escolhe a cor e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
+              text: `No combo casal cada um escolhe o modelo e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
               ...(k.imgs[2] ? { media: img(k.imgs[2]) } : {}),
             }
           : modo === "i"
@@ -505,30 +505,31 @@ const kits: Bundle[] = [
     peca: "calça",
     prices: { casal: [132.9, 181.9], avulso: [73.9, 94.9], infantil: [66.9, 87.9] },
     imgs: ["kit-casal-calca.jpg", "kit-casal-calca-b.jpg"],
+    optionNotes: {
+      Modelo:
+        "Conjunto preto: camiseta preta + calça cinza · Conjunto branco: camiseta branca + calça branca",
+    },
     cores: (quem) => [
       {
-        name: `Camiseta ${quem}`,
-        values: quem === "dele" ? ["Preta", "Branca"] : ["Branca", "Preta"],
-      },
-      {
-        name: `Calça ${quem}`,
-        values: quem === "dele" ? ["Cinza", "Branca"] : ["Branca", "Cinza"],
+        name: `Modelo ${quem}`,
+        values: ["Conjunto preto", "Conjunto branco"],
       },
     ],
     coresTexto:
-      "Você combina as cores: camiseta preta com olhos verdes ou branca com olhos azuis, e calça branca com dragões brancos ou cinza com dragões pretos.",
+      "São dois conjuntos: o Conjunto preto, de camiseta preta com olhinhos verdes e calça cinza com dragões pretos, e o Conjunto branco, de camiseta branca com olhinhos azuis e calça branca com dragões brancos.",
     material:
       "A camiseta é de algodão jersey fio 24/1, macia e respirável, e a calça é de felpa antialérgica com elástico na cintura e corte reto.",
     clima: "Quentinho para as noites frias.",
     specsPeca: [
-      ["Camiseta", "Algodão jersey fio 24/1: preta com olhos verdes ou branca com olhos azuis"],
+      ["Conjunto preto", "Camiseta preta com olhos verdes e calça cinza com dragões pretos"],
+      ["Conjunto branco", "Camiseta branca com olhos azuis e calça branca com dragões brancos"],
+      ["Camiseta", "Algodão jersey fio 24/1"],
       ["Calça", "Felpa antialérgica, elástico na cintura e corte reto"],
-      ["Cores da calça", "Branca com dragões brancos ou cinza com dragões pretos"],
     ],
     pontos: [
       "Camiseta de algodão jersey fio 24/1, macia e respirável",
       "Calça de felpa antialérgica, com elástico na cintura e corte reto",
-      "Você combina as cores da camiseta e da calça",
+      "Dois modelos: Conjunto preto e Conjunto branco",
       "Quentinho para as noites frias",
     ],
   }),
@@ -1108,8 +1109,36 @@ const baseBundles: Bundle[] = [
   },
 ];
 
+/**
+ * Promoção: todo produto acima de R$ 80 sai pela metade. O preço cheio vira o "de" riscado
+ * e a versão infantil acompanha a adulta. Para encerrar a promoção, é só zerar PROMO_DESCONTO.
+ */
+export const PROMO_MIN = 80;
+export const PROMO_DESCONTO = 0.5;
+
+const comDesconto = (p: number) => Math.round(p * (1 - PROMO_DESCONTO) * 100) / 100;
+/** Troca o "70% OFF" de selos e títulos (ex.: brinquedos) pelo desconto da promoção. */
+const promoOff = (txt: string) =>
+  txt.replace(/\d+% OFF/, `${Math.round(PROMO_DESCONTO * 100)}% OFF`);
+
+function promo(b: Bundle): Bundle {
+  if (!PROMO_DESCONTO || b.price <= PROMO_MIN) return b;
+  return {
+    ...b,
+    price: comDesconto(b.price),
+    compareAtPrice: b.price,
+    badge: b.badge && promoOff(b.badge),
+    richSections: b.richSections?.map((s) => ({ ...s, title: promoOff(s.title) })),
+    ...(b.kids
+      ? {
+          kids: { ...b.kids, price: comDesconto(b.kids.price), compareAtPrice: b.kids.price },
+        }
+      : {}),
+  };
+}
+
 export const bundles: Bundle[] = baseBundles.map((b) =>
-  PRODUCT_COPY[b.id] ? { ...b, richSections: PRODUCT_COPY[b.id] } : b,
+  promo(PRODUCT_COPY[b.id] ? { ...b, richSections: PRODUCT_COPY[b.id] } : b),
 );
 
 /**
