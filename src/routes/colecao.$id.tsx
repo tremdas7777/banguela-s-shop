@@ -60,6 +60,7 @@ function Page() {
   const { id, maisVendidos } = Route.useLoaderData();
   const c = maisVendidos ? colecaoMaisVendidos(maisVendidos) : findCollection(id)!;
   const items = c.items;
+  const promoItems = id === "crocs" ? items.filter((p) => p.group === "crocs-promocao") : [];
   // Coleção com subdivisões (ex.: Crocs → Toy Story, Stitch...): atalhos no topo e um bloco por seção.
   const secoes = (c.secoes ?? [])
     .map((s) => ({ ...s, itens: items.filter((p) => p.secao === s.id) }))
@@ -107,6 +108,26 @@ function Page() {
         <p className="mb-5 text-[13px] text-[var(--ink)]/55">
           {items.length} {items.length === 1 ? "produto" : "produtos"}
         </p>
+        {promoItems.length > 0 && (
+          <section className="mb-12 rounded-[24px] bg-[var(--mint)] p-5 md:p-8">
+            <div className="mb-5 text-center">
+              <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/55">
+                Oferta especial
+              </p>
+              <h2 className="mt-1 text-[24px] font-bold text-[var(--night)] md:text-[30px]">
+                Crocs originais: 1 por R$ 79 ou 2 por R$ 99
+              </h2>
+              <p className="mt-2 text-[14px] text-[var(--ink)]/70">
+                Escolha os modelos e tamanhos na página do produto.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 md:gap-5">
+              {promoItems.map((p) => (
+                <ProductCard key={p.id} p={p} />
+              ))}
+            </div>
+          </section>
+        )}
         {secoes.length > 0 ? (
           <>
             <nav

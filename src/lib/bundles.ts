@@ -5,7 +5,7 @@
  */
 
 import { BRINQUEDO_IDS, brinquedos } from "./brinquedos";
-import { CROCS_IDS, CROCS_SECOES, crocs } from "./crocs";
+import { CROCS_IDS, CROCS_SECOES, crocs, crocsPromo } from "./crocs";
 import { PRODUCT_COPY } from "./copy";
 
 export const BUNDLE_IDS = [
@@ -59,6 +59,8 @@ export const BUNDLE_IDS = [
   "kitescola",
   ...BRINQUEDO_IDS,
   ...CROCS_IDS,
+  "crocs1",
+  "crocs2",
   "carro",
   "aneis",
   "colares",
@@ -122,12 +124,12 @@ export const categories: readonly {
   {
     id: "crocs",
     name: "Crocs",
-    desc: "Crocs originais da Disney, Pokémon, Bluey e Snoopy, do infantil ao adulto",
+    desc: "Promoção: 1 Crocs por R$ 79 ou 2 por R$ 99. Modelos originais Disney, Pokémon, Bluey e Snoopy.",
     img: "/produtos/crocs/cr21a-1.jpg",
     banner: {
       mobile: "/banners/crocs-c.webp",
       desktop: "/banners/crocs-cd.webp",
-      alt: "Crocs originais da Disney, Pokémon, Bluey e Snoopy com 50% OFF",
+      alt: "Promoção Crocs originais: 1 por R$ 79 ou 2 por R$ 99",
     },
     secoes: CROCS_SECOES,
   },
@@ -868,6 +870,7 @@ const baseBundles: Bundle[] = [
   ...moletons,
   ...kigurumis,
   ...crocs,
+  ...crocsPromo,
   {
     id: "pijama",
     kids: {

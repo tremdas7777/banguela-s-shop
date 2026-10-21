@@ -66,7 +66,8 @@ function Body(p: Props) {
         <div className="flex-1 text-[13px]">
           <p>{bundle.checkoutProductName}</p>
           <p className="mt-1 text-muted-foreground">
-            {variant ? `${variant} · 1 unidade` : "1 unidade"}
+            {variant ? `${variant} · ` : ""}
+            {bundle.unidades ?? 1} {bundle.unidades === 1 ? "unidade" : "unidades"}
           </p>
         </div>
         <span className="text-[13px]">{brl(bundle.price)}</span>

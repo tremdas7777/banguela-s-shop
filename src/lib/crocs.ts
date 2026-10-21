@@ -44,3 +44,63 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
     };
   }),
 );
+
+const promoModelos = Array.from(
+  new Set(
+    CROCS_MODELOS.flatMap((m) =>
+      m.versoes.map((v) => (v.linha === "Adulto" ? m.nome : `${m.nome} ${v.linha}`)),
+    ),
+  ),
+);
+const promoTamanhos = Array.from(
+  new Set(CROCS_MODELOS.flatMap((m) => m.versoes.flatMap((v) => v.tamanhos))),
+).sort((a, b) => Number(a) - Number(b));
+const promoOpcoes = [
+  { name: "Modelo", values: promoModelos },
+  { name: "Tamanho", values: promoTamanhos },
+];
+const promoOpcoesDuas = [
+  { name: "Modelo do 1º Crocs", values: promoModelos },
+  { name: "Tamanho do 1º Crocs", values: promoTamanhos },
+  { name: "Modelo do 2º Crocs", values: promoModelos },
+  { name: "Tamanho do 2º Crocs", values: promoTamanhos },
+];
+
+const promoBase = {
+  name: "Promoção Crocs",
+  tag: "Escolha seu modelo e tamanho",
+  img: img("crocs/cr21a-1.jpg"),
+  images: [img("crocs/cr21a-1.jpg")],
+  options: promoOpcoes,
+  benefits: ["Crocs originais", "Leves e confortáveis", "Escolha entre vários modelos e tamanhos"],
+  category: "crocs" as const,
+  checkoutProductDescription: "Promoção de Crocs originais.",
+  semPromo: true,
+  group: "crocs-promocao",
+  groupTitle: "Escolha sua promoção",
+  secao: "promocao",
+};
+
+export const crocsPromo: Bundle[] = [
+  {
+    ...promoBase,
+    id: "crocs1",
+    groupLabel: "1 Crocs",
+    price: 79,
+    unidades: 1,
+    badge: "1 por R$ 79",
+    checkoutProductName: "Promoção Crocs — 1 unidade",
+    checkoutUrl: "/checkout?plano=crocs1",
+  },
+  {
+    ...promoBase,
+    id: "crocs2",
+    groupLabel: "2 Crocs",
+    options: promoOpcoesDuas,
+    price: 99,
+    unidades: 2,
+    badge: "2 por R$ 99",
+    checkoutProductName: "Promoção Crocs — 2 unidades",
+    checkoutUrl: "/checkout?plano=crocs2",
+  },
+];
