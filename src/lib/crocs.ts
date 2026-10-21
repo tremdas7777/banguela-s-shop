@@ -54,8 +54,26 @@ const promoModelos = Array.from(
     ),
   ),
 );
+const TAMANHOS_ADULTOS = [
+  "34",
+  "35",
+  "36",
+  "37",
+  "38",
+  "39",
+  "40",
+  "41",
+  "42",
+  "43",
+  "44",
+  "45",
+  "46",
+];
 const promoTamanhos = Array.from(
-  new Set(CROCS_MODELOS.flatMap((m) => m.versoes.flatMap((v) => v.tamanhos))),
+  new Set([
+    ...CROCS_MODELOS.flatMap((m) => m.versoes.flatMap((v) => v.tamanhos)),
+    ...TAMANHOS_ADULTOS,
+  ]),
 ).sort((a, b) => Number(a) - Number(b));
 const promoOpcoes = [
   { name: "Modelo", values: promoModelos },
@@ -70,11 +88,16 @@ const promoOpcoesDuas = [
 
 const promoBase = {
   name: "Promoção Crocs",
-  tag: "Escolha seu modelo e tamanho",
+  tag: "Escolha seu modelo e tamanho adulto ou infantil",
   img: img("crocs/cr21a-1.jpg"),
   images: [img("crocs/cr21a-1.jpg")],
   options: promoOpcoes,
-  benefits: ["Crocs originais", "Leves e confortáveis", "Escolha entre vários modelos e tamanhos"],
+  benefits: [
+    "Crocs originais",
+    "Leves e confortáveis",
+    "Tamanhos adultos do 34 ao 46",
+    "Escolha entre vários modelos e tamanhos",
+  ],
   category: "crocs" as const,
   checkoutProductDescription: "Promoção de Crocs originais.",
   semPromo: true,
