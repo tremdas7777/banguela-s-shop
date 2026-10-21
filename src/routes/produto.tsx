@@ -111,6 +111,8 @@ function Page() {
   const [img, setImg] = useState(p.img);
   const [nudge, setNudge] = useState(false);
   const [extras, setExtras] = useState<Extras>(SEM_EXTRAS);
+  const [crocsUpsellOpen, setCrocsUpsellOpen] = useState(false);
+  const [crocsUpsellSel, setCrocsUpsellSel] = useState<Record<string, string>>({});
   const optionsRef = useRef<HTMLDivElement>(null);
 
   // Troca de produto (ex.: pelos relacionados): zera as escolhas e a foto.
@@ -119,6 +121,8 @@ function Page() {
     setSel({});
     setImg(p.img);
     setNudge(false);
+    setCrocsUpsellOpen(false);
+    setCrocsUpsellSel({});
     if (!p.comboExtras) setExtras(SEM_EXTRAS);
   }, [p.id, p.img, p.comboExtras]);
 
@@ -182,8 +186,31 @@ function Page() {
   };
   const buy = () => {
     if (!ready()) return;
+    if (p.id === "crocs1") {
+      setCrocsUpsellOpen(true);
+      return;
+    }
     if (sugestao) setOferta("comprar");
     else goCheckout();
+  };
+  const crocs2 = getBundle("crocs2");
+  const crocsUpsellValues = crocs2.options.map((o) => crocsUpsellSel[o.name]);
+  const crocsUpsellComplete = crocsUpsellValues.every(Boolean);
+  const continueCrocsUpsell = () => {
+    if (!crocsUpsellComplete) return;
+    const firstValues = values as string[];
+    const secondValues = crocs2.options.map((o) => crocsUpsellSel[o.name]) as string[];
+    markCartCheckout(false);
+    trackCheckoutClick({
+      source: "product_page",
+      bundleId: crocs2.id,
+      bundleName: productLabel(crocs2, [...firstValues, ...secondValues]),
+      value: crocs2.price,
+    });
+    navigate({
+      to: "/checkout",
+      search: { plano: crocs2.id, variante: encodeVariant([...firstValues, ...secondValues]) },
+    });
   };
   const addCart = () => {
     if (!ready()) return;
@@ -253,6 +280,81 @@ function Page() {
 
   return (
     <SiteLayout>
+      {crocsUpsellOpen && p.id === "crocs1" && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/55 px-4 py-6">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="crocs-upsell-title"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[24px] bg-white p-6 shadow-2xl md:p-8"
+          >
+            <div className="text-center">
+              <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/55">
+                Oferta especial
+              </p>
+              <h2
+                id="crocs-upsell-title"
+                className="mt-1 text-[25px] font-bold text-[var(--night)]"
+              >
+                Leve mais um Crocs por apenas R$ 20
+              </h2>
+              <p className="mt-2 text-[14px] text-[var(--ink)]/70">
+                Em vez de R$ 79, escolha qualquer outro modelo e pague apenas R$ 99 nos dois.
+              </p>
+            </div>
+            <div className="mt-6 space-y-4">
+              {crocs2.options.map((o) => (
+                <label key={o.name} className="block text-left">
+                  <span className="mb-1.5 block text-[13px] font-bold text-[var(--night)]">
+                    {o.name}
+                  </span>
+                  <select
+                    value={crocsUpsellSel[o.name] ?? ""}
+                    onChange={(e) =>
+                      setCrocsUpsellSel((current) => ({ ...current, [o.name]: e.target.value }))
+                    }
+                    className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[14px] text-[var(--night)] outline-none focus:border-[var(--night)]"
+                  >
+                    <option value="">Escolha uma opção</option>
+                    {o.values.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setCrocsUpsellOpen(false)}
+                className="rounded-full border border-[var(--ink)]/20 py-3.5 text-[13px] font-bold text-[var(--ink)]"
+              >
+                Não, obrigado
+              </button>
+              <button
+                type="button"
+                disabled={!crocsUpsellComplete}
+                onClick={continueCrocsUpsell}
+                className="rounded-full bg-[var(--night)] py-3.5 text-[13px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Comprar 2 por R$ 99
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCrocsUpsellOpen(false);
+                goCheckout();
+              }}
+              className="mx-auto mt-4 block text-[12px] text-[var(--ink)]/60 underline"
+            >
+              Continuar apenas com 1 Crocs por R$ 79
+            </button>
+          </div>
+        </div>
+      )}
       {sugestao && (
         <OfertaPantufas
           open={oferta !== null}
