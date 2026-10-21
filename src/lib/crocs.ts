@@ -6,6 +6,9 @@ export { CROCS_IDS, CROCS_SECOES } from "./crocs-dados";
 
 const img = (f: string) => `/produtos/${f}`;
 const nomeSecao = (id: string) => CROCS_SECOES.find((s) => s.id === id)?.nome ?? "";
+const TAMANHOS_ADULTOS = ["34", "35", "36", "37", "38", "39", "40", "41", "42", "43"];
+const tamanhosCrocs = (tamanhos: readonly string[]) =>
+  Array.from(new Set([...tamanhos, ...TAMANHOS_ADULTOS])).sort((a, b) => Number(a) - Number(b));
 
 export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
   m.versoes.map((v, i): Bundle => {
@@ -18,7 +21,7 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
       compareAtPrice: v.preco,
       img: img(v.imgs[0]!),
       images: v.imgs.map(img),
-      options: [{ name: "Tamanho", values: v.tamanhos }],
+      options: [{ name: "Tamanho", values: tamanhosCrocs(v.tamanhos) }],
       benefits: m.pontos.length
         ? m.pontos.slice(0, 3)
         : ["Crocs original", "Leve e confortável", "Fácil de limpar"],
@@ -27,7 +30,7 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
         ["Marca", "Crocs (original)"],
         ["Coleção", nomeSecao(m.secao)],
         ["Linha", v.linha],
-        ["Numeração", `Do ${v.tamanhos[0]} ao ${v.tamanhos.at(-1)}`],
+        ["Numeração", `Do ${tamanhosCrocs(v.tamanhos)[0]} ao ${tamanhosCrocs(v.tamanhos).at(-1)}`],
         ...(v.ref ? ([["Referência", v.ref]] as [string, string][]) : []),
         ["Dica", "Se estiver entre dois números, escolha o maior"],
       ],
@@ -54,21 +57,6 @@ const promoModelos = Array.from(
     ),
   ),
 );
-const TAMANHOS_ADULTOS = [
-  "34",
-  "35",
-  "36",
-  "37",
-  "38",
-  "39",
-  "40",
-  "41",
-  "42",
-  "43",
-  "44",
-  "45",
-  "46",
-];
 const promoTamanhos = Array.from(
   new Set([
     ...CROCS_MODELOS.flatMap((m) => m.versoes.flatMap((v) => v.tamanhos)),
@@ -95,7 +83,7 @@ const promoBase = {
   benefits: [
     "Crocs originais",
     "Leves e confortáveis",
-    "Tamanhos adultos do 34 ao 46",
+    "Tamanhos adultos do 34 ao 43",
     "Escolha entre vários modelos e tamanhos",
   ],
   category: "crocs" as const,
