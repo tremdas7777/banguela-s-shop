@@ -14,7 +14,8 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
       id: v.id,
       name: nome,
       tag: `Crocs original · ${v.linha}`,
-      price: v.preco,
+      price: 79,
+      compareAtPrice: v.preco,
       img: img(v.imgs[0]!),
       images: v.imgs.map(img),
       options: [{ name: "Tamanho", values: v.tamanhos }],
@@ -35,7 +36,8 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
       checkoutProductName: nome,
       checkoutProductDescription: `${nome}, Crocs original.`,
       checkoutUrl: `/checkout?plano=${v.id}`,
-      badge: "Original",
+      badge: "1 por R$ 79",
+      semPromo: true,
       // Infantil, juvenil e adulto do mesmo modelo: uma página com seletor; só a 1ª nas vitrines.
       ...(m.versoes.length > 1
         ? { group: `crocs-${m.grupo}`, groupLabel: v.linha, groupTitle: "Escolha a versão" }
