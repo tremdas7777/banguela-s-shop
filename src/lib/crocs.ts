@@ -7,21 +7,24 @@ export { CROCS_IDS, CROCS_SECOES } from "./crocs-dados";
 const img = (f: string) => `/produtos/${f}`;
 const nomeSecao = (id: string) => CROCS_SECOES.find((s) => s.id === id)?.nome ?? "";
 const TAMANHOS_ADULTOS = ["34", "35", "36", "37", "38", "39", "40", "41", "42", "43"];
-const tamanhosCrocs = (tamanhos: readonly string[]) =>
-  Array.from(new Set([...tamanhos, ...TAMANHOS_ADULTOS])).sort((a, b) => Number(a) - Number(b));
+const linhaExibida = (linha: string) => (linha === "Juvenil" ? "Adulto" : linha);
+const tamanhosCrocs = (linha: string, tamanhos: readonly string[]) =>
+  linha === "Infantil" ? tamanhos.filter((t) => Number(t) <= 37) : TAMANHOS_ADULTOS;
 
 export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
   m.versoes.map((v, i): Bundle => {
-    const nome = v.linha === "Adulto" ? m.nome : `${m.nome} ${v.linha}`;
+    const linha = linhaExibida(v.linha);
+    const nome = linha === "Adulto" ? m.nome : `${m.nome} ${linha}`;
+    const tamanhos = tamanhosCrocs(v.linha, v.tamanhos);
     return {
       id: v.id,
       name: nome,
-      tag: `Crocs original · ${v.linha}`,
+      tag: `Crocs original · ${linha}`,
       price: 79,
       compareAtPrice: v.preco,
       img: img(v.imgs[0]!),
       images: v.imgs.map(img),
-      options: [{ name: "Tamanho", values: tamanhosCrocs(v.tamanhos) }],
+      options: [{ name: "Tamanho", values: tamanhos }],
       benefits: m.pontos.length
         ? m.pontos.slice(0, 3)
         : ["Crocs original", "Leve e confortável", "Fácil de limpar"],
@@ -29,8 +32,8 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
       specs: [
         ["Marca", "Crocs (original)"],
         ["Coleção", nomeSecao(m.secao)],
-        ["Linha", v.linha],
-        ["Numeração", `Do ${tamanhosCrocs(v.tamanhos)[0]} ao ${tamanhosCrocs(v.tamanhos).at(-1)}`],
+        ["Linha", linha],
+        ["Numeração", `Do ${tamanhos[0]} ao ${tamanhos.at(-1)}`],
         ...(v.ref ? ([["Referência", v.ref]] as [string, string][]) : []),
         ["Dica", "Se estiver entre dois números, escolha o maior"],
       ],
@@ -53,7 +56,10 @@ export const crocs: Bundle[] = CROCS_MODELOS.flatMap((m) =>
 const promoModelos = Array.from(
   new Set(
     CROCS_MODELOS.flatMap((m) =>
-      m.versoes.map((v) => (v.linha === "Adulto" ? m.nome : `${m.nome} ${v.linha}`)),
+      m.versoes.map((v) => {
+        const linha = linhaExibida(v.linha);
+        return linha === "Adulto" ? m.nome : `${m.nome} ${linha}`;
+      }),
     ),
   ),
 );
