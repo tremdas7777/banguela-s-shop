@@ -781,7 +781,6 @@ function kigurumi(k: (typeof KIGURUMIS)[number], n: 2 | 4): Bundle {
     checkoutProductName: `Combo ${n} Pijamas Kigurumi (${k.nome})`,
     checkoutProductDescription: `${n} pijamas kigurumi de personagem${brinde ? " e 1 ursinho de brinde" : ""}.`,
     checkoutUrl: `/checkout?plano=${k.ids[n]}`,
-    badge: brinde ? "Ursinho de brinde" : "Ursinho grátis levando 4",
     group: `kg-${SLUG[k.nome]}`,
     groupLabel: brinde ? "Combo de 4 + ursinho" : "Combo de 2",
     groupTitle: "Escolha o combo",
