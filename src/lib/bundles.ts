@@ -114,6 +114,12 @@ export const categories: readonly {
     },
   },
   {
+    id: "conforto",
+    name: "Conforto & Dormir",
+    desc: "Pijama, pantufas e o Snuggy",
+    img: "/produtos/p2_snuggy.jpg",
+  },
+  {
     id: "crocs",
     name: "Crocs",
     desc: "Crocs originais da Disney, Pokémon, Bluey e Snoopy, do infantil ao adulto",
@@ -124,12 +130,6 @@ export const categories: readonly {
       alt: "Crocs originais da Disney, Pokémon, Bluey e Snoopy com 50% OFF",
     },
     secoes: CROCS_SECOES,
-  },
-  {
-    id: "conforto",
-    name: "Conforto & Dormir",
-    desc: "Pijama, pantufas e o Snuggy",
-    img: "/produtos/p2_snuggy.jpg",
   },
   {
     id: "moletons",
