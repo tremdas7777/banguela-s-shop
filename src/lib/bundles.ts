@@ -5,6 +5,7 @@
  */
 
 import { BRINQUEDO_IDS, brinquedos } from "./brinquedos";
+import { CROCS_IDS, CROCS_SECOES, crocs } from "./crocs";
 import { PRODUCT_COPY } from "./copy";
 
 export const BUNDLE_IDS = [
@@ -57,6 +58,7 @@ export const BUNDLE_IDS = [
   "mascara",
   "kitescola",
   ...BRINQUEDO_IDS,
+  ...CROCS_IDS,
   "carro",
   "aneis",
   "colares",
@@ -75,7 +77,18 @@ export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;
 
 export type CategoryId =
-  "kigurumi" | "moletons" | "conforto" | "brinquedos" | "casa" | "escola" | "joias" | "auto";
+  | "kigurumi"
+  | "crocs"
+  | "moletons"
+  | "conforto"
+  | "brinquedos"
+  | "casa"
+  | "escola"
+  | "joias"
+  | "auto";
+
+/** Subdivisão dentro de uma coleção (ex.: Toy Story dentro de Crocs); "marca" agrupa (Disney). */
+export type CollectionSection = { id: string; nome: string; marca: string };
 
 /** Banner do topo da página da coleção (celular 1080×720 e PC 1920×720). */
 export type CollectionBanner = { mobile: string; desktop: string; alt: string };
@@ -86,6 +99,8 @@ export const categories: readonly {
   desc: string;
   img: string;
   banner?: CollectionBanner;
+  /** Coleção dividida em seções, na ordem da página (cada produto diz a sua em `secao`). */
+  secoes?: readonly CollectionSection[];
 }[] = [
   {
     id: "kigurumi",
@@ -97,6 +112,18 @@ export const categories: readonly {
       desktop: "/banners/kigurumi-cd.webp",
       alt: "Pijamas Kigurumi: 2 por R$ 79 ou 4 por R$ 129 com ursinho de brinde",
     },
+  },
+  {
+    id: "crocs",
+    name: "Crocs",
+    desc: "Crocs originais da Disney, Pokémon, Bluey e Snoopy, do infantil ao adulto",
+    img: "/produtos/crocs/cr21a-1.jpg",
+    banner: {
+      mobile: "/banners/crocs-c.webp",
+      desktop: "/banners/crocs-cd.webp",
+      alt: "Crocs originais da Disney, Pokémon, Bluey e Snoopy com 50% OFF",
+    },
+    secoes: CROCS_SECOES,
   },
   {
     id: "conforto",
@@ -212,6 +239,8 @@ export type Bundle = {
   optionCards?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Combo de pijamas: a página oferece ursinhos extras e, ao comprar, as pantufas. */
   comboExtras?: boolean;
+  /** Subdivisão da coleção em que o produto aparece (ver `secoes` da categoria). */
+  secao?: string;
   /** Fica fora da promoção de 50% (ofertas com preço fechado, como os combos). */
   semPromo?: boolean;
   /** Versão infantil: vira um produto irmão ("Adulto" / "Infantil") com preço e tamanhos próprios. */
@@ -838,6 +867,7 @@ const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
   ...kigurumis,
+  ...crocs,
   {
     id: "pijama",
     kids: {
@@ -1531,6 +1561,7 @@ export function findCollection(id: string) {
       desc: c.desc,
       img: c.img,
       banner: c.banner,
+      secoes: c.secoes,
       items: bundlesByCategory(c.id),
     };
   const e = extraCollections.find((x) => x.id === id);
@@ -1540,6 +1571,8 @@ export function findCollection(id: string) {
     name: e.name,
     desc: e.desc,
     img: e.img,
+    banner: undefined,
+    secoes: undefined,
     items: e.ids.map((i) => getBundle(i)),
   };
 }

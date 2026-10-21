@@ -3,7 +3,13 @@ import { ChevronRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { brand } from "@/lib/brand";
-import { categories, findCollection, getBundle, type CollectionBanner } from "@/lib/bundles";
+import {
+  categories,
+  findCollection,
+  getBundle,
+  type CollectionBanner,
+  type CollectionSection,
+} from "@/lib/bundles";
 import { titulo, type MaisVendidos } from "@/lib/mais-vendidos";
 import { getMaisVendidos } from "@/lib/mais-vendidos.functions";
 
@@ -17,6 +23,7 @@ const colecaoMaisVendidos = (m: MaisVendidos) => ({
     : "Os produtos que a gente mais recomenda",
   img: getBundle(m.ids[0]).img,
   banner: undefined as CollectionBanner | undefined,
+  secoes: undefined as readonly CollectionSection[] | undefined,
   items: m.ids.map((id) => getBundle(id)),
 });
 
@@ -53,6 +60,16 @@ function Page() {
   const { id, maisVendidos } = Route.useLoaderData();
   const c = maisVendidos ? colecaoMaisVendidos(maisVendidos) : findCollection(id)!;
   const items = c.items;
+  // Coleção com subdivisões (ex.: Crocs → Toy Story, Stitch...): atalhos no topo e um bloco por seção.
+  const secoes = (c.secoes ?? [])
+    .map((s) => ({ ...s, itens: items.filter((p) => p.secao === s.id) }))
+    .filter((s) => s.itens.length > 0);
+  const marcas = [...new Set(secoes.map((s) => s.marca).filter(Boolean))];
+  const atalhos = [
+    ...marcas.map((m) => ({ id: secoes.find((s) => s.marca === m)!.id, nome: m })),
+    ...secoes.map((s) => ({ id: s.id, nome: s.nome })),
+  ];
+  const grade = "grid grid-cols-2 gap-x-3 gap-y-7 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4";
 
   return (
     <SiteLayout>
@@ -90,11 +107,49 @@ function Page() {
         <p className="mb-5 text-[13px] text-[var(--ink)]/55">
           {items.length} {items.length === 1 ? "produto" : "produtos"}
         </p>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-7 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
-          {items.map((p) => (
-            <ProductCard key={p.id} p={p} />
-          ))}
-        </div>
+        {secoes.length > 0 ? (
+          <>
+            <nav
+              aria-label="Seções da coleção"
+              className="-mx-6 mb-8 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0"
+            >
+              {atalhos.map((a) => (
+                <a
+                  key={a.nome}
+                  href={`#secao-${a.id}`}
+                  className="shrink-0 rounded-full bg-[var(--mint)] px-4 py-2 text-[13.5px] font-semibold text-[var(--night)] transition hover:bg-[var(--mint-strong)]"
+                >
+                  {a.nome}
+                </a>
+              ))}
+            </nav>
+            <div className="space-y-12">
+              {secoes.map((s) => (
+                <section key={s.id} id={`secao-${s.id}`} className="scroll-mt-32">
+                  {s.marca && (
+                    <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/45">
+                      {s.marca}
+                    </p>
+                  )}
+                  <h2 className="mb-4 text-[22px] font-bold text-[var(--night)] md:text-[26px]">
+                    {s.nome}
+                  </h2>
+                  <div className={grade}>
+                    {s.itens.map((p) => (
+                      <ProductCard key={p.id} p={p} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className={grade}>
+            {items.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        )}
 
         <div className="mt-14 border-t border-[var(--border)] pt-8 text-center">
           <h2 className="text-[20px] font-bold text-[var(--night)]">Outras coleções</h2>

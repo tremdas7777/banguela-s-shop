@@ -5,13 +5,14 @@ import { cn } from "@/lib/utils";
 const ADULTO = new Set(["PP", "P", "M", "G", "GG"]);
 
 /** Grupo e rótulo de cada tamanho no menu: "Infantil • 2", "Adulto • M", "Plus Size • G1". */
-function rotulo(v: string): { grupo: string; label: string } {
+function rotulo(v: string, numeracao: boolean): { grupo: string; label: string } {
   const idade = /^(\d+) anos?$/.exec(v);
   if (idade) return { grupo: "Infantil", label: `Infantil • ${idade[1]}` };
   if (ADULTO.has(v)) return { grupo: "Adulto", label: `Adulto • ${v}` };
   if (/^G\d$/.test(v)) return { grupo: "Plus Size", label: `Plus Size • ${v}` };
-  // Numeração de pantufa: infantil até o 34, adulto do 35 em diante.
-  if (/^\d{2}$/.test(v)) {
+  // Numeração de pantufa: infantil até o 34, adulto do 35 em diante. Em "Tamanho" (ex.: Crocs, que
+  // já separam infantil, juvenil e adulto em versões), o número aparece sozinho.
+  if (numeracao && /^\d{2}$/.test(v)) {
     const grupo = Number(v) <= 34 ? "Infantil" : "Adulto";
     return { grupo, label: `${grupo} • ${v}` };
   }
@@ -32,7 +33,7 @@ export function SizeSelect({
 }) {
   const grupos: { nome: string; itens: { v: string; label: string }[] }[] = [];
   for (const v of option.values) {
-    const { grupo, label } = rotulo(v);
+    const { grupo, label } = rotulo(v, /^Numeração/.test(option.name));
     const atual = grupos.at(-1);
     if (atual && atual.nome === grupo) atual.itens.push({ v, label });
     else grupos.push({ nome: grupo, itens: [{ v, label }] });

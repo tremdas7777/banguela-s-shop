@@ -45,6 +45,17 @@ const BANNERS: Banner[] = [
     ),
   },
   {
+    key: "crocs",
+    alt: "Crocs originais da Disney, Pokémon, Bluey e Snoopy com 50% OFF",
+    mobile: "/banners/crocs-m.webp",
+    desktop: "/banners/crocs-d.webp",
+    link: (c) => (
+      <Link to="/colecao/$id" params={{ id: "crocs" }} className={linkClass}>
+        {c}
+      </Link>
+    ),
+  },
+  {
     key: "conforto",
     alt: "Coleção Fúria da Noite: Snuggy, pijamas e pantufas de dragão",
     mobile: "/banners/conforto-m.webp",
@@ -248,6 +259,7 @@ function Shelves() {
 /** collection: abre a página da coleção em vez de um produto. */
 const TYPES: { id: BundleId; label: string; img: string; collection?: string }[] = [
   { id: "kgban2", label: "Kigurumi", img: img("kg-grupo.jpg"), collection: "kigurumi" },
+  { id: "cr21a", label: "Crocs", img: img("crocs/cr21a-1.jpg"), collection: "crocs" },
   { id: "mdpreto", label: "Sleepo", img: img("sleepo-preto-uso.jpg"), collection: "moletons" },
   { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg"), collection: "pijamas" },
   { id: "bq15", label: "Brinquedos", img: img("bq15-1.jpg"), collection: "brinquedos" },

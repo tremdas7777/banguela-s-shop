@@ -244,7 +244,7 @@ function Page() {
     { title: "Entrega e frete", body: `${FAQ[0]!.a} ${bundleShippingLabel(p)}.` },
     {
       title: "Trocas e devoluções",
-      body: ["conforto", "moletons", "kigurumi"].includes(p.category)
+      body: ["conforto", "moletons", "kigurumi", "crocs"].includes(p.category)
         ? "Você tem 7 dias para desistir da compra e até 30 dias para trocar por outro tamanho ou cor, sem uso e com a etiqueta."
         : "Você tem 7 dias após o recebimento para desistir da compra, com o produto sem uso e na embalagem original.",
     },
@@ -766,7 +766,7 @@ function Page() {
             {[
               `Brinde: ${GIFT.short} em toda compra`,
               bundleShippingLabel(p),
-              ["conforto", "moletons", "kigurumi"].includes(p.category)
+              ["conforto", "moletons", "kigurumi", "crocs"].includes(p.category)
                 ? "Troca de tamanho em até 30 dias"
                 : "7 dias para desistir da compra",
               `Pix ou cartão em até ${CARD_MAX_INSTALLMENTS}x`,
