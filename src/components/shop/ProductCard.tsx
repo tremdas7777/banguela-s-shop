@@ -33,7 +33,7 @@ export function ProductCard({ p }: { p: Bundle }) {
           <s className="text-[13px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
         )}
       </div>
-      {p.unidades && (
+      {p.unidades && p.unidades > 1 && (
         <p className="mt-0.5 text-[12px] text-[var(--ink)]/55">
           {p.groupLabel ?? `${p.unidades} peças`} · {brl(p.price / p.unidades)} cada
         </p>

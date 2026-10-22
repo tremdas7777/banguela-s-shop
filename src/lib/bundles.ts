@@ -53,6 +53,9 @@ export const BUNDLE_IDS = [
   "chinelo",
   "chineloi",
   "luminaria",
+  "umid1",
+  "umid2",
+  "umid3",
   "pelucia",
   "lum3d",
   "mascara",
@@ -864,6 +867,79 @@ const kigurumis: Bundle[] = [
   },
 ];
 
+/**
+ * Umidificador de dragão: 1 por R$ 69, 2 por R$ 99 ou 3 por R$ 129. Cada quantidade é um produto do
+ * mesmo grupo (preço fechado, fora da promoção de 50%); nas vitrines aparece o de 1 unidade.
+ */
+const UMIDIFICADOR_COMBOS: { id: BundleId; n: 1 | 2 | 3; price: number }[] = [
+  { id: "umid1", n: 1, price: 69 },
+  { id: "umid2", n: 2, price: 99 },
+  { id: "umid3", n: 3, price: 129 },
+];
+
+const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
+  const nome = "Umidificador Dragão Noturno";
+  const qtd = n === 1 ? "1 unidade" : `${n} unidades`;
+  return {
+    id,
+    name: nome,
+    tag: "Solta névoa azul pela boca e os olhos acendem",
+    price,
+    img: img("umidificador-1.jpg"),
+    images: [img("umidificador-1.jpg"), img("umidificador-2.jpg"), img("umidificador-3.jpg")],
+    options: [],
+    benefits: [
+      "Dragão preto que solta névoa azul pela boca, como se cuspisse fogo",
+      "Olhos e detalhes que acendem em azul",
+      "Névoa fria que ajuda a umidificar o ar seco do quarto",
+    ],
+    description: [
+      "Um umidificador em forma de dragão noturno: ele solta pela boca uma névoa azul iluminada, com efeito de fogo mágico, enquanto os olhos acendem em azul.",
+      "A névoa é fria e ajuda a deixar o ar menos seco, criando um clima aconchegante no quarto, no setup gamer ou na escrivaninha. Mesmo desligado, é uma peça de decoração que chama atenção.",
+    ],
+    specs: [
+      ["Vem no pedido", n === 1 ? "1 umidificador" : `${n} umidificadores`],
+      ["Tipo", "Umidificador de névoa fria"],
+      ["Efeito", "Névoa azul saindo da boca e olhos iluminados"],
+      ["Cor", "Preto com detalhes em azul"],
+      ["Ideal para", "Quarto, setup gamer, escrivaninha e quarto infantil"],
+    ],
+    richSections: [
+      {
+        title: "Um dragão que cospe névoa azul",
+        text: "É só ligar: a névoa sai pela boca do dragão, iluminada de azul, e os olhos acendem. O efeito parece fogo de dragão, só que fresquinho.",
+        media: img("umidificador.mp4"),
+      },
+      {
+        title: "Ar mais úmido e um clima aconchegante",
+        text: "A névoa fria ajuda a umidificar o ar seco, principalmente no inverno e com ar-condicionado ligado, e a luz azul deixa o ambiente calmo para relaxar ou dormir.",
+        points: [
+          "Névoa fria, sem aquecer a água",
+          "Luz azul suave nos olhos e na névoa",
+          "Decoração de dragão que chama atenção",
+        ],
+        media: img("umidificador-1.jpg"),
+      },
+      {
+        title: "Para o quarto, o setup e a escrivaninha",
+        text: "Fica lindo na mesa do computador, na estante ou no quarto das crianças que amam dragões. Um presente certeiro para fãs de Como Treinar o Seu Dragão.",
+        media: img("umidificador-3.jpg"),
+      },
+    ],
+    category: "casa",
+    checkoutProductName: n === 1 ? nome : `${nome} (${qtd})`,
+    checkoutProductDescription: `${qtd} do umidificador de dragão com névoa azul.`,
+    checkoutUrl: `/checkout?plano=${id}`,
+    badge: "Novo",
+    group: "umidificador",
+    groupLabel: qtd,
+    groupTitle: "Escolha a quantidade",
+    unidades: n,
+    semPromo: true,
+    ...(n > 1 ? { listed: false } : {}),
+  };
+});
+
 const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
@@ -1143,6 +1219,7 @@ const baseBundles: Bundle[] = [
     checkoutUrl: "/checkout?plano=chinelo",
     badge: "Novo",
   },
+  ...umidificadores,
   {
     id: "luminaria",
     name: "Luminária Dragão Noturno",

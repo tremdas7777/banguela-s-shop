@@ -509,7 +509,7 @@ function Page() {
                         <span className="mt-1 text-[14px] font-extrabold text-[var(--night)]">
                           {brl(g.price)}
                         </span>
-                        {g.unidades && (
+                        {g.unidades && g.unidades > 1 && (
                           <span className="text-[11.5px] text-[var(--ink)]/60">
                             {brl(g.price / g.unidades)} cada
                           </span>
@@ -734,12 +734,25 @@ function Page() {
               ) : null;
               return r.media ? (
                 <div key={r.title} className="grid items-center gap-6 md:grid-cols-2 md:gap-10">
-                  <img
-                    src={r.media}
-                    alt={r.title}
-                    loading="lazy"
-                    className={`mx-auto max-h-[540px] w-full max-w-md rounded-[20px] bg-[var(--tile)] object-cover ${i % 2 ? "md:order-2" : ""}`}
-                  />
+                  {/* Vídeo curto do produto em uso (mp4) toca sozinho, sem som, em loop. */}
+                  {r.media.endsWith(".mp4") ? (
+                    <video
+                      src={r.media}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      aria-label={r.title}
+                      className={`mx-auto max-h-[540px] w-full max-w-md rounded-[20px] bg-[var(--tile)] object-cover ${i % 2 ? "md:order-2" : ""}`}
+                    />
+                  ) : (
+                    <img
+                      src={r.media}
+                      alt={r.title}
+                      loading="lazy"
+                      className={`mx-auto max-h-[540px] w-full max-w-md rounded-[20px] bg-[var(--tile)] object-cover ${i % 2 ? "md:order-2" : ""}`}
+                    />
+                  )}
                   <div className="text-center md:text-left">
                     <h2 className="text-[22px] font-bold text-[var(--night)] md:text-[28px]">
                       {r.title}
