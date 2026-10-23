@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { brand } from "@/lib/brand";
 import { getSiteSettings } from "@/lib/site-settings.functions";
+import { formatWhatsapp } from "@/lib/whatsapp";
 
 /** Fora destas páginas: admin, fluxo de compra (não cobre o botão de pagar) e lojas de outros países. */
 const HIDDEN = [
@@ -23,15 +24,15 @@ export function WhatsAppFloat() {
     queryFn: () => fetchSettings(),
     staleTime: 60_000,
   });
-  // Sem número em src/lib/brand.ts o botão não aparece, mesmo ligado no admin.
+  // Sem número (admin ou src/lib/brand.ts) o botão não aparece, mesmo ligado no admin.
   if (
     !settings?.whatsappEnabled ||
-    !brand.whatsapp.phoneE164 ||
+    !settings.whatsappPhone ||
     HIDDEN.some((r) => r.test(pathname))
   )
     return null;
 
-  const href = `https://wa.me/${brand.whatsapp.phoneE164}?text=${encodeURIComponent(
+  const href = `https://wa.me/${settings.whatsappPhone}?text=${encodeURIComponent(
     `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
   )}`;
   return (
@@ -39,7 +40,7 @@ export function WhatsAppFloat() {
       href={href}
       target="_blank"
       rel="noreferrer"
-      aria-label={`Falar com o suporte no WhatsApp ${brand.whatsapp.display}`}
+      aria-label={`Falar com o suporte no WhatsApp ${formatWhatsapp(settings.whatsappPhone)}`}
       className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_30px_-8px_rgba(0,0,0,0.45)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366]/40"
     >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="h-7 w-7">

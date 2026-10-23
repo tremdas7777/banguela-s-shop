@@ -14,9 +14,11 @@ export const brand = {
   cnpj: "00.000.000/0000-00",
   email: "contato@seudominio.com.br",
   whatsapp: {
-    /** Número em E.164 (DDI + DDD + número), sem símbolos. Vazio = WhatsApp oculto no site. */
+    /**
+     * Número inicial em E.164 (55 + DDD + número), sem símbolos. Depois de trocado no
+     * admin (Configurações da loja → Botão de WhatsApp), vale o do admin. Vazio = oculto.
+     */
     phoneE164: "",
-    display: "",
   },
   colors: {
     primary: "#1f9d41",

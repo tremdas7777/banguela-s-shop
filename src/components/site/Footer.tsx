@@ -7,6 +7,7 @@ import { brand } from "@/lib/brand";
 import { categories, FREE_SHIPPING_LABEL } from "@/lib/bundles";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import { getSiteSettings } from "@/lib/site-settings.functions";
+import { formatWhatsapp } from "@/lib/whatsapp";
 
 const productLinks = [
   ...categories.map((c) => ({ label: c.name, href: `/colecao/${c.id}` })),
@@ -78,8 +79,9 @@ export function Footer() {
     queryFn: () => fetchSettings(),
     staleTime: 60_000,
   });
-  const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!brand.whatsapp.phoneE164;
-  const whatsappHref = `https://wa.me/${brand.whatsapp.phoneE164}?text=${encodeURIComponent(
+  const whatsappPhone = settings?.whatsappPhone ?? "";
+  const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!whatsappPhone;
+  const whatsappHref = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
     `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
   )}`;
 
@@ -115,10 +117,10 @@ export function Footer() {
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--night)] px-5 py-2.5 text-[13px] font-bold text-white transition hover:opacity-90"
-              aria-label={`Chamar no WhatsApp ${brand.whatsapp.display}`}
+              aria-label={`Chamar no WhatsApp ${formatWhatsapp(whatsappPhone)}`}
             >
               <MessageCircle className="h-4 w-4" strokeWidth={1.8} />
-              WhatsApp {brand.whatsapp.display}
+              WhatsApp {formatWhatsapp(whatsappPhone)}
             </a>
           )}
           <div className="mt-2 flex flex-wrap justify-center gap-2">

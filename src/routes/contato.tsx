@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site/Layout";
 import { brand } from "@/lib/brand";
 import { getSiteSettings } from "@/lib/site-settings.functions";
+import { formatWhatsapp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
@@ -26,8 +27,9 @@ function Page() {
     queryFn: () => fetchSettings(),
     staleTime: 60_000,
   });
-  const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!brand.whatsapp.phoneE164;
-  const whatsappHref = `https://wa.me/${brand.whatsapp.phoneE164}?text=${encodeURIComponent(
+  const whatsappPhone = settings?.whatsappPhone ?? "";
+  const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!whatsappPhone;
+  const whatsappHref = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
     `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
   )}`;
   return (
@@ -56,9 +58,9 @@ function Page() {
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline"
-                    aria-label={`Chamar no WhatsApp ${brand.whatsapp.display}`}
+                    aria-label={`Chamar no WhatsApp ${formatWhatsapp(whatsappPhone)}`}
                   >
-                    +55 {brand.whatsapp.display}
+                    {formatWhatsapp(whatsappPhone)}
                   </a>
                 </li>
               )}

@@ -1,0 +1,139 @@
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  getSiteSettings,
+  setWhatsappEnabled,
+  setWhatsappNumber,
+} from "@/lib/site-settings.functions";
+import { formatWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
+
+export interface WhatsappCardProps {
+  password: string;
+}
+
+/** WhatsApp do site (rodapé, contato e botão flutuante): liga/desliga e troca o número. */
+export function WhatsappCard({ password }: WhatsappCardProps) {
+  const fetchSettings = useServerFn(getSiteSettings);
+  const saveEnabledFn = useServerFn(setWhatsappEnabled);
+  const saveNumberFn = useServerFn(setWhatsappNumber);
+
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [phone, setPhone] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [toggling, setToggling] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!password) return;
+    fetchSettings()
+      .then((s) => {
+        setEnabled(s.whatsappEnabled);
+        setPhone(s.whatsappPhone);
+      })
+      .catch(() => {});
+  }, [password, fetchSettings]);
+
+  const toggle = async () => {
+    if (enabled === null) return;
+    setToggling(true);
+    try {
+      const r = await saveEnabledFn({ data: { password, enabled: !enabled } });
+      setEnabled(r.enabled);
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const save = async () => {
+    const normalized = normalizeWhatsapp(newPhone);
+    if (!normalized) {
+      setMsg("Número inválido. Digite o DDD e o número, ex.: (11) 98765-4321.");
+      return;
+    }
+    setSaving(true);
+    setMsg(null);
+    try {
+      const r = await saveNumberFn({ data: { password, phone: normalized } });
+      setPhone(r.phone);
+      setNewPhone("");
+      setMsg(`Número salvo: ${formatWhatsapp(r.phone)}.`);
+    } catch {
+      setMsg("Falhou ao salvar o número.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="p-5 flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <MessageCircle className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden />
+          <div>
+            <div className="font-medium">Botão de WhatsApp</div>
+            <div className="text-xs text-muted-foreground">
+              Quando desativado, o botão e o número somem do site.
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground">
+            {enabled === null ? "…" : enabled ? "Ativo" : "Desativado"}
+          </span>
+          <Button
+            size="sm"
+            variant={enabled ? "destructive" : "default"}
+            disabled={toggling || enabled === null}
+            onClick={toggle}
+          >
+            {toggling ? "Salvando…" : enabled ? "Desativar" : "Ativar"}
+          </Button>
+        </div>
+      </div>
+      <div className="text-sm">
+        {phone ? (
+          <>
+            Número atual: <span className="font-medium">{formatWhatsapp(phone)}</span>{" "}
+            <a
+              href={`https://wa.me/${phone}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-primary underline underline-offset-2"
+            >
+              testar
+            </a>
+          </>
+        ) : (
+          <span className="text-muted-foreground">
+            Nenhum número cadastrado: o botão não aparece no site.
+          </span>
+        )}
+      </div>
+      <form
+        className="flex flex-col gap-2 sm:flex-row sm:items-center"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
+      >
+        <Input
+          type="tel"
+          inputMode="tel"
+          placeholder={phone ? "Novo número com DDD" : "Número com DDD, ex.: (11) 98765-4321"}
+          value={newPhone}
+          onChange={(e) => setNewPhone(e.target.value)}
+          className="sm:max-w-sm"
+        />
+        <Button type="submit" size="sm" disabled={!newPhone.trim() || saving}>
+          {saving ? "Salvando…" : phone ? "Trocar número" : "Salvar número"}
+        </Button>
+      </form>
+      {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
+    </Card>
+  );
+}
