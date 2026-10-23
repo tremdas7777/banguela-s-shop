@@ -62,15 +62,20 @@ export async function deleteRotasyncKey(): Promise<void> {
   cache = null;
 }
 
-/** Confere a chave sem criar pedido: só lista pedidos (GET). 401 = chave recusada. */
+/**
+ * Confere a chave sem criar pedido (GET). A API checa a chave antes de procurar a rota: chave
+ * inválida dá 401 em qualquer endereço; com chave válida o GET responde 404 "Rota não encontrada"
+ * (não há rota de leitura). Então só 401/403 e erros do servidor contam como falha.
+ */
 export async function testRotasyncKey(
   key: string,
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
   try {
-    const res = await fetch(`${apiBase()}/api/v1/orders?per_page=1`, {
+    const res = await fetch(`${apiBase()}/api/v1/orders`, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (res.ok) return { ok: true, status: res.status };
+    if (res.status !== 401 && res.status !== 403 && res.status < 500)
+      return { ok: true, status: res.status };
     const json = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
     return { ok: false, status: res.status, error: json?.error?.message ?? `HTTP ${res.status}` };
   } catch {
