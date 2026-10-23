@@ -5,6 +5,7 @@ import { sendCapiEvent } from "@/lib/meta.server";
 import { sendRotasyncOrder, type RotasyncAddress } from "@/lib/rotasync.server";
 import { getBundle } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
+import { GIFT } from "@/lib/gift";
 import { isPaidStatus } from "@/lib/pix-status";
 import { getCardTransaction, isCardOrderId, CARD_ORDER_PREFIX } from "@/lib/hypercash.server";
 import { fetchPixStatus } from "@/lib/pix-gateway.server";
@@ -19,6 +20,8 @@ export type StoredCustomer = {
   address?: RotasyncAddress;
   frete?: { id: string; name: string; price: number };
   bumps?: { id: string; name: string; price: number }[];
+  /** Produto principal com a variação escolhida (cor, tamanho, personagem), para o envio. */
+  itemName?: string;
   /** Formato antigo (um só bump). */
   bump?: { id: string; name: string; price: number };
   /** Id do pedido original quando este é um upsell pós-compra. */
@@ -314,7 +317,9 @@ export async function reportPaidOnce(
               address: c.address,
               products: [
                 {
-                  name: `${brand.name} -${getBundle(o.bundle_id).name}`,
+                  // Produto com a variação escolhida. Pedidos de antes do itemName mandam o nome
+                  // completo do pedido (que já traz a variação, os extras e o brinde).
+                  name: `${brand.name} - ${c.itemName ?? o.bundle_name ?? getBundle(o.bundle_id).name}`,
                   quantity: 1,
                   price: getBundle(o.bundle_id).price,
                 },
@@ -323,6 +328,8 @@ export async function reportPaidOnce(
                   quantity: 1,
                   price: b.price,
                 })),
+                // O brinde vai em todo pedido; sem ele na lista, o estoque não separa.
+                ...(c.itemName ? [{ name: `Brinde: ${GIFT.name}`, quantity: 1, price: 0 }] : []),
               ],
             });
     // O rastreio fica fora do allOk: é idempotente por external_id e um 422 não deve ser retentado.

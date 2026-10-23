@@ -1,4 +1,5 @@
-// Envio de pedidos pagos para a Rotasync (RASTREIO_API_URL / RASTREIO_API_KEY).
+// Envio de pedidos pagos para a Rotasync. A chave da loja é cadastrada no /admin
+// (private_settings, só service role); a variável RASTREIO_API_KEY serve de reserva.
 // Somente servidor — a chave nunca vai para o navegador.
 // Doc (exemplo do usuário): POST {RASTREIO_API_URL}/api/v1/orders
 //   Authorization: Bearer <chave>
@@ -9,6 +10,73 @@
 //         items [{name,quantity}]
 
 const DEFAULT_API = "https://rotasync.online";
+const KEY = "rotasync_api_key";
+// Cada pedido pago consulta a chave: guarda por 1 minuto.
+const CACHE_MS = 60_000;
+let cache: { value: string | null; at: number } | null = null;
+
+const apiBase = () => (process.env["RASTREIO_API_URL"] ?? DEFAULT_API).replace(/\/+$/, "");
+
+async function db() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return supabaseAdmin as unknown as { from: (t: string) => any };
+}
+
+/** Chave salva no /admin (se houver). */
+async function savedKey(): Promise<string | null> {
+  const { data } = await (await db()).from("private_settings").select("value").eq("key", KEY).maybeSingle();
+  return (data?.value as string | null) || null;
+}
+
+/** Chave em uso: a do /admin ou, sem ela, a variável RASTREIO_API_KEY. */
+export async function getRotasyncKey(): Promise<string | null> {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.value;
+  const value = (await savedKey()) || process.env["RASTREIO_API_KEY"] || null;
+  cache = { value, at: Date.now() };
+  return value;
+}
+
+/** De onde vem a chave em uso (para mostrar no /admin). */
+export async function getRotasyncKeySource(): Promise<{
+  key: string | null;
+  source: "admin" | "env" | null;
+}> {
+  const saved = await savedKey();
+  if (saved) return { key: saved, source: "admin" };
+  const env = process.env["RASTREIO_API_KEY"] || null;
+  return { key: env, source: env ? "env" : null };
+}
+
+export async function saveRotasyncKey(value: string): Promise<void> {
+  const { error } = await (await db())
+    .from("private_settings")
+    .upsert({ key: KEY, value, updated_at: new Date().toISOString() });
+  if (error) throw new Error(error.message);
+  cache = null;
+}
+
+export async function deleteRotasyncKey(): Promise<void> {
+  const { error } = await (await db()).from("private_settings").delete().eq("key", KEY);
+  if (error) throw new Error(error.message);
+  cache = null;
+}
+
+/** Confere a chave sem criar pedido: só lista pedidos (GET). 401 = chave recusada. */
+export async function testRotasyncKey(
+  key: string,
+): Promise<{ ok: boolean; status?: number; error?: string }> {
+  try {
+    const res = await fetch(`${apiBase()}/api/v1/orders?per_page=1`, {
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+    if (res.ok) return { ok: true, status: res.status };
+    const json = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+    return { ok: false, status: res.status, error: json?.error?.message ?? `HTTP ${res.status}` };
+  } catch {
+    return { ok: false, error: "Falha de conexão com a RotaSync" };
+  }
+}
 
 export type RotasyncAddress = {
   street: string;
@@ -102,9 +170,9 @@ function pickTracking(json: unknown): { trackingCode?: string; trackingUrl?: str
  * retenta uma vez em erro de rede e em 429/5xx.
  */
 export async function sendRotasyncOrder(o: RotasyncOrder): Promise<RotasyncResult> {
-  const base = (process.env["RASTREIO_API_URL"] ?? DEFAULT_API).replace(/\/+$/, "");
-  const key = process.env["RASTREIO_API_KEY"];
-  if (!key) return { ok: false, error: "RASTREIO_API_KEY não configurada" };
+  const base = apiBase();
+  const key = await getRotasyncKey();
+  if (!key) return { ok: false, error: "Chave da RotaSync não configurada" };
   const body = JSON.stringify(buildBody(o));
 
   for (let attempt = 0; attempt < 2; attempt++) {

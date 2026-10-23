@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminFunnel, verifyAdminPassword } from "@/lib/admin.functions";
 import { UtmifyCard } from "@/components/admin/UtmifyCard";
+import { RotasyncCard } from "@/components/admin/RotasyncCard";
 import { WhatsappCard } from "@/components/admin/WhatsappCard";
 import { HypercashCard } from "@/components/admin/HypercashCard";
 import { PixGatewayCard } from "@/components/admin/PixGatewayCard";
@@ -240,6 +241,7 @@ function AdminPage() {
               <PixGatewayCard password={password} />
               <HypercashCard password={password} />
               <UtmifyCard password={password} />
+              <RotasyncCard password={password} />
               <MetaPixelCard password={password} />
             </section>
 
