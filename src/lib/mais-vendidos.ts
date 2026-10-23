@@ -1,4 +1,10 @@
-import { availableBundles, getBundle, parseBundleId, type BundleId } from "@/lib/bundles";
+import {
+  availableBundles,
+  DESTAQUE_LOJA,
+  getBundle,
+  parseBundleId,
+  type BundleId,
+} from "@/lib/bundles";
 
 /**
  * "Mais vendidos": ranking feito com os pedidos da loja, pagos e pendentes (mais-vendidos.functions.ts),
@@ -11,8 +17,14 @@ export type MaisVendidos = { ids: BundleId[]; reais: boolean };
 export const MIN_VENDIDOS = 4;
 export const MAX_MAIS_VENDIDOS = 12;
 
-/** Sempre aparecem primeiro, antes do ranking (escolha da loja). */
-export const FIXOS: readonly BundleId[] = ["kgban2", "kgsti2", "kgang2", "kgfur2"];
+/** Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque e depois os kigurumis. */
+export const FIXOS: readonly BundleId[] = [
+  ...DESTAQUE_LOJA,
+  "kgban2",
+  "kgsti2",
+  "kgang2",
+  "kgfur2",
+];
 
 /** Fixos na frente e o resto sem repetir, até o limite. */
 export const comFixos = (ids: readonly BundleId[]) =>

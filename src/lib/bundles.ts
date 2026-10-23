@@ -365,6 +365,8 @@ type KitDef = {
   /** Vantagens do conjunto, usadas na descrição em blocos. */
   pontos: string[];
   optionNotes?: Record<string, string>;
+  /** Combo casal com o 1º conjunto sempre preto e o 2º sempre branco: o cliente só escolhe os tamanhos. */
+  casalPretoBranco?: boolean;
 };
 
 const TAM_INF = ["2 anos", "4 anos", "6 anos", "8 anos", "10 anos", "12 anos", "14 anos"];
@@ -413,8 +415,16 @@ function kit(k: KitDef): Bundle[] {
       .map((o) => ({ ...o, name: `${o.name.replace(/ (dela|dele|infantil)$/, "")}${suf}` }));
     return cores.length === 2 ? [cores[0]!, camiseta, cores[1]!, peca] : [...cores, camiseta, peca];
   };
+  // Modelo fixo: a opção fica com um valor só, que a página já deixa marcado.
+  const fixo = (opts: ProductOption[], modelo: string) =>
+    opts.map((o) => (o.name.startsWith("Modelo") ? { ...o, values: [modelo] } : o));
   const options: Record<KitModo, ProductOption[]> = {
-    casal: [...montar("dela", TAM_COMBO, 1), ...montar("dele", TAM_COMBO, 2)],
+    casal: k.casalPretoBranco
+      ? [
+          ...fixo(montar("dela", TAM_COMBO, 1), "Conjunto preto"),
+          ...fixo(montar("dele", TAM_COMBO, 2), "Conjunto branco"),
+        ]
+      : [...montar("dela", TAM_COMBO, 1), ...montar("dele", TAM_COMBO, 2)],
     f: montar("dela", TAM_F),
     m: montar("dele", TAM_M),
     i: montar("infantil", TAM_INF),
@@ -436,6 +446,7 @@ function kit(k: KitDef): Bundle[] {
   };
   const make = (modo: KitModo): Bundle => {
     const casal = modo === "casal";
+    const pretoBranco = casal && !!k.casalPretoBranco;
     const [price, compareAtPrice] =
       modo === "casal" ? k.prices.casal : modo === "i" ? k.prices.infantil : k.prices.avulso;
     const quem = { casal: "", f: "feminino", m: "masculino", i: "infantil" }[modo];
@@ -450,12 +461,16 @@ function kit(k: KitDef): Bundle[] {
       price,
       compareAtPrice,
       options: options[modo],
-      ...(k.optionNotes ? { optionNotes: k.optionNotes } : {}),
+      ...(k.optionNotes && !pretoBranco ? { optionNotes: k.optionNotes } : {}),
       benefits: casal
         ? [
-            `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
+            pretoBranco
+              ? `Combo completo: 1 conjunto preto e 1 conjunto branco (2 camisetas e 2 ${pecas})`
+              : `Combo completo: 2 camisetas e 2 ${pecas}, um conjunto para cada um`,
             "Tamanhos do infantil 2 anos ao plus size G3",
-            "Cada um escolhe a cor e o tamanho de cada peça",
+            pretoBranco
+              ? "Cada um escolhe o tamanho de cada peça"
+              : "Cada um escolhe a cor e o tamanho de cada peça",
           ]
         : [
             `${conjunto[modo]}: 1 camiseta e 1 ${k.peca}`,
@@ -467,7 +482,7 @@ function kit(k: KitDef): Bundle[] {
           ],
       description: [
         casal
-          ? `O pijama perfeito para usar junto com aquela pessoa especial: dois conjuntos de dragão, um para cada um. ${k.coresTexto}`
+          ? `O pijama perfeito para usar junto com aquela pessoa especial: dois conjuntos de dragão, um para cada um. ${pretoBranco ? k.coresTexto.replace("São dois conjuntos:", "O combo vem com um de cada:") : k.coresTexto}`
           : `Conjunto ${quem} de camiseta e ${k.peca} com estampa de dragão. ${k.coresTexto}`,
         `${k.material} ${k.clima}`,
         casal
@@ -477,7 +492,11 @@ function kit(k: KitDef): Bundle[] {
       specs: [
         [
           "Vem no pedido",
-          casal ? `2 camisetas + 2 ${pecas} (dois conjuntos)` : `1 camiseta + 1 ${k.peca}`,
+          pretoBranco
+            ? `1 conjunto preto + 1 conjunto branco (2 camisetas + 2 ${pecas})`
+            : casal
+              ? `2 camisetas + 2 ${pecas} (dois conjuntos)`
+              : `1 camiseta + 1 ${k.peca}`,
         ],
         ...k.specsPeca,
         ...tamanhos[modo],
@@ -510,7 +529,9 @@ function kit(k: KitDef): Bundle[] {
         casal
           ? {
               title: "Cada peça no tamanho certo",
-              text: `No combo casal cada um escolhe o modelo e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
+              text: pretoBranco
+                ? `O 1º conjunto é o preto e o 2º é o branco. Cada um escolhe o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`
+                : `No combo casal cada um escolhe o modelo e o tamanho da camiseta e ${pecaTam}, do infantil 2 anos ao plus size G3. Presente certeiro para o aniversário de namoro, o Dia dos Namorados ou o casamento.`,
               ...(k.imgs[2] ? { media: img(k.imgs[2]) } : {}),
             }
           : modo === "i"
@@ -524,9 +545,11 @@ function kit(k: KitDef): Bundle[] {
               },
       ],
       checkoutProductName: casal ? k.title : `${k.title} - ${conjunto[modo]}`,
-      checkoutProductDescription: casal
-        ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
-        : `${conjunto[modo]} de pijama: 1 camiseta de algodão e 1 ${k.peca}.`,
+      checkoutProductDescription: pretoBranco
+        ? `Combo casal: 1 conjunto preto e 1 conjunto branco (2 camisetas de algodão e 2 ${pecas} de pijama).`
+        : casal
+          ? `Combo casal: 2 camisetas de algodão e 2 ${pecas} de pijama.`
+          : `${conjunto[modo]} de pijama: 1 camiseta de algodão e 1 ${k.peca}.`,
       checkoutUrl: `/checkout?plano=${k.ids[modo]}`,
       // Só o combo casal está à venda; os conjuntos avulsos levam para ele.
       ...(casal
@@ -581,7 +604,9 @@ const kits: Bundle[] = [
     ids: { casal: "kitcalca", f: "kitcalcaf", m: "kitcalcam", i: "kitcalcai" },
     title: "Pijama Dragões Calça + Camiseta",
     peca: "calça",
-    prices: { casal: [132.9, 181.9], avulso: [73.9, 94.9], infantil: [66.9, 87.9] },
+    // Combo casal a R$ 79 (abaixo de R$ 80, fica fora dos 50%), com o preço cheio de antes como "de".
+    prices: { casal: [79, 132.9], avulso: [73.9, 94.9], infantil: [66.9, 87.9] },
+    casalPretoBranco: true,
     imgs: ["kit-casal-calca.jpg", "kit-casal-calca-b.jpg"],
     optionNotes: {
       Modelo:
@@ -1603,8 +1628,16 @@ export function getCheckoutUrl(id: string | undefined) {
 /** Produtos que aparecem nas vitrines (sem os avulsos dos kits). */
 export const listedBundles = availableBundles.filter((b) => b.listed !== false);
 
+/** Produtos em destaque: primeiro card da home e da coleção deles. */
+export const DESTAQUE_LOJA: readonly BundleId[] = ["kitcalca"];
+
+const destaqueNaFrente = <T extends { id: BundleId }>(l: readonly T[]) => [
+  ...l.filter((b) => DESTAQUE_LOJA.includes(b.id)),
+  ...l.filter((b) => !DESTAQUE_LOJA.includes(b.id)),
+];
+
 export const bundlesByCategory = (cat: CategoryId) =>
-  listedBundles.filter((b) => b.category === cat);
+  destaqueNaFrente(listedBundles.filter((b) => b.category === cat));
 
 /** Páginas de coleção que juntam produtos escolhidos (ex.: todos os pijamas), além das categorias. */
 export const extraCollections: readonly {
@@ -1619,7 +1652,7 @@ export const extraCollections: readonly {
     name: "Pijamas",
     desc: "Calça de pijama e kits de casal, em versão adulta e infantil",
     img: "/produtos/kit-casal.jpg",
-    ids: ["pijama", "kitcasal", "kitcalca"],
+    ids: ["kitcalca", "pijama", "kitcasal"],
   },
   {
     id: "pantufas",

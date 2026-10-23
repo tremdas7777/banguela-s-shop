@@ -50,6 +50,7 @@ import {
   encodeVariant,
   getBundle,
   productLabel,
+  type Bundle,
 } from "@/lib/bundles";
 
 /** Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)", "Tamanho (2º pijama)". */
@@ -100,6 +101,12 @@ function Swatch({ value }: { value: string }) {
   );
 }
 
+/** Opções com um valor só (ex.: modelo fixo de cada conjunto do combo) já vêm escolhidas. */
+const fixas = (b: Bundle) =>
+  Object.fromEntries(
+    b.options.filter((o) => o.values.length === 1).map((o) => [o.name, o.values[0]!]),
+  );
+
 function Page() {
   const search = Route.useSearch();
   const navigate = useNavigate();
@@ -107,7 +114,7 @@ function Page() {
   const category = categories.find((c) => c.id === p.category);
   const off = discountPct(p);
 
-  const [sel, setSel] = useState<Record<string, string>>({});
+  const [sel, setSel] = useState<Record<string, string>>(() => fixas(p));
   const [img, setImg] = useState(p.img);
   const [nudge, setNudge] = useState(false);
   const [extras, setExtras] = useState<Extras>(SEM_EXTRAS);
@@ -118,7 +125,7 @@ function Page() {
   // Troca de produto (ex.: pelos relacionados): zera as escolhas e a foto.
   // Os extras do combo continuam ao trocar entre combo de 2 e de 4.
   useEffect(() => {
-    setSel({});
+    setSel(fixas(p));
     setImg(p.img);
     setNudge(false);
     setCrocsUpsellOpen(false);
@@ -586,7 +593,7 @@ function Page() {
                       )}
                       <div className="mb-2.5 text-[14px] font-bold text-[var(--night)]">
                         {o.name.replace(CONJUNTO, "")}
-                        {sel[o.name] && !usaMenuDeTamanho(o) && (
+                        {sel[o.name] && !usaMenuDeTamanho(o) && o.values.length > 1 && (
                           <span className="font-normal text-[var(--ink)]/70">: {sel[o.name]}</span>
                         )}
                       </div>
@@ -595,7 +602,12 @@ function Page() {
                           {p.optionNotes[o.name.replace(CONJUNTO, "")]}
                         </p>
                       )}
-                      {cards ? (
+                      {o.values.length === 1 ? (
+                        <span className="inline-flex h-11 items-center gap-2 rounded-full border border-[var(--night)] bg-[var(--night)] px-4 text-[14px] font-semibold text-white">
+                          <Swatch value={o.values[0]!} />
+                          {o.values[0]}
+                        </span>
+                      ) : cards ? (
                         <OptionCards
                           values={o.values}
                           images={cards}
