@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site/Layout";
 import { brand } from "@/lib/brand";
 import { getSiteSettings } from "@/lib/site-settings.functions";
-import { formatWhatsapp } from "@/lib/whatsapp";
+import { formatWhatsapp, whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
@@ -29,9 +29,10 @@ function Page() {
   });
   const whatsappPhone = settings?.whatsappPhone ?? "";
   const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!whatsappPhone;
-  const whatsappHref = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
-  )}`;
+  const whatsappHref = whatsappLink(
+    whatsappPhone,
+    settings?.whatsappMessage ?? brand.whatsapp.message,
+  );
   return (
     <SiteLayout>
       <section className="pt-32 md:pt-44 pb-24">

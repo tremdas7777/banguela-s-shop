@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { brand } from "@/lib/brand";
 import { getSiteSettings } from "@/lib/site-settings.functions";
-import { formatWhatsapp } from "@/lib/whatsapp";
+import { formatWhatsapp, whatsappLink } from "@/lib/whatsapp";
 
 /** Fora destas páginas: admin, fluxo de compra (não cobre o botão de pagar) e lojas de outros países. */
 const HIDDEN = [
@@ -32,9 +32,7 @@ export function WhatsAppFloat() {
   )
     return null;
 
-  const href = `https://wa.me/${settings.whatsappPhone}?text=${encodeURIComponent(
-    `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
-  )}`;
+  const href = whatsappLink(settings.whatsappPhone, settings.whatsappMessage);
   return (
     <a
       href={href}

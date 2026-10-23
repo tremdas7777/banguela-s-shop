@@ -18,7 +18,9 @@ export const brand = {
      * Número inicial em E.164 (55 + DDD + número), sem símbolos. Depois de trocado no
      * admin (Configurações da loja → Botão de WhatsApp), vale o do admin. Vazio = oculto.
      */
-    phoneE164: "",
+    phoneE164: "5585958549956",
+    /** Mensagem pronta do link. O número atende várias lojas, então ela diz de qual o cliente veio. */
+    message: "Olá! Vim pelo site da Banguela Shop e quero tirar uma dúvida.",
   },
   colors: {
     primary: "#1f9d41",

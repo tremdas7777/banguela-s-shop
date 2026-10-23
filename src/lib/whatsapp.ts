@@ -20,3 +20,9 @@ export function formatWhatsapp(e164: string): string {
   const rest = e164.slice(4);
   return `+55 (${ddd}) ${rest.slice(0, -4)}-${rest.slice(-4)}`;
 }
+
+/** Link wa.me com a mensagem pronta (sem mensagem, abre a conversa em branco). */
+export function whatsappLink(e164: string, message: string): string {
+  const text = message.trim();
+  return `https://wa.me/${e164}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}

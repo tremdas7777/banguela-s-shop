@@ -7,7 +7,7 @@ import { brand } from "@/lib/brand";
 import { categories, FREE_SHIPPING_LABEL } from "@/lib/bundles";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import { getSiteSettings } from "@/lib/site-settings.functions";
-import { formatWhatsapp } from "@/lib/whatsapp";
+import { formatWhatsapp, whatsappLink } from "@/lib/whatsapp";
 
 const productLinks = [
   ...categories.map((c) => ({ label: c.name, href: `/colecao/${c.id}` })),
@@ -81,9 +81,10 @@ export function Footer() {
   });
   const whatsappPhone = settings?.whatsappPhone ?? "";
   const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!whatsappPhone;
-  const whatsappHref = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    `Olá! Quero tirar uma dúvida sobre um produto da ${brand.name}.`,
-  )}`;
+  const whatsappHref = whatsappLink(
+    whatsappPhone,
+    settings?.whatsappMessage ?? brand.whatsapp.message,
+  );
 
   return (
     <footer className="bg-[var(--mint)] text-[var(--ink)]">

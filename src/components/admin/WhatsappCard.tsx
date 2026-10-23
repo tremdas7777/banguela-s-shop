@@ -4,28 +4,34 @@ import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   getSiteSettings,
   setWhatsappEnabled,
+  setWhatsappMessage,
   setWhatsappNumber,
 } from "@/lib/site-settings.functions";
-import { formatWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
+import { formatWhatsapp, normalizeWhatsapp, whatsappLink } from "@/lib/whatsapp";
 
 export interface WhatsappCardProps {
   password: string;
 }
 
-/** WhatsApp do site (rodapé, contato e botão flutuante): liga/desliga e troca o número. */
+/** WhatsApp do site (rodapé, contato e botão flutuante): liga/desliga, número e mensagem pronta. */
 export function WhatsappCard({ password }: WhatsappCardProps) {
   const fetchSettings = useServerFn(getSiteSettings);
   const saveEnabledFn = useServerFn(setWhatsappEnabled);
   const saveNumberFn = useServerFn(setWhatsappNumber);
+  const saveMessageFn = useServerFn(setWhatsappMessage);
 
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [draft, setDraft] = useState("");
   const [toggling, setToggling] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState<"phone" | "message" | null>(null);
+  const [copied, setCopied] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +40,8 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
       .then((s) => {
         setEnabled(s.whatsappEnabled);
         setPhone(s.whatsappPhone);
+        setMessage(s.whatsappMessage);
+        setDraft(s.whatsappMessage);
       })
       .catch(() => {});
   }, [password, fetchSettings]);
@@ -49,13 +57,13 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
     }
   };
 
-  const save = async () => {
+  const savePhone = async () => {
     const normalized = normalizeWhatsapp(newPhone);
     if (!normalized) {
       setMsg("Número inválido. Digite o DDD e o número, ex.: (11) 98765-4321.");
       return;
     }
-    setSaving(true);
+    setSaving("phone");
     setMsg(null);
     try {
       const r = await saveNumberFn({ data: { password, phone: normalized } });
@@ -65,7 +73,33 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
     } catch {
       setMsg("Falhou ao salvar o número.");
     } finally {
-      setSaving(false);
+      setSaving(null);
+    }
+  };
+
+  const saveMessage = async () => {
+    setSaving("message");
+    setMsg(null);
+    try {
+      const r = await saveMessageFn({ data: { password, message: draft } });
+      setMessage(r.message);
+      setDraft(r.message);
+      setMsg("Mensagem salva.");
+    } catch {
+      setMsg("Falhou ao salvar a mensagem.");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const link = phone ? whatsappLink(phone, message) : "";
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setMsg("Não deu para copiar. Selecione o link e copie.");
     }
   };
 
@@ -95,44 +129,90 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
           </Button>
         </div>
       </div>
-      <div className="text-sm">
-        {phone ? (
-          <>
-            Número atual: <span className="font-medium">{formatWhatsapp(phone)}</span>{" "}
-            <a
-              href={`https://wa.me/${phone}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-primary underline underline-offset-2"
-            >
-              testar
-            </a>
-          </>
-        ) : (
-          <span className="text-muted-foreground">
-            Nenhum número cadastrado: o botão não aparece no site.
-          </span>
-        )}
+
+      <div className="flex flex-col gap-2">
+        <div className="text-sm">
+          {phone ? (
+            <>
+              Número atual: <span className="font-medium">{formatWhatsapp(phone)}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">
+              Nenhum número cadastrado: o botão não aparece no site.
+            </span>
+          )}
+        </div>
+        <form
+          className="flex flex-col gap-2 sm:flex-row sm:items-center"
+          onSubmit={(e) => {
+            e.preventDefault();
+            savePhone();
+          }}
+        >
+          <Input
+            type="tel"
+            inputMode="tel"
+            placeholder={phone ? "Novo número com DDD" : "Número com DDD, ex.: (11) 98765-4321"}
+            value={newPhone}
+            onChange={(e) => setNewPhone(e.target.value)}
+            className="sm:max-w-sm"
+          />
+          <Button type="submit" size="sm" disabled={!newPhone.trim() || saving === "phone"}>
+            {saving === "phone" ? "Salvando…" : phone ? "Trocar número" : "Salvar número"}
+          </Button>
+        </form>
       </div>
-      <form
-        className="flex flex-col gap-2 sm:flex-row sm:items-center"
-        onSubmit={(e) => {
-          e.preventDefault();
-          save();
-        }}
-      >
-        <Input
-          type="tel"
-          inputMode="tel"
-          placeholder={phone ? "Novo número com DDD" : "Número com DDD, ex.: (11) 98765-4321"}
-          value={newPhone}
-          onChange={(e) => setNewPhone(e.target.value)}
-          className="sm:max-w-sm"
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="wa-mensagem" className="text-sm font-medium">
+          Mensagem pronta
+        </label>
+        <p className="text-xs text-muted-foreground">
+          Já vem escrita quando o cliente abre o WhatsApp pelo site.
+        </p>
+        <Textarea
+          id="wa-mensagem"
+          rows={2}
+          maxLength={500}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="sm:max-w-xl"
         />
-        <Button type="submit" size="sm" disabled={!newPhone.trim() || saving}>
-          {saving ? "Salvando…" : phone ? "Trocar número" : "Salvar número"}
-        </Button>
-      </form>
+        <div>
+          <Button
+            size="sm"
+            disabled={saving === "message" || draft.trim() === message}
+            onClick={saveMessage}
+          >
+            {saving === "message" ? "Salvando…" : "Salvar mensagem"}
+          </Button>
+        </div>
+      </div>
+
+      {link && (
+        <div className="flex flex-col gap-2">
+          <div className="text-sm font-medium">Link do WhatsApp</div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              readOnly
+              value={link}
+              onFocus={(e) => e.currentTarget.select()}
+              className="sm:max-w-xl font-mono text-xs"
+            />
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={copy}>
+                {copied ? "Copiado!" : "Copiar link"}
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <a href={link} target="_blank" rel="noreferrer">
+                  Testar
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
     </Card>
   );
