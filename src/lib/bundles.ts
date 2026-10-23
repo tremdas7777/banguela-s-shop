@@ -261,6 +261,13 @@ export type Bundle = {
 
 export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+/** Preço sem os centavos quando é redondo: "R$ 79" em vez de "R$ 79,00". */
+export const brlCurto = (n: number) => brl(n).replace(/,00$/, "");
+
+/** Oferta de combo para o selo e o preço ("2 por R$ 79"); produto de 1 peça não tem. */
+export const ofertaCombo = (b: Pick<Bundle, "price" | "unidades">) =>
+  b.unidades && b.unidades > 1 ? `${b.unidades} por ${brlCurto(b.price)}` : undefined;
+
 const img = (f: string) => `/produtos/${f}`;
 
 /** Linha Sleepo Dragão (cobertor vestível): mesmo modelo, uma estampa por produto. */
@@ -553,7 +560,7 @@ function kit(k: KitDef): Bundle[] {
       checkoutUrl: `/checkout?plano=${k.ids[modo]}`,
       // Só o combo casal está à venda; os conjuntos avulsos levam para ele.
       ...(casal
-        ? { badge: "Kit casal", group: k.group }
+        ? { badge: "Kit casal", group: k.group, unidades: 2 }
         : { listed: false, redirectTo: k.ids.casal }),
     };
   };

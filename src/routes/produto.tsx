@@ -49,6 +49,7 @@ import {
   discountPct,
   encodeVariant,
   getBundle,
+  ofertaCombo,
   productLabel,
   type Bundle,
 } from "@/lib/bundles";
@@ -399,10 +400,16 @@ function Page() {
           <div className="md:sticky md:top-[calc(var(--site-chrome-h,7rem)+1.5rem)] md:self-start">
             <div className="relative -mx-6 aspect-square overflow-hidden bg-[var(--tile)] md:mx-0 md:rounded-[24px]">
               <img src={img} alt={p.name} className="h-full w-full object-cover" />
-              {p.badge && (
-                <span className="absolute left-4 top-4 rounded-full bg-[var(--night)] px-3 py-1 text-[12px] font-bold text-white">
-                  {p.badge}
+              {ofertaCombo(p) ? (
+                <span className="absolute left-4 top-4 rounded-full bg-[var(--sale)] px-3.5 py-1.5 text-[14px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]">
+                  {ofertaCombo(p)}
                 </span>
+              ) : (
+                p.badge && (
+                  <span className="absolute left-4 top-4 rounded-full bg-[var(--night)] px-3 py-1 text-[12px] font-bold text-white">
+                    {p.badge}
+                  </span>
+                )
               )}
             </div>
             <div className="mt-3 flex gap-2.5 overflow-x-auto [scrollbar-width:none]">
@@ -441,7 +448,7 @@ function Page() {
 
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[26px] font-extrabold leading-none text-[var(--night)]">
-                {brl(p.price)}
+                {ofertaCombo(p) ?? brl(p.price)}
               </span>
               {p.compareAtPrice && (
                 <>
@@ -930,7 +937,7 @@ function Page() {
         <div className="flex items-center gap-3">
           <div className="leading-tight">
             <div className="text-[18px] font-extrabold text-[var(--night)]">
-              {brl(p.price + extraTotal)}
+              {(!extraTotal && ofertaCombo(p)) || brl(p.price + extraTotal)}
             </div>
             {p.compareAtPrice && (
               <s className="text-[12px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>

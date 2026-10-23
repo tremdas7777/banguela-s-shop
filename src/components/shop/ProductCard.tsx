@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { brl, discountPct, type Bundle } from "@/lib/bundles";
+import { brl, discountPct, ofertaCombo, type Bundle } from "@/lib/bundles";
 
 /** Card da vitrine: abre a página do produto (onde o cliente escolhe cor/tamanho). */
 export function ProductCard({ p }: { p: Bundle }) {
   const off = discountPct(p);
+  // Combo ("2 por R$ 79"): a oferta vai no selo e no preço, para não parecer o preço de 1 peça.
+  const oferta = ofertaCombo(p);
+  const selo = oferta ?? p.badge;
   return (
     <Link to="/produto" search={{ plano: p.id }} className="group block text-center">
       <div className="relative aspect-square overflow-hidden rounded-[20px] bg-[var(--tile)]">
@@ -13,9 +16,15 @@ export function ProductCard({ p }: { p: Bundle }) {
           loading="lazy"
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
         />
-        {p.badge && (
-          <span className="absolute left-3 top-3 rounded-full bg-[var(--night)] px-2.5 py-1 text-[11px] font-bold text-white">
-            {p.badge}
+        {selo && (
+          <span
+            className={
+              oferta
+                ? "absolute left-2.5 top-2.5 rounded-full bg-[var(--sale)] px-3 py-1.5 text-[13px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]"
+                : "absolute left-3 top-3 rounded-full bg-[var(--night)] px-2.5 py-1 text-[11px] font-bold text-white"
+            }
+          >
+            {selo}
           </span>
         )}
         {off > 0 && (
@@ -28,15 +37,17 @@ export function ProductCard({ p }: { p: Bundle }) {
         {p.name}
       </h3>
       <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 text-[14px]">
-        <span className="font-bold text-[var(--night)]">{brl(p.price)}</span>
+        {oferta ? (
+          <span className="text-[16px] font-extrabold text-[var(--sale)]">{oferta}</span>
+        ) : (
+          <span className="font-bold text-[var(--night)]">{brl(p.price)}</span>
+        )}
         {p.compareAtPrice && (
           <s className="text-[13px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
         )}
       </div>
-      {p.unidades && p.unidades > 1 && (
-        <p className="mt-0.5 text-[12px] text-[var(--ink)]/55">
-          {p.groupLabel ?? `${p.unidades} peças`} · {brl(p.price / p.unidades)} cada
-        </p>
+      {oferta && p.unidades && (
+        <p className="mt-0.5 text-[12px] text-[var(--ink)]/55">{brl(p.price / p.unidades)} cada</p>
       )}
     </Link>
   );
