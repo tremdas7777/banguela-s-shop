@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Mail, MessageCircle, ShieldCheck } from "lucide-react";
+import { ChevronDown, MessageCircle, ShieldCheck } from "lucide-react";
 import logo from "@/assets/logo-full.webp";
 import { brand } from "@/lib/brand";
 import { categories, FREE_SHIPPING_LABEL } from "@/lib/bundles";
@@ -105,13 +105,6 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center gap-3 text-center">
-          <a
-            href={`mailto:${brand.email}`}
-            className="inline-flex items-center gap-2 text-[14px] font-semibold text-[var(--night)]"
-          >
-            <Mail className="h-4 w-4" strokeWidth={1.8} />
-            {brand.email}
-          </a>
           {whatsappEnabled && (
             <a
               href={whatsappHref}
