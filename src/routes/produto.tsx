@@ -401,7 +401,7 @@ function Page() {
             <div className="relative -mx-6 aspect-square overflow-hidden bg-[var(--tile)] md:mx-0 md:rounded-[24px]">
               <img src={img} alt={p.name} className="h-full w-full object-cover" />
               {ofertaCombo(p) ? (
-                <span className="absolute left-4 top-4 rounded-full bg-[var(--sale)] px-3.5 py-1.5 text-[14px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]">
+                <span className="absolute left-4 top-4 rounded-full bg-[var(--primary-dark)] px-3.5 py-1.5 text-[14px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]">
                   {ofertaCombo(p)}
                 </span>
               ) : (

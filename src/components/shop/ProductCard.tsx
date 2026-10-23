@@ -20,7 +20,7 @@ export function ProductCard({ p }: { p: Bundle }) {
           <span
             className={
               oferta
-                ? "absolute left-2.5 top-2.5 rounded-full bg-[var(--sale)] px-3 py-1.5 text-[13px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]"
+                ? "absolute left-2.5 top-2.5 rounded-full bg-[var(--primary-dark)] px-3 py-1.5 text-[13px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]"
                 : "absolute left-3 top-3 rounded-full bg-[var(--night)] px-2.5 py-1 text-[11px] font-bold text-white"
             }
           >
@@ -38,7 +38,7 @@ export function ProductCard({ p }: { p: Bundle }) {
       </h3>
       <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 text-[14px]">
         {oferta ? (
-          <span className="text-[16px] font-extrabold text-[var(--sale)]">{oferta}</span>
+          <span className="text-[16px] font-extrabold text-[var(--primary-dark)]">{oferta}</span>
         ) : (
           <span className="font-bold text-[var(--night)]">{brl(p.price)}</span>
         )}
