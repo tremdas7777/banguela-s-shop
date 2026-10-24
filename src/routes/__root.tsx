@@ -15,6 +15,7 @@ import { PIXELS } from "@/lib/pixels";
 import { brand } from "@/lib/brand";
 import { useMetaPixel } from "@/hooks/useMetaPixel";
 import { WhatsAppFloat } from "@/components/site/WhatsAppFloat";
+import { PixPaidWatcher } from "@/components/site/PixPaidWatcher";
 
 import appCss from "../styles.css?url";
 
@@ -189,6 +190,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <WhatsAppFloat />
+      <PixPaidWatcher />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );

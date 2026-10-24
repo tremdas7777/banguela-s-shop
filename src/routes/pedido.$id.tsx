@@ -65,18 +65,24 @@ function Page() {
   // Dispara os eventos de compra uma única vez quando o pagamento cai.
   useEffect(() => {
     if (!paid) return;
+    // Página reaberta depois do pagamento (a sessão agora sobrevive à recarga): só segue o fluxo,
+    // sem disparar a compra de novo.
+    const first = !session?.paidSeen;
+    if (session && first) savePixSession({ ...session, paidSeen: true });
     const value = (session?.amount ?? 0) / 100;
     const w = window as DataLayerWindow;
-    try {
-      // Upsell não é compra nova: no Meta vai como "Upsell" (igual ao servidor); TikTok/GTM só no principal.
-      const upsell = !!session?.isUpsell;
-      metaPurchaseBrowser(id, value, session?.bundleName, upsell);
-      if (!upsell) w.ttq?.track("CompletePayment", { value, currency: "BRL" });
-      w.dataLayer?.push({ event: upsell ? "upsell" : "purchase", currency: "BRL", value });
-    } catch {
-      // pixels indisponíveis
+    if (first) {
+      try {
+        // Upsell não é compra nova: no Meta vai como "Upsell" (igual ao servidor); TikTok/GTM só no principal.
+        const upsell = !!session?.isUpsell;
+        metaPurchaseBrowser(id, value, session?.bundleName, upsell);
+        if (!upsell) w.ttq?.track("CompletePayment", { value, currency: "BRL" });
+        w.dataLayer?.push({ event: upsell ? "upsell" : "purchase", currency: "BRL", value });
+      } catch {
+        // pixels indisponíveis
+      }
     }
-    if (session) {
+    if (session && first) {
       trackCheckoutClick({
         source: "pix_paid",
         bundleId: session.bundleId as never,
