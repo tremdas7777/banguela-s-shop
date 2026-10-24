@@ -18,8 +18,8 @@ export const MIN_VENDIDOS = 4;
 export const MAX_MAIS_VENDIDOS = 12;
 
 /**
- * Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque, os kigurumis e a
- * pelúcia gigante (1 por R$ 69 / 2 por R$ 89).
+ * Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque, os kigurumis, a
+ * pelúcia gigante (1 por R$ 69 / 2 por R$ 89) e o umidificador de dragão.
  */
 export const FIXOS: readonly BundleId[] = [
   ...DESTAQUE_LOJA,
@@ -28,6 +28,7 @@ export const FIXOS: readonly BundleId[] = [
   "kgang2",
   "kgfur2",
   "pelucia",
+  "umid1",
 ];
 
 /** Fixos na frente e o resto sem repetir, até o limite. */
