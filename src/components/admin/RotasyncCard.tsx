@@ -6,10 +6,31 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   deleteRotasyncKeyFn,
+  enviarPendentesRotasyncFn,
   getRotasyncStatus,
+  listarPendentesRotasyncFn,
   saveRotasyncKeyFn,
   testRotasyncKeyFn,
 } from "@/lib/rotasync.functions";
+
+type Pendente = {
+  id: string;
+  criadoEm: string;
+  cliente: string;
+  itens: string[];
+  totalCents: number;
+};
+type Resultado = { ok: boolean; error?: string; trackingCode?: string };
+
+const brl = (cents: number) =>
+  (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const dataCurta = (iso: string) =>
+  new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export interface RotasyncCardProps {
   password: string;
@@ -21,6 +42,8 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
   const saveFn = useServerFn(saveRotasyncKeyFn);
   const deleteFn = useServerFn(deleteRotasyncKeyFn);
   const testFn = useServerFn(testRotasyncKeyFn);
+  const listarFn = useServerFn(listarPendentesRotasyncFn);
+  const enviarFn = useServerFn(enviarPendentesRotasyncFn);
 
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [maskedKey, setMaskedKey] = useState<string | null>(null);
@@ -30,6 +53,14 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // Pedidos antigos (pagos antes da chave)
+  const [pendentes, setPendentes] = useState<Pendente[] | null>(null);
+  const [semEndereco, setSemEndereco] = useState(0);
+  const [marcados, setMarcados] = useState<Set<string>>(new Set());
+  const [resultados, setResultados] = useState<Record<string, Resultado>>({});
+  const [buscando, setBuscando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [msgAntigos, setMsgAntigos] = useState<string | null>(null);
 
   const refresh = () =>
     statusFn({ data: { password } })
@@ -101,6 +132,54 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
     }
   };
 
+  const buscarPendentes = async () => {
+    setBuscando(true);
+    setMsgAntigos(null);
+    setResultados({});
+    try {
+      const r = await listarFn({ data: { password } });
+      setPendentes(r.pendentes);
+      setSemEndereco(r.semEndereco);
+      setMarcados(new Set(r.pendentes.map((p) => p.id)));
+    } catch {
+      setMsgAntigos("Falhou ao buscar os pedidos.");
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  const alternar = (id: string) =>
+    setMarcados((m) => {
+      const n = new Set(m);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+
+  const enviarMarcados = async () => {
+    if (!pendentes) return;
+    const ids = pendentes.filter((p) => marcados.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    setEnviando(true);
+    setMsgAntigos(null);
+    try {
+      const r = await enviarFn({ data: { password, ids } });
+      const novos: Record<string, Resultado> = { ...resultados };
+      for (const x of r) novos[x.id] = x;
+      setResultados(novos);
+      const ok = r.filter((x) => x.ok).length;
+      setMsgAntigos(
+        `${ok} de ${r.length} pedido(s) enviados.${ok < r.length ? " Veja o motivo nos que falharam." : ""}`,
+      );
+      // Os enviados saem da seleção (não manda de novo por engano).
+      setMarcados((m) => new Set([...m].filter((id) => !r.some((x) => x.id === id && x.ok))));
+    } catch {
+      setMsgAntigos("Falhou ao enviar.");
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
     <Card className="mt-3 p-5 flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -155,6 +234,85 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
         )}
         {msg && <span className="text-foreground">{msg}</span>}
       </div>
+
+      {configured && (
+        <div className="flex flex-col gap-3 border-t pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-medium">Pedidos antigos</div>
+              <div className="text-xs text-muted-foreground">
+                Pedidos pagos que ainda não foram para a RotaSync. Desmarque os que você já
+                despachou por outro caminho antes de enviar.
+              </div>
+            </div>
+            <Button size="sm" variant="outline" disabled={buscando} onClick={buscarPendentes}>
+              {buscando ? "Buscando…" : pendentes ? "Atualizar lista" : "Ver pedidos"}
+            </Button>
+          </div>
+
+          {pendentes &&
+            (pendentes.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Nenhum pedido pago faltando na RotaSync.
+                {semEndereco > 0 &&
+                  ` (${semEndereco} pedido(s) sem endereço completo não podem ir.)`}
+              </p>
+            ) : (
+              <>
+                <ul className="max-h-96 divide-y overflow-auto rounded-md border text-sm">
+                  {pendentes.map((p) => {
+                    const r = resultados[p.id];
+                    return (
+                      <li key={p.id} className="flex gap-3 p-3">
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 shrink-0"
+                          checked={marcados.has(p.id)}
+                          disabled={enviando || r?.ok}
+                          onChange={() => alternar(p.id)}
+                          aria-label={`Enviar o pedido de ${p.cliente}`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                            <span className="font-medium">{p.cliente}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {dataCurta(p.criadoEm)} · {brl(p.totalCents)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">{p.itens.join(" · ")}</div>
+                          {r && (
+                            <div
+                              className={`mt-1 text-xs ${r.ok ? "text-green-700" : "text-destructive"}`}
+                            >
+                              {r.ok
+                                ? `Enviado${r.trackingCode ? ` · rastreio ${r.trackingCode}` : ""}${r.error ? ` (${r.error})` : ""}`
+                                : `Não foi: ${r.error ?? "erro"}`}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    size="sm"
+                    disabled={enviando || marcados.size === 0}
+                    onClick={enviarMarcados}
+                  >
+                    {enviando ? "Enviando…" : `Enviar ${marcados.size} pedido(s)`}
+                  </Button>
+                  {semEndereco > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {semEndereco} pedido(s) sem endereço completo não podem ir.
+                    </span>
+                  )}
+                </div>
+              </>
+            ))}
+          {msgAntigos && <p className="text-xs text-foreground">{msgAntigos}</p>}
+        </div>
+      )}
     </Card>
   );
 }

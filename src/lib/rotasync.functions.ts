@@ -6,6 +6,7 @@ import {
   saveRotasyncKey,
   testRotasyncKey,
 } from "./rotasync.server";
+import { enviarPendentesRotasync, listarPendentesRotasync } from "./pix-orders.server";
 
 // Card "RotaSync" do /admin: chave da loja para enviar os pedidos pagos.
 
@@ -56,4 +57,21 @@ export const testRotasyncKeyFn = createServerFn({ method: "POST" })
     const { key } = await getRotasyncKeySource();
     if (!key) return { ok: false, error: "Nenhuma chave cadastrada" };
     return testRotasyncKey(key);
+  });
+
+/** Pedidos pagos que ainda não foram para a RotaSync (para enviar os antigos). */
+export const listarPendentesRotasyncFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => pw.parse(d))
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    return listarPendentesRotasync();
+  });
+
+export const enviarPendentesRotasyncFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    pw.extend({ ids: z.array(z.string().min(1).max(100)).min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    return enviarPendentesRotasync(data.ids);
   });

@@ -2,7 +2,13 @@
 // (UTMify + Meta CAPI) mesmo que o cliente feche a página. Somente servidor.
 import { sendUtmifyOrder, type UtmParams } from "@/lib/utmify.server";
 import { sendCapiEvent } from "@/lib/meta.server";
-import { sendRotasyncOrder, type RotasyncAddress } from "@/lib/rotasync.server";
+import {
+  sendRotasyncOrder,
+  type RotasyncAddress,
+  type RotasyncOrder,
+  type RotasyncResult,
+} from "@/lib/rotasync.server";
+import { EXPRESS_SHIPPING, SHIPPING_INSURANCE, type UpsellProduct } from "@/lib/upsell";
 import { getBundle } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
 import { GIFT } from "@/lib/gift";
@@ -300,38 +306,17 @@ export async function reportPaidOnce(
             order_id: id,
           },
         });
-    // Rastreio (Rotasync): só pedidos principais com endereço completo. O upsell vai no mesmo envio do pedido original.
-    // Se a API já respondeu de forma definitiva (sucesso, 422, 401, 402, 403), não reenvia.
-    const prev = (o.report_result as { rastro?: { ok?: boolean; status?: number } } | null)?.rastro;
+    // Rastreio (Rotasync). Se a API já respondeu de forma definitiva (sucesso, 422, 401, 402, 403),
+    // não reenvia; pedidos que ficaram de fora vão pelo /admin (RotaSync → Pedidos antigos).
+    const prev = (o.report_result as { rastro?: RastroSalvo } | null)?.rastro;
     const rastroDone =
-      !!prev && (prev.ok || [401, 402, 403, 413, 415, 422].includes(prev.status ?? 0));
-    const rastro = rastroDone
+      !!prev && (jaNaRotasync(prev) || [401, 402, 403, 413, 415, 422].includes(prev.status ?? 0));
+    const pedido = rastroDone ? null : await pedidoRotasync(o as StoredOrder);
+    const rastro = !pedido
       ? prev
-      : c.upsellOf
-        ? { ok: true, skipped: "upsell enviado junto com o pedido original" }
-        : !c.address
-          ? { ok: false, skipped: "pedido sem endereço por partes" }
-          : await sendRotasyncOrder({
-              transactionId: id,
-              customer: { name: c.name, email: c.email, phone: c.phone, document: c.cpf },
-              address: c.address,
-              products: [
-                {
-                  // Produto com a variação escolhida. Pedidos de antes do itemName mandam o nome
-                  // completo do pedido (que já traz a variação, os extras e o brinde).
-                  name: `${brand.name} - ${c.itemName ?? o.bundle_name ?? getBundle(o.bundle_id).name}`,
-                  quantity: 1,
-                  price: getBundle(o.bundle_id).price,
-                },
-                ...(c.bumps ?? (c.bump ? [c.bump] : [])).map((b) => ({
-                  name: b.name,
-                  quantity: 1,
-                  price: b.price,
-                })),
-                // O brinde vai em todo pedido; sem ele na lista, o estoque não separa.
-                ...(c.itemName ? [{ name: `Brinde: ${GIFT.name}`, quantity: 1, price: 0 }] : []),
-              ],
-            });
+      : "skipped" in pedido
+        ? { ok: false, skipped: pedido.skipped }
+        : await sendRotasyncOrder(pedido);
     // O rastreio fica fora do allOk: é idempotente por external_id e um 422 não deve ser retentado.
     const allOk = utmify.ok && meta.ok;
     console.log("reportPaidOnce", id, JSON.stringify({ utmify, meta, rastro }));
@@ -354,4 +339,152 @@ export async function reportPaidOnce(
   } catch (e) {
     console.error("reportPaidOnce failed", e);
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// RotaSync: o mesmo pedido serve para o envio automático (reportPaidOnce) e para o /admin.
+
+type RastroSalvo = { ok?: boolean; status?: number; skipped?: string; error?: string };
+
+/** Já está na RotaSync (os "pulados" antigos do pós-compra eram ok:true sem ter ido). */
+const jaNaRotasync = (r?: RastroSalvo | null) => !!r?.ok && !r.skipped;
+
+/** Nome de cada oferta do pós-compra para o estoque (a unidade extra leva a variação do pedido). */
+function itemPosCompra(p: UpsellProduct, principal: string): string {
+  if (p === "kit") return `Mais 1 unidade - ${brand.name} - ${principal}`;
+  return p === "seguro" ? SHIPPING_INSURANCE.name : EXPRESS_SHIPPING.name;
+}
+
+/** Pedido pago no formato da RotaSync, ou o motivo de não ir. */
+async function pedidoRotasync(o: StoredOrder): Promise<RotasyncOrder | { skipped: string }> {
+  const c = o.customer;
+  if (c.testOf) return { skipped: "cobrança de teste do admin" };
+  // Pós-compra: o pedido original já foi enviado quando foi pago, então vai como complemento,
+  // com o endereço do original.
+  if (c.upsellOf) {
+    const main = await getOrder(c.upsellOf);
+    const mc = main?.customer;
+    if (!main || !mc?.address) return { skipped: "pedido original sem endereço por partes" };
+    const principal = mc.itemName ?? main.bundle_name;
+    return {
+      transactionId: o.id,
+      customer: { name: mc.name, email: mc.email, phone: mc.phone, document: mc.cpf },
+      address: mc.address,
+      products: (c.upsellItems ?? ["kit"]).map((p) => ({
+        name: `Complemento do pedido ${main.id}: ${itemPosCompra(p, principal)}`,
+        quantity: 1,
+        price: 0,
+      })),
+    };
+  }
+  if (!c.address) return { skipped: "pedido sem endereço por partes" };
+  return {
+    transactionId: o.id,
+    customer: { name: c.name, email: c.email, phone: c.phone, document: c.cpf },
+    address: c.address,
+    products: [
+      {
+        // Produto com a variação escolhida. Pedidos de antes do itemName mandam o nome
+        // completo do pedido (que já traz a variação e os extras).
+        name: `${brand.name} - ${c.itemName ?? o.bundle_name ?? getBundle(o.bundle_id).name}`,
+        quantity: 1,
+        price: getBundle(o.bundle_id).price,
+      },
+      ...(c.bumps ?? (c.bump ? [c.bump] : [])).map((b) => ({
+        name: b.name,
+        quantity: 1,
+        price: b.price,
+      })),
+      // O brinde vai em todo pedido; sem ele na lista, o estoque não separa.
+      ...(c.itemName ? [{ name: `Brinde: ${GIFT.name}`, quantity: 1, price: 0 }] : []),
+    ],
+  };
+}
+
+export type RotasyncPendente = {
+  id: string;
+  criadoEm: string;
+  cliente: string;
+  itens: string[];
+  totalCents: number;
+};
+
+type PedidoSalvo = StoredOrder & { created_at: string; report_result?: unknown };
+const rastroDe = (o: PedidoSalvo) =>
+  (o.report_result as { rastro?: RastroSalvo } | null)?.rastro ?? null;
+
+/** Pedidos pagos (entre os 500 mais recentes) que ainda não chegaram à RotaSync. */
+export async function listarPendentesRotasync(): Promise<{
+  pendentes: RotasyncPendente[];
+  semEndereco: number;
+}> {
+  const db = await admin();
+  const { data, error } = await db
+    .from("pix_orders")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw new Error(error.message);
+  const pendentes: RotasyncPendente[] = [];
+  let semEndereco = 0;
+  for (const o of (data ?? []) as PedidoSalvo[]) {
+    if (!isPaidStatus(o.status) || o.customer?.testOf || jaNaRotasync(rastroDe(o))) continue;
+    const pedido = await pedidoRotasync(o);
+    if ("skipped" in pedido) {
+      semEndereco++;
+      continue;
+    }
+    pendentes.push({
+      id: o.id,
+      criadoEm: o.created_at,
+      cliente: o.customer.name,
+      itens: pedido.products.map((p) => p.name),
+      totalCents: o.amount_cents,
+    });
+  }
+  return { pendentes, semEndereco };
+}
+
+/** Envia os pedidos escolhidos no /admin (a RotaSync ignora repetidos pelo external_id). */
+export async function enviarPendentesRotasync(
+  ids: string[],
+): Promise<{ id: string; ok: boolean; error?: string; trackingCode?: string }[]> {
+  const db = await admin();
+  const out: { id: string; ok: boolean; error?: string; trackingCode?: string }[] = [];
+  for (const id of ids) {
+    const { data } = await db.from("pix_orders").select("*").eq("id", id).maybeSingle();
+    const o = data as PedidoSalvo | null;
+    if (!o || !isPaidStatus(o.status)) {
+      out.push({ id, ok: false, error: "pedido não está pago" });
+      continue;
+    }
+    if (jaNaRotasync(rastroDe(o))) {
+      out.push({ id, ok: true, error: "já estava na RotaSync" });
+      continue;
+    }
+    const pedido = await pedidoRotasync(o);
+    if ("skipped" in pedido) {
+      out.push({ id, ok: false, error: pedido.skipped });
+      continue;
+    }
+    const r: RotasyncResult = await sendRotasyncOrder(pedido);
+    await db
+      .from("pix_orders")
+      .update({
+        report_result: {
+          ...((o.report_result as Record<string, unknown> | null) ?? {}),
+          rastro: r,
+          rastroManualEm: new Date().toISOString(),
+        },
+      })
+      .eq("id", id);
+    const detalhe = (r.details as { error?: { message?: string } } | undefined)?.error?.message;
+    out.push({
+      id,
+      ok: r.ok,
+      error: r.ok ? undefined : [r.error, detalhe].filter(Boolean).join(": "),
+      trackingCode: r.trackingCode,
+    });
+  }
+  return out;
 }

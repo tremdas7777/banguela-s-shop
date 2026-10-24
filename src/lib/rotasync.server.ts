@@ -23,10 +23,15 @@ async function db() {
   return supabaseAdmin as unknown as { from: (t: string) => any };
 }
 
-/** Chave salva no /admin (se houver). */
+/** Chave salva no /admin (se houver). Banco fora do ar não derruba o envio: vale a variável. */
 async function savedKey(): Promise<string | null> {
-  const { data } = await (await db()).from("private_settings").select("value").eq("key", KEY).maybeSingle();
-  return (data?.value as string | null) || null;
+  try {
+    const { data } = await (await db()).from("private_settings").select("value").eq("key", KEY).maybeSingle();
+    return (data?.value as string | null) || null;
+  } catch (e) {
+    console.error("Rotasync savedKey", e);
+    return null;
+  }
 }
 
 /** Chave em uso: a do /admin ou, sem ela, a variável RASTREIO_API_KEY. */
