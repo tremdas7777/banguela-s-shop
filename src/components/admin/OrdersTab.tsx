@@ -134,7 +134,11 @@ export function OrdersTab({ password }: OrdersTabProps) {
       "utm_term",
       "Pago em",
     ];
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    // Texto que começa com = + - @ vira fórmula no Excel: o apóstrofo faz ele ficar só texto.
+    const esc = (v: unknown) => {
+      const t = String(v ?? "");
+      return `"${(/^[=+\-@\t\r]/.test(t) ? `'${t}` : t).replace(/"/g, '""')}"`;
+    };
     const lines = filtered.map((o) => {
       const c = o.customer ?? ({} as AdminOrder["customer"]);
       const u = o.utm ?? {};

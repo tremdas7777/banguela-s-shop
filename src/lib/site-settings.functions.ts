@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { brand } from "@/lib/brand";
@@ -27,7 +28,7 @@ export const setCardEnabled = createServerFn({ method: "POST" })
     z.object({ password: z.string().min(1).max(200), enabled: z.boolean() }).parse(d),
   )
   .handler(async ({ data }) => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -43,7 +44,7 @@ export const setWhatsappEnabled = createServerFn({ method: "POST" })
     z.object({ password: z.string().min(1).max(200), enabled: z.boolean() }).parse(d),
   )
   .handler(async ({ data }) => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -61,7 +62,7 @@ export const setWhatsappNumber = createServerFn({ method: "POST" })
     z.object({ password: z.string().min(1).max(200), phone: z.string().max(40) }).parse(d),
   )
   .handler(async ({ data }) => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
     const phone = normalizeWhatsapp(data.phone);
@@ -81,7 +82,7 @@ export const setWhatsappMessage = createServerFn({ method: "POST" })
     z.object({ password: z.string().min(1).max(200), message: z.string().max(500) }).parse(d),
   )
   .handler(async ({ data }) => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
     const message = data.message.trim();

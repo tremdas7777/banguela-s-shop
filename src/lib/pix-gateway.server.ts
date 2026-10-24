@@ -2,6 +2,7 @@
 // A escolha vale para os próximos Pix. Cada pedido guarda no id qual gateway gerou o Pix, então a
 // consulta de status e o webhook continuam no gateway certo mesmo depois de uma troca.
 import { getPixgateKey, PIXGATE_API } from "@/lib/pixgate.server";
+import { brand } from "@/lib/brand";
 import {
   createUmbrellaPix,
   getUmbrellaKey,
@@ -108,7 +109,8 @@ export async function createPix(o: {
   ip?: string | null | undefined;
 }): Promise<{ id: string; qrcode: string; status: string }> {
   const { active } = await getPixGatewayState();
-  const webhook = `${new URL(o.origin).origin}/api/public/pix-webhook`;
+  // Sempre o domínio oficial: o navegador não escolhe para onde o gateway manda os avisos.
+  const webhook = `${brand.siteUrl}/api/public/pix-webhook`;
   if (active === "umbrella") {
     const tx = await createUmbrellaPix({
       amount: o.amount,

@@ -39,22 +39,11 @@ function Page() {
       statusFn({
         data: {
           id,
-          report:
-            session?.phone && session.cpf
-              ? {
-                  name: session.name,
-                  email: session.email,
-                  phone: session.phone,
-                  cpf: session.cpf,
-                  bundleId: session.bundleId,
-                  bundleName: session.bundleName,
-                  createdAt: session.createdAt,
-                  utm: session.utm ?? {},
-                  fbp: session.fbp ?? null,
-                  fbc: session.fbc ?? null,
-                  url: window.location.href,
-                }
-              : undefined,
+          // Só o que o servidor usa (cookies do Meta e a URL). Dados do cliente não vão na
+          // consulta: ela é um GET a cada 5 s e ficaria nos logs da hospedagem.
+          report: session
+            ? { fbp: session.fbp ?? null, fbc: session.fbc ?? null, url: window.location.href }
+            : undefined,
         },
       }),
     refetchInterval: (q) => (q.state.data?.paid ? false : 5000),

@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { trackFunnelEvent } from "@/lib/checkout-tracking.functions";
 
 const SESSION_KEY = "bshop_session_id";
 
@@ -66,19 +66,22 @@ export async function trackEvent(input: FunnelEventInput) {
   if (typeof window === "undefined") return;
   try {
     const utm = getUtmParams();
-    await supabase.from("funnel_events").insert({
-      session_id: getSessionId(),
-      event_type: input.event_type,
-      path: input.path ?? window.location.pathname,
-      bundle_id: input.bundle_id ?? null,
-      bundle_name: input.bundle_name ?? null,
-      value: input.value ?? null,
-      referrer: document.referrer || null,
-      user_agent: navigator.userAgent,
-      utm_source: utm.utm_source,
-      utm_medium: utm.utm_medium,
-      utm_campaign: utm.utm_campaign,
-      metadata: (input.metadata ?? null) as never,
+    const source = input.metadata?.["source"];
+    await trackFunnelEvent({
+      data: {
+        sessionId: getSessionId(),
+        event_type: input.event_type,
+        path: (input.path ?? window.location.pathname).slice(0, 300),
+        bundle_id: input.bundle_id?.slice(0, 80) ?? null,
+        bundle_name: input.bundle_name?.slice(0, 160) ?? null,
+        value: input.value ?? null,
+        referrer: document.referrer ? document.referrer.slice(0, 500) : null,
+        user_agent: navigator.userAgent.slice(0, 400),
+        utm_source: utm.utm_source?.slice(0, 300) ?? null,
+        utm_medium: utm.utm_medium?.slice(0, 300) ?? null,
+        utm_campaign: utm.utm_campaign?.slice(0, 300) ?? null,
+        source: typeof source === "string" ? source.slice(0, 60) : null,
+      },
     });
   } catch (e) {
     console.warn("trackEvent failed", e);

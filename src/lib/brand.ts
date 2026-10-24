@@ -4,6 +4,8 @@
  */
 export const brand = {
   name: "Banguela Shop",
+  /** Endereço oficial da loja (o webhook dos gateways sempre aponta para cá). */
+  siteUrl: "https://banguelashop.store",
   productName: "Banguela Shop",
   /** Nome genérico que aparece na fatura do cliente (gateways Pix e cartão). */
   gatewayName: "Banguela Shop",

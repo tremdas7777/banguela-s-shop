@@ -1,13 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
+import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const verifyAdminPassword = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ password: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data }) => {
-    const expected = process.env.ADMIN_PASSWORD;
-    if (!expected) return { ok: false, error: "ADMIN_PASSWORD not set" };
-    return { ok: data.password === expected };
+    return { ok: senhaAdminOk(data.password) };
   });
 
 export const getAdminFunnel = createServerFn({ method: "POST" })
@@ -26,7 +25,7 @@ export const getAdminFunnel = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
 
@@ -140,7 +139,7 @@ export const getAdminOrders = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }): Promise<{ orders: AdminOrder[] }> => {
-    if (data.password !== process.env.ADMIN_PASSWORD) {
+    if (!senhaAdminOk(data.password)) {
       throw new Error("Unauthorized");
     }
     const since = periodStart(data.days);
@@ -259,7 +258,7 @@ export const getAbandonedCheckouts = createServerFn({ method: "POST" })
     async ({
       data,
     }): Promise<{ funnel: Record<AbandonStep | "pago", number>; rows: AbandonedCheckout[] }> => {
-      if (data.password !== process.env.ADMIN_PASSWORD) throw new Error("Unauthorized");
+      if (!senhaAdminOk(data.password)) throw new Error("Unauthorized");
       const since = periodStart(data.days);
 
       const { data: events, error } = await supabaseAdmin

@@ -1,11 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
+import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getMetaConfig, saveMetaConfig, sendCapiEvent } from "./meta.server";
 import { brand } from "@/lib/brand";
 
 function assertAdmin(password: string) {
-  if (password !== process.env["ADMIN_PASSWORD"]) throw new Error("Não autorizado");
+  if (!senhaAdminOk(password)) throw new Error("Não autorizado");
 }
 
 function reqMeta() {

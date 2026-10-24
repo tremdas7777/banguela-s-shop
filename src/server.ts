@@ -66,15 +66,36 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   return brandedErrorResponse();
 }
 
+/** Cabeçalhos de segurança em toda resposta do servidor (páginas, admin e API). */
+// Sem X-Frame-Options: a Lovable mostra a prévia do site numa moldura dentro do editor dela.
+const SEGURANCA: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "Content-Security-Policy": "frame-ancestors 'self' https://lovable.dev https://*.lovable.dev https://*.lovable.app https://*.lovableproject.com",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
+
+function comSeguranca(res: Response): Response {
+  try {
+    for (const [k, v] of Object.entries(SEGURANCA)) if (!res.headers.has(k)) res.headers.set(k, v);
+    return res;
+  } catch {
+    // Resposta com cabeçalhos imutáveis: copia.
+    const h = new Headers(res.headers);
+    for (const [k, v] of Object.entries(SEGURANCA)) if (!h.has(k)) h.set(k, v);
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+  }
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return comSeguranca(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return brandedErrorResponse();
+      return comSeguranca(brandedErrorResponse());
     }
   },
 };

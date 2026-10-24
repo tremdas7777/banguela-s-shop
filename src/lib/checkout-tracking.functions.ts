@@ -57,3 +57,39 @@ export const trackCheckoutStep = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+const eventSchema = z.object({
+  sessionId: z.string().uuid(),
+  event_type: z.enum(["page_view", "product_view", "checkout_click"]),
+  path: z.string().max(300).nullable(),
+  bundle_id: z.string().max(80).nullable(),
+  bundle_name: z.string().max(160).nullable(),
+  value: z.number().min(0).max(100000).nullable(),
+  referrer: z.string().max(500).nullable(),
+  user_agent: z.string().max(400).nullable(),
+  utm_source: z.string().max(300).nullable(),
+  utm_medium: z.string().max(300).nullable(),
+  utm_campaign: z.string().max(300).nullable(),
+  source: z.string().max(60).nullable(),
+});
+
+/**
+ * Visitas, produtos vistos e cliques em comprar, gravados pelo servidor: o navegador não escreve
+ * mais direto no banco (a chave pública não tem permissão de inserir em funnel_events).
+ */
+export const trackFunnelEvent = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => eventSchema.parse(d))
+  .handler(async ({ data }) => {
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { sessionId, source, ...rest } = data;
+      await supabaseAdmin.from("funnel_events").insert({
+        session_id: sessionId,
+        ...rest,
+        metadata: (source ? { source } : null) as never,
+      });
+    } catch (e) {
+      console.error("trackFunnelEvent failed", e);
+    }
+    return { ok: true };
+  });

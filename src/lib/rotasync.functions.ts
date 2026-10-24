@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { z } from "zod";
 import {
   deleteRotasyncKey,
@@ -13,7 +14,7 @@ import { enviarPendentesRotasync, listarPendentesRotasync } from "./pix-orders.s
 const pw = z.object({ password: z.string().min(1).max(200) });
 
 function assertAdmin(password: string) {
-  if (!process.env["ADMIN_PASSWORD"] || password !== process.env["ADMIN_PASSWORD"])
+  if (!senhaAdminOk(password))
     throw new Error("Não autorizado");
 }
 

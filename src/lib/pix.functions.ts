@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { GIFT } from "@/lib/gift";
 import { z } from "zod";
 import {
@@ -236,7 +237,7 @@ async function isCardEnabled(): Promise<boolean> {
 }
 
 /** Com o cartão desligado, quem está logado no admin (mesmo navegador) ainda consegue testar. */
-const isAdmin = (pwd?: string) => !!pwd && pwd === process.env["ADMIN_PASSWORD"];
+const isAdmin = (pwd?: string) => senhaAdminOk(pwd);
 
 /** Chave PÚBLICA da HyperCash (pode ir para o navegador; a secreta fica só no servidor). */
 export const getCardConfig = createServerFn({ method: "POST" })
@@ -309,7 +310,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
           quantity: 1,
         })),
       ],
-      postbackUrl: `${new URL(data.origin).origin}/api/public/pix-webhook?gw=hc`,
+      postbackUrl: `${brand.siteUrl}/api/public/pix-webhook?gw=hc`,
       ip,
     });
     if (["refused", "canceled", "cancelled", "failed"].includes(tx.status)) {
@@ -435,7 +436,7 @@ export const createCardFollowUpCharge = createServerFn({ method: "POST" })
         unitPrice: Math.round(i.price * 100),
         quantity: 1,
       })),
-      postbackUrl: `${new URL(data.origin).origin}/api/public/pix-webhook?gw=hc`,
+      postbackUrl: `${brand.siteUrl}/api/public/pix-webhook?gw=hc`,
       ip,
     });
     const refused = ["refused", "canceled", "cancelled", "failed"].includes(tx.status);
@@ -566,14 +567,6 @@ export const getPixStatus = createServerFn({ method: "GET" })
         id: z.string().regex(/^[\w-]{1,64}$/),
         report: z
           .object({
-            name: z.string().max(120),
-            email: z.string().max(160),
-            phone: z.string().max(20),
-            cpf: z.string().max(14),
-            bundleId: z.string().max(10),
-            bundleName: z.string().max(80),
-            createdAt: z.number(),
-            utm: utmSchema,
             fbp: z.string().max(200).nullable().optional(),
             fbc: z.string().max(300).nullable().optional(),
             url: z.string().max(1000).optional(),

@@ -1,13 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { isPaidStatus } from "@/lib/pix-status";
 
 function normalizeCpf(input: string): string {
   return (input || "").replace(/\D/g, "").slice(0, 11);
 }
 
+/** CPF com os dois dígitos verificadores certos. */
 function isValidCpf(cpf: string): boolean {
-  if (cpf.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(cpf)) return false;
-  return true;
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const dv = (n: number) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += Number(cpf[i]) * (n + 1 - i);
+    const r = (s * 10) % 11;
+    return r === 10 ? 0 : r;
+  };
+  return dv(9) === Number(cpf[9]) && dv(10) === Number(cpf[10]);
 }
 
 export type RastreioStatus =
@@ -23,75 +31,46 @@ export function computeStatus(dataCriacao: string): RastreioStatus {
   return "pedido_recebido";
 }
 
+/**
+ * Rastreio pelo CPF, só para quem tem pedido pago. Nada é gravado: antes a consulta criava um
+ * pedido de mentira para qualquer CPF e guardava o CPF numa tabela aberta (rastreios).
+ */
 export const trackByCpf = createServerFn({ method: "POST" })
-  .inputValidator((input: { cpf: string }) => input)
+  .inputValidator((input: unknown) => z.object({ cpf: z.string().max(20) }).parse(input))
   .handler(async ({ data }) => {
     const cpf = normalizeCpf(data.cpf);
     if (!isValidCpf(cpf)) {
-      throw new Error("CPF inválido. Digite os 11 números.");
+      throw new Error("CPF inválido. Confira os 11 números.");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Pedido pago mais recente desse CPF — de onde vêm o código e o link reais da transportadora (Rotasync).
-    const { data: order } = await supabaseAdmin
+    // Pedido pago mais recente desse CPF; o código e o link reais vêm da Rotasync.
+    const { data: orders } = await supabaseAdmin
       .from("pix_orders")
-      .select("id, created_at, report_result")
+      .select("id, status, created_at, updated_at, report_result")
       .filter("customer->>cpf", "eq", cpf)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
+    const order = (orders ?? []).find((o) => isPaidStatus(o.status));
+    if (!order) {
+      throw new Error(
+        "Não encontramos pedido pago com esse CPF. Confira os números ou fale com a gente pelo WhatsApp.",
+      );
+    }
 
     const rastro = (
-      order?.report_result as {
+      order.report_result as {
         rastro?: { ok?: boolean; trackingCode?: string; trackingUrl?: string };
       } | null
     )?.rastro;
-    const trackingCode = rastro?.ok ? rastro.trackingCode : undefined;
-    const trackingUrl = rastro?.ok ? rastro.trackingUrl : undefined;
-
-    // Lookup by codigo_rastreio = CPF
-    const { data: existing } = await supabaseAdmin
-      .from("rastreios")
-      .select("*")
-      .eq("codigo_rastreio", cpf)
-      .maybeSingle();
-
-    let row = existing;
-    if (!row) {
-      const pedido = "AID" + cpf.slice(-6) + Math.floor(Math.random() * 90 + 10);
-      const { data: inserted, error } = await supabaseAdmin
-        .from("rastreios")
-        .insert({
-          pedido,
-          nome: "Cliente",
-          email: "",
-          codigo_rastreio: cpf,
-          status: "pedido_recebido",
-        })
-        .select("*")
-        .single();
-      if (error) throw new Error(error.message);
-      row = inserted;
-    }
-
-    const status = computeStatus(row.data_criacao);
-
-    // Persist updated status if changed
-    if (status !== row.status) {
-      await supabaseAdmin
-        .from("rastreios")
-        .update({ status, data_atualizacao: new Date().toISOString() })
-        .eq("id", row.id);
-      row.status = status;
-    }
 
     return {
-      pedido: row.pedido,
-      status,
-      data_criacao: row.data_criacao,
-      data_atualizacao: row.data_atualizacao,
-      tracking_code: trackingCode ?? null,
-      tracking_url: trackingUrl ?? null,
+      pedido: `#${order.id.replace(/[^\w]/g, "").slice(-8).toUpperCase()}`,
+      status: computeStatus(order.created_at),
+      data_criacao: order.created_at,
+      data_atualizacao: order.updated_at ?? order.created_at,
+      tracking_code: (rastro?.ok ? rastro.trackingCode : undefined) ?? null,
+      tracking_url: (rastro?.ok ? rastro.trackingUrl : undefined) ?? null,
     };
   });
