@@ -135,10 +135,9 @@ function AdminPage() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "funnel_events" },
-        (payload) => {
-          const ev = payload.new as FunnelEvent;
-          setEvents((prev) => [ev, ...prev].slice(0, 100));
-          // Refresh funnel counts periodically
+        () => {
+          // A chave pública não lê funnel_events (guarda contatos dos checkouts): o aviso chega
+          // vazio e só dispara a atualização, que busca os eventos pelo servidor com a senha.
           load();
         },
       )
@@ -335,7 +334,7 @@ function AdminPage() {
                             <EventBadge type={e.event_type} step={e.metadata?.step} />
                           </td>
                           <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
-                            {e.session_id.slice(0, 8)}
+                            {(e.session_id ?? "").slice(0, 8)}
                           </td>
                           <td className="px-4 py-2 text-muted-foreground">{e.path}</td>
                           <td className="px-4 py-2">{e.bundle_name ?? "—"}</td>
