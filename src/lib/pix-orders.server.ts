@@ -355,6 +355,32 @@ function itemPosCompra(p: UpsellProduct, principal: string): string {
   return p === "seguro" ? SHIPPING_INSURANCE.name : EXPRESS_SHIPPING.name;
 }
 
+/**
+ * Produto principal com a variação. Pedidos novos guardam em itemName; nos antigos o nome do
+ * pedido é "produto + extras + brinde" e os extras já vão como itens próprios, então tira do fim
+ * os extras + brinde (senão o estoque separa em dobro).
+ */
+function produtoPrincipal(o: StoredOrder): string {
+  const c = o.customer;
+  if (c.itemName) return c.itemName;
+  let nome = o.bundle_name || getBundle(o.bundle_id).name;
+  const sufixoBrinde = ` + Brinde: ${GIFT.name}`;
+  if (nome.endsWith(sufixoBrinde)) nome = nome.slice(0, -sufixoBrinde.length);
+  for (const b of [...(c.bumps ?? (c.bump ? [c.bump] : []))].reverse()) {
+    if (nome.endsWith(` + ${b.name}`)) nome = nome.slice(0, -(b.name.length + 3));
+    else {
+      // O nome curto do extra (no pedido) pode diferir do completo (nos itens): tira o último.
+      const i = nome.lastIndexOf(" + ");
+      if (i > 0) nome = nome.slice(0, i);
+    }
+  }
+  return nome;
+}
+
+/** Pedido com brinde: todos os novos e os antigos que traziam "Brinde:" no nome. */
+const temBrinde = (o: StoredOrder) =>
+  !!o.customer.itemName || (o.bundle_name ?? "").includes(" + Brinde: ");
+
 /** Pedido pago no formato da RotaSync, ou o motivo de não ir. */
 async function pedidoRotasync(o: StoredOrder): Promise<RotasyncOrder | { skipped: string }> {
   const c = o.customer;
@@ -365,7 +391,7 @@ async function pedidoRotasync(o: StoredOrder): Promise<RotasyncOrder | { skipped
     const main = await getOrder(c.upsellOf);
     const mc = main?.customer;
     if (!main || !mc?.address) return { skipped: "pedido original sem endereço por partes" };
-    const principal = mc.itemName ?? main.bundle_name;
+    const principal = produtoPrincipal(main);
     return {
       transactionId: o.id,
       customer: { name: mc.name, email: mc.email, phone: mc.phone, document: mc.cpf },
@@ -384,9 +410,8 @@ async function pedidoRotasync(o: StoredOrder): Promise<RotasyncOrder | { skipped
     address: c.address,
     products: [
       {
-        // Produto com a variação escolhida. Pedidos de antes do itemName mandam o nome
-        // completo do pedido (que já traz a variação e os extras).
-        name: `${brand.name} - ${c.itemName ?? o.bundle_name ?? getBundle(o.bundle_id).name}`,
+        // Produto com a variação escolhida (só ele: os extras vêm a seguir).
+        name: `${brand.name} - ${produtoPrincipal(o)}`,
         quantity: 1,
         price: getBundle(o.bundle_id).price,
       },
@@ -396,7 +421,7 @@ async function pedidoRotasync(o: StoredOrder): Promise<RotasyncOrder | { skipped
         price: b.price,
       })),
       // O brinde vai em todo pedido; sem ele na lista, o estoque não separa.
-      ...(c.itemName ? [{ name: `Brinde: ${GIFT.name}`, quantity: 1, price: 0 }] : []),
+      ...(temBrinde(o) ? [{ name: `Brinde: ${GIFT.name}`, quantity: 1, price: 0 }] : []),
     ],
   };
 }
