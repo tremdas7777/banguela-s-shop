@@ -178,7 +178,7 @@ function BumpCard({
             className="h-5 w-5 shrink-0 accent-[var(--ck-ok)]"
           />
           <span className="text-[13.5px] font-semibold leading-snug">
-            {checked ? `Adicionado! ${name} incluído no seu pedido.` : cta}
+            {checked ? `Adicionado ao seu pedido: ${name}.` : cta}
           </span>
         </label>
       </div>
@@ -218,35 +218,53 @@ export function OrderBump({
 }
 
 /**
- * Order bump da máscara de dormir, com a escolha da estampa. Vai para o pedido como item comum
- * (plano "mascara" + estampa), com o preço do catálogo, validado no servidor.
+ * Order bump da máscara de dormir: uma oferta só, 1 por R$ 20,90 ou 2 por R$ 34,90, com a estampa de
+ * cada máscara. Vai para o pedido como item comum ("mascara" ou "mascara2" + estampas), com o preço
+ * do catálogo, validado no servidor.
  */
 export function MascaraBump({
-  estampa,
+  estampas,
   onChange,
   reveal = false,
 }: {
-  /** Estampa escolhida; null = fora do pedido. */
-  estampa: string | null;
-  onChange: (estampa: string | null) => void;
+  /** Estampa de cada máscara escolhida: 0 = fora do pedido, 1 ou 2 máscaras. */
+  estampas: readonly string[];
+  onChange: (estampas: string[]) => void;
   reveal?: boolean;
 }) {
-  const b = getBundle("mascara");
-  const estampas = b.options[0]?.values ?? [];
-  const fotos = b.optionImages ?? {};
+  const [qtd, setQtd] = useState<1 | 2>(estampas.length === 2 ? 2 : 1);
+  const um = getBundle("mascara");
+  const dois = getBundle("mascara2");
+  const opcoes = um.options[0]?.values ?? [];
+  const fotos = um.optionImages ?? {};
+  const atual = qtd === 2 ? dois : um;
+  const checked = estampas.length > 0;
+  // Ao escolher a quantidade, mantém o que já foi escolhido e completa com uma estampa diferente.
+  const preencher = (n: 1 | 2) =>
+    Array.from({ length: n }, (_, i) => estampas[i] ?? opcoes[i] ?? opcoes[0] ?? "");
+  const escolherQtd = (n: 1 | 2) => {
+    setQtd(n);
+    onChange(preencher(n));
+  };
+  const escolherEstampa = (i: number, e: string) => {
+    const novas = preencher(qtd);
+    novas[i] = e;
+    onChange(novas);
+  };
   return (
     <BumpCard
-      img={(estampa && fotos[estampa]) || b.img}
-      alt={b.name}
-      name="Máscara de dormir"
-      price={b.price}
-      compareAt={b.compareAtPrice}
+      img={(estampas[0] && fotos[estampas[0]]) || um.img}
+      alt={um.name}
+      name={qtd === 2 ? "2 máscaras de dormir" : "Máscara de dormir"}
+      price={atual.price}
+      compareAt={atual.compareAtPrice}
       tag="Combina com o seu pijama"
       question="Que tal dormir ainda melhor?"
       body={
         <>
-          A <b className="text-foreground">Máscara de Dormir Dragão</b> bloqueia a luz da janela,
-          da TV e do celular para você pegar no sono mais rápido. Escolha a estampa:
+          A <b className="text-foreground">Máscara de Dormir Dragão</b> bloqueia a luz da janela, da
+          TV e do celular para você pegar no sono mais rápido. Leve 1 ou 2 e escolha a estampa de
+          cada uma:
         </>
       }
       benefits={[
@@ -254,39 +272,79 @@ export function MascaraBump({
         "7 estampas de dragão, das fofas às realistas",
         "Leve, com elástico que se ajusta à cabeça",
       ]}
-      cta={`Sim! Quero a máscara por + ${brl(b.price)}`}
-      checked={estampa !== null}
-      onChange={(on) => onChange(on ? (estampa ?? estampas[0] ?? null) : null)}
+      cta={
+        qtd === 2
+          ? `Sim! Quero 2 máscaras por + ${brl(dois.price)}`
+          : `Sim! Quero a máscara por + ${brl(um.price)}`
+      }
+      checked={checked}
+      onChange={(on) => onChange(on ? preencher(qtd) : [])}
       reveal={reveal}
     >
-      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-7" role="radiogroup" aria-label="Estampa">
-        {estampas.map((e) => (
-          <button
-            key={e}
-            type="button"
-            role="radio"
-            aria-checked={estampa === e}
-            title={e}
-            onClick={() => onChange(e)}
-            className={cn(
-              "overflow-hidden rounded-md border-2 bg-white transition",
-              estampa === e ? "border-[var(--ck-ok)]" : "border-border hover:border-amber-400",
-            )}
-          >
-            <img
-              src={fotos[e] ?? b.img}
-              alt={e}
-              loading="lazy"
-              className="aspect-square w-full object-cover"
-            />
-          </button>
-        ))}
+      <div className="mt-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quantidade">
+        {([1, 2] as const).map((n) => {
+          const b = n === 2 ? dois : um;
+          const on = qtd === n;
+          return (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => escolherQtd(n)}
+              className={cn(
+                "rounded-md border-2 bg-white px-2 py-2 text-center leading-tight transition",
+                on ? "border-[var(--ck-ok)]" : "border-border hover:border-amber-400",
+              )}
+            >
+              <span className="block text-[13.5px] font-bold">
+                {n} por {brl(b.price)}
+              </span>
+              <span className="block text-[11.5px] text-muted-foreground">
+                {n === 1 ? "1 máscara" : `${brl(b.price / 2)} cada`}
+              </span>
+            </button>
+          );
+        })}
       </div>
-      {estampa && (
-        <p className="mt-2 text-[12.5px] text-muted-foreground">
-          Estampa: <b className="text-foreground">{estampa}</b>
-        </p>
-      )}
+
+      {Array.from({ length: qtd }, (_, i) => (
+        <div key={i} className="mt-3">
+          <p className="text-[12.5px] text-muted-foreground">
+            {qtd === 2 ? `${i + 1}ª máscara` : "Estampa"}:{" "}
+            <b className="text-foreground">{estampas[i] ?? "toque para escolher"}</b>
+          </p>
+          <div
+            className="mt-1.5 grid grid-cols-7 gap-1.5"
+            role="radiogroup"
+            aria-label={`Estampa da ${i + 1}ª máscara`}
+          >
+            {opcoes.map((e) => (
+              <button
+                key={e}
+                type="button"
+                role="radio"
+                aria-checked={estampas[i] === e}
+                title={e}
+                onClick={() => escolherEstampa(i, e)}
+                className={cn(
+                  "overflow-hidden rounded border-2 bg-white transition",
+                  estampas[i] === e
+                    ? "border-[var(--ck-ok)]"
+                    : "border-border hover:border-amber-400",
+                )}
+              >
+                <img
+                  src={fotos[e] ?? um.img}
+                  alt={e}
+                  loading="lazy"
+                  className="aspect-square w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </BumpCard>
   );
 }

@@ -148,12 +148,21 @@ function Page() {
   const itemName = productLabel(bundle, variantValues ?? []);
   // Pantufas escolhidas no popup do pijama (vêm na URL; o cliente pode remover aqui).
   const [pantufas, setPantufas] = useState(() => parsePantufas(search.pantufas));
-  // Order bump da máscara de dormir: estampa escolhida (null = fora do pedido). Entra como item comum.
-  const [mascara, setMascara] = useState<string | null>(null);
+  // Order bump da máscara de dormir: estampa de cada máscara (vazio = fora do pedido; 1 ou 2
+  // máscaras). Entra como item comum ("mascara" ou "mascara2").
+  const [mascaras, setMascaras] = useState<string[]>([]);
   // Demais produtos do carrinho (só os com opções válidas; o servidor valida de novo).
   const itens = [
     ...(search.itens ?? []).filter((it) => parseVariant(getBundle(it.plano), it.variante)),
-    ...(mascara ? [{ plano: "mascara" as const, variante: encodeVariant([mascara]), qtd: 1 }] : []),
+    ...(mascaras.length
+      ? [
+          {
+            plano: mascaras.length === 2 ? ("mascara2" as const) : ("mascara" as const),
+            variante: encodeVariant(mascaras),
+            qtd: 1,
+          },
+        ]
+      : []),
   ];
   const itemLines = cartLines(itens);
   const itensTotal = itemLines.reduce((s, l) => s + l.price, 0);
@@ -654,12 +663,12 @@ function Page() {
           sub="Todas as transações são seguras e criptografadas."
         />
         <div className="mt-6 space-y-6">
-          {bundle.id !== "mascara" && <MascaraBump estampa={mascara} onChange={setMascara} />}
+          {bundle.group !== "mascara" && <MascaraBump estampas={mascaras} onChange={setMascaras} />}
           {ORDER_BUMPS.filter((b) => b.id !== bundle.id).map((b, i) => (
             <OrderBump
               key={b.id}
               bump={b}
-              reveal={bundle.id !== "mascara" || i > 0}
+              reveal={bundle.group !== "mascara" || i > 0}
               checked={bumps.includes(b.id)}
               onChange={(on) => toggleBump(b.id, on)}
             />

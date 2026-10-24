@@ -60,6 +60,7 @@ export const BUNDLE_IDS = [
   "pelucia2",
   "lum3d",
   "mascara",
+  "mascara2",
   "kitescola",
   ...BRINQUEDO_IDS,
   ...CROCS_IDS,
@@ -976,6 +977,94 @@ const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
 });
 
 /**
+ * Máscara de dormir: um produto só, 1 por R$ 20,90 ou 2 por R$ 34,90 (o cliente escolhe a estampa de
+ * cada uma). Cada quantidade é um produto do grupo; nas vitrines aparece o de 1, com a oferta de 2 no
+ * card. As duas também são o order bump do checkout (MascaraBump).
+ */
+export const MASCARA_ESTAMPAS = [
+  "Olhos azul e verde",
+  "Olhos verdes",
+  "Dragão dormindo",
+  "Olhos amarelos",
+  "Casal apaixonado",
+  "Olhos azuis realistas",
+  "Olhos verdes realistas",
+] as const;
+const MASCARA_FOTOS: Readonly<Record<string, string>> = {
+  "Olhos azul e verde": img("mascara-olhos-azul-verde.jpg"),
+  "Olhos verdes": img("mascara-olhos-verdes.jpg"),
+  "Dragão dormindo": img("mascara-dormindo.jpg"),
+  "Olhos amarelos": img("mascara-olhos-amarelos.jpg"),
+  "Casal apaixonado": img("mascara-apaixonados.jpg"),
+  "Olhos azuis realistas": img("mascara-olhos-azuis.jpg"),
+  "Olhos verdes realistas": img("mascara-olhos-verdes-real.jpg"),
+};
+/** "de" de cada combo: o de 1 é o preço cheio da loja; o de 2 é o preço de duas avulsas. */
+export const MASCARA_COMBOS: { id: BundleId; n: 1 | 2; price: number; de: number }[] = [
+  { id: "mascara", n: 1, price: 20.9, de: 34.9 },
+  { id: "mascara2", n: 2, price: 34.9, de: 41.8 },
+];
+
+const mascaras: Bundle[] = MASCARA_COMBOS.map(({ id, n, price, de }) => {
+  const nome = "Máscara de Dormir Dragão";
+  return {
+    id,
+    name: nome,
+    tag: "7 estampas, bloqueia a luz para dormir melhor",
+    price,
+    compareAtPrice: de,
+    img: img("mascara-todas.jpg"),
+    images: [
+      img("mascara-todas.jpg"),
+      img("mascara-olhos-verdes.jpg"),
+      img("mascara-dormindo.jpg"),
+      img("mascara-apaixonados.jpg"),
+    ],
+    options:
+      n === 1
+        ? [{ name: "Estampa", values: MASCARA_ESTAMPAS }]
+        : [
+            { name: "Estampa (1ª máscara)", values: MASCARA_ESTAMPAS },
+            { name: "Estampa (2ª máscara)", values: MASCARA_ESTAMPAS },
+          ],
+    optionImages: MASCARA_FOTOS,
+    benefits: [
+      n === 1
+        ? "Leve 2 por R$ 34,90: sai R$ 17,45 cada"
+        : `2 por ${brl(price)}: ${brl(price / n)} cada máscara`,
+      "Bloqueia a luz para você dormir melhor e mais rápido",
+      "7 estampas de dragão, das fofas às realistas",
+      "Leve, com elástico que se ajusta à cabeça",
+    ],
+    description: [
+      "Durma como um dragão depois de um dia de aventuras. A máscara de dormir bloqueia a claridade do quarto, da TV ou do celular e ajuda a pegar no sono mais rápido, em casa, na viagem ou naquele cochilo da tarde.",
+      "São 7 estampas para escolher: olhos de dragão realistas que encaram quem estiver por perto, versões fofas em desenho e até o casal de dragões apaixonados, ótima para dar de presente em dupla. Sai 1 por R$ 20,90 ou 2 por R$ 34,90, e no combo você escolhe a estampa de cada uma.",
+      "Leve e confortável, com elástico que se ajusta à cabeça sem apertar. Combina com os pijamas e o Sleepo Dragão da loja.",
+    ],
+    specs: [
+      ["Vem no pedido", n === 1 ? "1 máscara" : "2 máscaras"],
+      ["Estampas", "7 opções"],
+      ["Ajuste", "Elástico que se ajusta à cabeça"],
+      ["Indicado para", "Adultos e crianças"],
+      ["Cuidados", "Lavar à mão com água fria e sabão neutro; secar à sombra"],
+    ],
+    category: "conforto",
+    checkoutProductName: n === 1 ? nome : "2 Máscaras de Dormir Dragão",
+    checkoutProductDescription:
+      n === 1
+        ? "Máscara de dormir com estampa de dragão e elástico ajustável."
+        : "2 máscaras de dormir com estampa de dragão e elástico ajustável.",
+    checkoutUrl: `/checkout?plano=${id}`,
+    group: "mascara",
+    groupLabel: n === 1 ? "1 máscara" : "2 máscaras",
+    groupTitle: "Escolha a quantidade",
+    unidades: n,
+    semPromo: true,
+    ...(n === 1 ? { badge: "Novo", comboVitrine: "mascara2" as BundleId } : { listed: false }),
+  };
+});
+
+/**
  * Pelúcia gigante: um produto só, preta ou branca, 1 por R$ 69 ou 2 por R$ 89 (o cliente escolhe a
  * cor de cada uma). Cada quantidade é um produto do grupo; nas vitrines aparece o de 1, com a oferta
  * de 2 no card.
@@ -1430,64 +1519,7 @@ const baseBundles: Bundle[] = [
     checkoutUrl: "/checkout?plano=lum3d",
     badge: "Novo",
   },
-  {
-    id: "mascara",
-    name: "Máscara de Dormir Dragão",
-    tag: "7 estampas, bloqueia a luz para dormir melhor",
-    price: 20.9,
-    compareAtPrice: 34.9,
-    img: img("mascara-todas.jpg"),
-    images: [
-      img("mascara-todas.jpg"),
-      img("mascara-olhos-verdes.jpg"),
-      img("mascara-dormindo.jpg"),
-      img("mascara-apaixonados.jpg"),
-    ],
-    options: [
-      {
-        name: "Estampa",
-        values: [
-          "Olhos azul e verde",
-          "Olhos verdes",
-          "Dragão dormindo",
-          "Olhos amarelos",
-          "Casal apaixonado",
-          "Olhos azuis realistas",
-          "Olhos verdes realistas",
-        ],
-      },
-    ],
-    optionImages: {
-      "Olhos azul e verde": img("mascara-olhos-azul-verde.jpg"),
-      "Olhos verdes": img("mascara-olhos-verdes.jpg"),
-      "Dragão dormindo": img("mascara-dormindo.jpg"),
-      "Olhos amarelos": img("mascara-olhos-amarelos.jpg"),
-      "Casal apaixonado": img("mascara-apaixonados.jpg"),
-      "Olhos azuis realistas": img("mascara-olhos-azuis.jpg"),
-      "Olhos verdes realistas": img("mascara-olhos-verdes-real.jpg"),
-    },
-    benefits: [
-      "Bloqueia a luz para você dormir melhor e mais rápido",
-      "7 estampas de dragão, das fofas às realistas",
-      "Leve, com elástico que se ajusta à cabeça",
-    ],
-    description: [
-      "Durma como um dragão depois de um dia de aventuras. A máscara de dormir bloqueia a claridade do quarto, da TV ou do celular e ajuda a pegar no sono mais rápido, em casa, na viagem ou naquele cochilo da tarde.",
-      "São 7 estampas para escolher: olhos de dragão realistas que encaram quem estiver por perto, versões fofas em desenho e até o casal de dragões apaixonados, ótima para dar de presente em dupla.",
-      "Leve e confortável, com elástico que se ajusta à cabeça sem apertar. Combina com os pijamas e o Sleepo Dragão da loja.",
-    ],
-    specs: [
-      ["Estampas", "7 opções"],
-      ["Ajuste", "Elástico que se ajusta à cabeça"],
-      ["Indicado para", "Adultos e crianças"],
-      ["Cuidados", "Lavar à mão com água fria e sabão neutro; secar à sombra"],
-    ],
-    category: "conforto",
-    checkoutProductName: "Máscara de Dormir Dragão",
-    checkoutProductDescription: "Máscara de dormir com estampa de dragão e elástico ajustável.",
-    checkoutUrl: "/checkout?plano=mascara",
-    badge: "Novo",
-  },
+  ...mascaras,
   {
     id: "kitescola",
     name: "Kit Escolar Dragão Noturno",
