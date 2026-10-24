@@ -41,7 +41,7 @@ import {
   PixIcon,
 } from "@/components/checkout/parts";
 import { SummaryDesktop, SummaryMobile } from "@/components/checkout/Summary";
-import { OrderBump } from "@/components/checkout/OrderBump";
+import { MascaraBump, OrderBump } from "@/components/checkout/OrderBump";
 import { FreeShippingProgress } from "@/components/checkout/FreeShippingProgress";
 import { ORDER_BUMPS, bumpsTotal, getBumps, type BumpId } from "@/lib/order-bump";
 import { pantufaItems, pantufasTotal, parsePantufas } from "@/lib/pantufa-oferta";
@@ -148,8 +148,13 @@ function Page() {
   const itemName = productLabel(bundle, variantValues ?? []);
   // Pantufas escolhidas no popup do pijama (vêm na URL; o cliente pode remover aqui).
   const [pantufas, setPantufas] = useState(() => parsePantufas(search.pantufas));
+  // Order bump da máscara de dormir: estampa escolhida (null = fora do pedido). Entra como item comum.
+  const [mascara, setMascara] = useState<string | null>(null);
   // Demais produtos do carrinho (só os com opções válidas; o servidor valida de novo).
-  const itens = (search.itens ?? []).filter((it) => parseVariant(getBundle(it.plano), it.variante));
+  const itens = [
+    ...(search.itens ?? []).filter((it) => parseVariant(getBundle(it.plano), it.variante)),
+    ...(mascara ? [{ plano: "mascara" as const, variante: encodeVariant([mascara]), qtd: 1 }] : []),
+  ];
   const itemLines = cartLines(itens);
   const itensTotal = itemLines.reduce((s, l) => s + l.price, 0);
   useEffect(() => {
@@ -649,11 +654,12 @@ function Page() {
           sub="Todas as transações são seguras e criptografadas."
         />
         <div className="mt-6 space-y-6">
+          {bundle.id !== "mascara" && <MascaraBump estampa={mascara} onChange={setMascara} />}
           {ORDER_BUMPS.filter((b) => b.id !== bundle.id).map((b, i) => (
             <OrderBump
               key={b.id}
               bump={b}
-              reveal={i > 0}
+              reveal={bundle.id !== "mascara" || i > 0}
               checked={bumps.includes(b.id)}
               onChange={(on) => toggleBump(b.id, on)}
             />

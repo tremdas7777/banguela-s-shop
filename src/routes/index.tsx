@@ -228,7 +228,7 @@ function MaisVendidosShelf({ m }: { m: MaisVendidos }) {
           </Link>
         }
       />
-      <Shelf label={titulo(m)}>
+      <Shelf label={titulo(m)} rows={2}>
         {m.ids.map((id) => (
           <ProductCard key={id} p={getBundle(id)} />
         ))}
