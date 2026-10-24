@@ -17,9 +17,13 @@ export type MaisVendidos = { ids: BundleId[]; reais: boolean };
 export const MIN_VENDIDOS = 4;
 export const MAX_MAIS_VENDIDOS = 12;
 
-/** Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque e depois os kigurumis. */
+/**
+ * Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque, a pelúcia gigante
+ * (1 por R$ 69 / 2 por R$ 89) e os kigurumis.
+ */
 export const FIXOS: readonly BundleId[] = [
   ...DESTAQUE_LOJA,
+  "pelucia",
   "kgban2",
   "kgsti2",
   "kgang2",

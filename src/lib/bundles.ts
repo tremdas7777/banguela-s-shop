@@ -57,6 +57,7 @@ export const BUNDLE_IDS = [
   "umid2",
   "umid3",
   "pelucia",
+  "pelucia2",
   "lum3d",
   "mascara",
   "kitescola",
@@ -240,6 +241,8 @@ export type Bundle = {
   groupTitle?: string;
   /** Peças no combo: o seletor mostra o preço de cada uma e destaca o melhor valor. */
   unidades?: number;
+  /** Combo maior do grupo anunciado no card da vitrine junto do preço de 1 ("ou 2 por R$ 89"). */
+  comboVitrine?: BundleId;
   /** Opções mostradas como cartões com foto (nome da opção sem o "(1º pijama)" → valor → foto). */
   optionCards?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Combo de pijamas: a página oferece ursinhos extras e, ao comprar, as pantufas. */
@@ -972,6 +975,102 @@ const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
   };
 });
 
+/**
+ * Pelúcia gigante: um produto só, preta ou branca, 1 por R$ 69 ou 2 por R$ 89 (o cliente escolhe a
+ * cor de cada uma). Cada quantidade é um produto do grupo; nas vitrines aparece o de 1, com a oferta
+ * de 2 no card.
+ */
+const PELUCIA_CORES = ["Preta", "Branca"] as const;
+const PELUCIA_FOTOS: Readonly<Record<string, string>> = {
+  Preta: img("pelucia-gigante.jpg"),
+  Branca: img("pelucia-branca.jpg"),
+};
+const PELUCIA_COMBOS: { id: BundleId; n: 1 | 2; price: number }[] = [
+  { id: "pelucia", n: 1, price: 69 },
+  { id: "pelucia2", n: 2, price: 89 },
+];
+
+const pelucias: Bundle[] = PELUCIA_COMBOS.map(({ id, n, price }) => {
+  const nome = "Pelúcia Gigante de Dragão 1,10 m";
+  return {
+    id,
+    name: nome,
+    tag: "Preta ou branca, travesseiro de abraço extra grande",
+    price,
+    img: img("pelucia-par.jpg"),
+    images: [
+      img("pelucia-par.jpg"),
+      PELUCIA_FOTOS.Preta!,
+      PELUCIA_FOTOS.Branca!,
+      img("pelucia-branca-uso.jpg"),
+      img("pelucia-gigante-b.jpg"),
+      img("pelucia-gigante-c.jpg"),
+      img("pelucia-gigante-d.jpg"),
+    ],
+    options:
+      n === 1
+        ? [{ name: "Cor", values: PELUCIA_CORES }]
+        : [
+            { name: "Cor (1ª pelúcia)", values: PELUCIA_CORES },
+            { name: "Cor (2ª pelúcia)", values: PELUCIA_CORES },
+          ],
+    optionCards: { Cor: PELUCIA_FOTOS },
+    benefits: [
+      n === 1
+        ? "Leve 2 por R$ 89: sai R$ 44,50 cada"
+        : `2 por ${brl(price)}: ${brl(price / n)} cada pelúcia`,
+      "Preta de olhos verdes ou branca de olhos azuis: você escolhe",
+      "1,10 m de comprimento: dá para abraçar o corpo inteiro",
+    ],
+    description: [
+      "Um dragão de pelúcia de 1,10 m, deitadinho e pronto para ser abraçado. É o travesseiro de abraço perfeito para dormir, assistir filme no sofá ou ler na cama, e ainda deixa o quarto muito mais fofo.",
+      "Tem em duas cores: a preta, de olhos verdes e com a pontinha vermelha no rabo, e a branca, de olhos azuis. Sai 1 por R$ 69 ou 2 por R$ 89, e no combo você escolhe a cor de cada uma: uma de cada ou duas iguais.",
+      "Um presente que crianças, adolescentes e adultos fãs de dragão amam receber.",
+    ],
+    specs: [
+      ["Vem no pedido", n === 1 ? "1 pelúcia" : "2 pelúcias"],
+      ["Comprimento", "Cerca de 1,10 m"],
+      ["Cores", "Preta com olhos verdes ou branca com olhos azuis"],
+      ["Material", "Pelúcia macia com enchimento de fibra"],
+      ["Indicado para", "Todas as idades"],
+      ["Cuidados", "Limpar com pano úmido e sabão neutro; secar à sombra"],
+    ],
+    richSections: [
+      {
+        title: "1,10 m de dragão para abraçar",
+        text: "Imagine chegar em casa cansado e ter um dragão gigante esperando por um abraço. A pelúcia é tão grande que dá para abraçar o corpo inteiro, deitar a cabeça e dormir agarradinho.",
+        media: img("pelucia-branca-uso.jpg"),
+      },
+      {
+        title: "Preta ou branca, você escolhe",
+        text: "A preta tem olhos verdes e a pontinha vermelha no rabo; a branca tem olhos azuis. Levando 2 por R$ 89, você escolhe a cor de cada uma.",
+        points: [
+          "Cerca de 1,10 m de comprimento",
+          "Pelúcia macia com enchimento de fibra",
+          "Travesseiro de abraço, apoio no sofá e decoração",
+        ],
+        media: img("pelucia-par.jpg"),
+      },
+      {
+        title: "O presente que faz qualquer um gritar",
+        text: "Crianças, adolescentes e adultos fãs de dragão: ninguém fica indiferente a um dragão desse tamanho. É o tipo de presente que vira o xodó do quarto.",
+        media: img("pelucia-gigante-b.jpg"),
+      },
+    ],
+    category: "conforto",
+    checkoutProductName: n === 1 ? nome : `2 Pelúcias Gigantes de Dragão 1,10 m`,
+    checkoutProductDescription:
+      n === 1 ? "Pelúcia gigante de dragão de 1,10 m." : "2 pelúcias gigantes de dragão de 1,10 m.",
+    checkoutUrl: `/checkout?plano=${id}`,
+    group: "pelucia",
+    groupLabel: n === 1 ? "1 pelúcia" : "2 pelúcias",
+    groupTitle: "Escolha a quantidade",
+    unidades: n,
+    semPromo: true,
+    ...(n === 1 ? { comboVitrine: "pelucia2" as BundleId } : { listed: false }),
+  };
+});
+
 const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
@@ -1288,44 +1387,7 @@ const baseBundles: Bundle[] = [
     checkoutUrl: "/checkout?plano=luminaria",
     badge: "Novo",
   },
-  {
-    id: "pelucia",
-    name: "Pelúcia Gigante Dragão Noturno 1,10 m",
-    tag: "Travesseiro de abraço extra grande",
-    price: 132.9,
-    compareAtPrice: 181.9,
-    img: img("pelucia-gigante.jpg"),
-    images: [
-      img("pelucia-gigante.jpg"),
-      img("pelucia-gigante-b.jpg"),
-      img("pelucia-gigante-c.jpg"),
-      img("pelucia-gigante-d.jpg"),
-    ],
-    options: [],
-    benefits: [
-      "1,10 m de comprimento: dá para abraçar o corpo inteiro",
-      "Pelúcia macia com olhos verdes bordados",
-      "Serve de travesseiro de abraço, apoio no sofá e decoração",
-    ],
-    description: [
-      "Um dragão noturno de pelúcia de 1,10 m, deitadinho e pronto para ser abraçado. É o travesseiro de abraço perfeito para dormir, assistir filme no sofá ou ler na cama, e ainda deixa o quarto muito mais fofo.",
-      "A pelúcia é macia e gostosa de abraçar, com olhos verdes bordados, orelhinhas, asas de tecido e a pontinha vermelha no rabo. Por ser bordado, não tem peças pequenas que soltam.",
-      "Um presente que crianças, adolescentes e adultos fãs de dragão amam receber.",
-    ],
-    specs: [
-      ["Comprimento", "Cerca de 1,10 m"],
-      ["Material", "Pelúcia macia com enchimento de fibra"],
-      ["Olhos", "Bordados"],
-      ["Cor", "Preto com olhos verdes e detalhe vermelho no rabo"],
-      ["Indicado para", "Todas as idades"],
-      ["Cuidados", "Limpar com pano úmido e sabão neutro; secar à sombra"],
-    ],
-    category: "conforto",
-    checkoutProductName: "Pelúcia Gigante Dragão Noturno 1,10 m",
-    checkoutProductDescription: "Pelúcia gigante de dragão de 1,10 m com olhos bordados.",
-    checkoutUrl: "/checkout?plano=pelucia",
-    badge: "Gigante",
-  },
+  ...pelucias,
   {
     id: "lum3d",
     name: "Luminária LED 3D Dragão Noturno",

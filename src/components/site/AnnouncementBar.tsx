@@ -4,6 +4,7 @@ import { FREE_SHIPPING_MIN } from "@/lib/bundles";
 const messages = [
   `Frete grátis em compras acima de R$ ${FREE_SHIPPING_MIN}`,
   "Brinde: chaveiro de dragão em toda compra",
+  "Pelúcia gigante 1,10 m: 1 por R$ 69 ou 2 por R$ 89",
   "Pantufas de pelúcia: 2 pares por R$ 49,90",
   "Pix com desconto · Cartão em até 12x",
   "Envio para todo o Brasil com rastreio",

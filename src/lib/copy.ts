@@ -117,29 +117,6 @@ export const PRODUCT_COPY: Readonly<Record<string, readonly RichSection[]>> = {
       text: "Para o quarto das crianças, para a sala de jogos ou para o adulto que cresceu com os filmes. É um presente que sai da caixa direto para o lugar de destaque da casa.",
     },
   ],
-  pelucia: [
-    {
-      title: "1,10 m de dragão para abraçar",
-      text: "Imagine chegar em casa cansado e ter um dragão gigante esperando por um abraço. A pelúcia é tão grande que dá para abraçar o corpo inteiro, deitar a cabeça e dormir agarradinho.",
-      media: img("pelucia-gigante-b.jpg"),
-    },
-    {
-      title: "Macia, segura e cheia de detalhes",
-      text: "Olhos verdes bordados, orelhinhas, asas de tecido e a pontinha vermelha no rabo, igual ao dragão dos filmes.",
-      points: [
-        "Cerca de 1,10 m de comprimento",
-        "Pelúcia macia com enchimento de fibra",
-        "Olhos bordados, sem peças pequenas que soltam",
-        "Travesseiro de abraço, apoio no sofá e decoração",
-      ],
-      media: img("pelucia-gigante-c.jpg"),
-    },
-    {
-      title: "O presente que faz qualquer um gritar",
-      text: "Crianças, adolescentes e adultos fãs de dragão: ninguém fica indiferente a um dragão desse tamanho. É o tipo de presente que vira o xodó do quarto.",
-      media: img("pelucia-gigante-d.jpg"),
-    },
-  ],
   lum3d: [
     {
       title: "Um dragão que flutua no ar",

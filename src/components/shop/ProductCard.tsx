@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { brl, discountPct, ofertaCombo, type Bundle } from "@/lib/bundles";
+import { brl, brlCurto, discountPct, getBundle, ofertaCombo, type Bundle } from "@/lib/bundles";
 
 /** Card da vitrine: abre a página do produto (onde o cliente escolhe cor/tamanho). */
 export function ProductCard({ p }: { p: Bundle }) {
   const off = discountPct(p);
   // Combo ("2 por R$ 79"): a oferta vai no selo e no preço, para não parecer o preço de 1 peça.
-  const oferta = ofertaCombo(p);
-  const selo = oferta ?? p.badge;
+  // Produto de 1 com combo maior (pelúcia): "1 por R$ 69" no preço e "2 por R$ 89" no selo.
+  const maior = p.comboVitrine ? ofertaCombo(getBundle(p.comboVitrine)) : undefined;
+  const oferta = ofertaCombo(p) ?? (maior ? `1 por ${brlCurto(p.price)}` : undefined);
+  const selo = maior ?? oferta ?? p.badge;
   return (
     <Link to="/produto" search={{ plano: p.id }} className="group block text-center">
       <div className="relative aspect-square overflow-hidden rounded-[20px] bg-[var(--tile)]">
@@ -46,8 +48,15 @@ export function ProductCard({ p }: { p: Bundle }) {
           <s className="text-[13px] text-[var(--ink)]/45">{brl(p.compareAtPrice)}</s>
         )}
       </div>
-      {oferta && p.unidades && (
-        <p className="mt-0.5 text-[12px] text-[var(--ink)]/55">{brl(p.price / p.unidades)} cada</p>
+      {maior ? (
+        <p className="mt-0.5 text-[14px] font-extrabold text-[var(--primary-dark)]">ou {maior}</p>
+      ) : (
+        oferta &&
+        p.unidades && (
+          <p className="mt-0.5 text-[12px] text-[var(--ink)]/55">
+            {brl(p.price / p.unidades)} cada
+          </p>
+        )
       )}
     </Link>
   );

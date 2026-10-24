@@ -55,7 +55,7 @@ import {
 } from "@/lib/bundles";
 
 /** Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)", "Tamanho (2º pijama)". */
-const CONJUNTO = / \((\dº (?:conjunto|pijama|par))\)$/;
+const CONJUNTO = / \((\d[ºª] (?:conjunto|pijama|par|pelúcia))\)$/;
 
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,

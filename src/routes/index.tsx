@@ -45,6 +45,17 @@ const BANNERS: Banner[] = [
     ),
   },
   {
+    key: "pelucia",
+    alt: "Pelúcia gigante de dragão de 1,10 m, preta ou branca: 1 por R$ 69 ou 2 por R$ 89",
+    mobile: "/banners/pelucia-m.webp",
+    desktop: "/banners/pelucia-d.webp",
+    link: (c) => (
+      <Link to="/produto" search={{ plano: "pelucia" }} className={linkClass}>
+        {c}
+      </Link>
+    ),
+  },
+  {
     key: "crocs",
     alt: "Crocs originais da Disney, Pokémon, Bluey e Snoopy com 50% OFF",
     mobile: "/banners/crocs-m.webp",
@@ -259,6 +270,7 @@ function Shelves() {
 /** collection: abre a página da coleção em vez de um produto. */
 const TYPES: { id: BundleId; label: string; img: string; collection?: string }[] = [
   { id: "kgban2", label: "Kigurumi", img: img("kg-grupo.jpg"), collection: "kigurumi" },
+  { id: "pelucia", label: "Pelúcia gigante", img: img("pelucia-par.jpg") },
   { id: "cr21a", label: "Crocs", img: img("crocs/cr21a-1.jpg"), collection: "crocs" },
   { id: "mdpreto", label: "Sleepo", img: img("sleepo-preto-uso.jpg"), collection: "moletons" },
   { id: "pijama", label: "Pijamas", img: img("p1_branco.jpg"), collection: "pijamas" },
