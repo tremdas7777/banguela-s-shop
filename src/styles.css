@@ -231,3 +231,41 @@
 .ck { --ck-bg: #ffffff; background: var(--ck-bg); }
 .ck h1, .ck h2, .ck h3 { font-family: inherit; letter-spacing: normal; }
 .ck .ck-surface { background: var(--ck-bg); }
+
+/* Painel /admin: tema próprio, neutro e com a fonte do sistema (não muda nada na loja). */
+@layer base {
+  .adm {
+    --background: #f4f5f7;
+    --foreground: #101828;
+    --card: #ffffff;
+    --card-foreground: #101828;
+    --popover: #ffffff;
+    --popover-foreground: #101828;
+    --primary: #173f2a;
+    --primary-foreground: #ffffff;
+    --secondary: #f2f4f7;
+    --secondary-foreground: #101828;
+    --muted: #f2f4f7;
+    --muted-foreground: #667085;
+    --accent: #f2f4f7;
+    --accent-foreground: #101828;
+    --border: #e4e7ec;
+    --input: #d0d5dd;
+    --ring: #173f2a;
+    --radius: 0.625rem;
+    /* Marca da loja nos detalhes do painel. */
+    --adm-brand: #173f2a;
+    --adm-brand-soft: #e8f3ec;
+    --adm-positive: #1f9d41;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+      sans-serif;
+    color: var(--foreground);
+    background: var(--background);
+  }
+  .adm h1,
+  .adm h2,
+  .adm h3 {
+    font-family: inherit;
+    letter-spacing: -0.015em;
+  }
+}

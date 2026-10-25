@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
   deleteHypercashKeysFn,
@@ -10,6 +10,7 @@ import {
   saveHypercashKeysFn,
   testHypercashFn,
 } from "@/lib/hypercash.functions";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 import { getSiteSettings, setCardEnabled } from "@/lib/site-settings.functions";
 
 /** Cartão de crédito (HyperCash): chaves salvas no banco + liga/desliga no checkout. */
@@ -95,33 +96,32 @@ export function HypercashCard({ password }: { password: string }) {
   const live = enabled && hasKeys;
 
   return (
-    <Card className="mt-3 p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <CreditCard className="w-5 h-5 text-muted-foreground" aria-hidden />
-          <div>
-            <div className="font-medium">Pagamento com cartão (HyperCash)</div>
-            <div className="text-xs text-muted-foreground">
-              Ao ativar: cartão em até 12x pelo preço cheio e Pix passa a ter 10% de desconto.
-              Quando desativado, os clientes veem só o Pix — mas você, logado neste admin, ainda vê
-              o cartão para testar (abra o checkout nesta mesma aba).
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {enabled === null ? "…" : live ? "Ativo" : !enabled ? "Desativado" : "Sem chaves"}
-          </span>
-          <Button
-            size="sm"
-            variant={enabled ? "destructive" : "default"}
-            disabled={!!busy || enabled === null}
-            onClick={toggle}
-          >
-            {busy === "toggle" ? "Salvando…" : enabled ? "Desativar" : "Ativar"}
-          </Button>
-        </div>
-      </div>
+    <SettingCard>
+      <SettingHeader
+        icon={<CreditCard />}
+        title="Cartão de crédito (HyperCash)"
+        description="Ligado: cartão em até 12x pelo preço cheio e o Pix ganha 10% de desconto. Desligado, os clientes veem só o Pix, mas você, logado neste painel, ainda vê o cartão para testar (abra o checkout nesta mesma aba)."
+        status={
+          enabled === null ? null : live ? (
+            <Pill tone="green">Ativo</Pill>
+          ) : !enabled ? (
+            <Pill tone="gray">Desligado</Pill>
+          ) : (
+            <Pill tone="amber">Sem chaves</Pill>
+          )
+        }
+      />
+      <label className="flex items-center justify-between gap-4 rounded-lg border border-[#e4e7ec] bg-[#f9fafb] px-4 py-3">
+        <span className="text-sm font-medium text-[#101828]">
+          {busy === "toggle" ? "Salvando…" : "Mostrar cartão no checkout"}
+        </span>
+        <Switch
+          checked={!!enabled}
+          disabled={!!busy || enabled === null}
+          onCheckedChange={() => toggle()}
+          aria-label="Mostrar cartão no checkout"
+        />
+      </label>
       <div className="grid gap-2 sm:grid-cols-2">
         <Input
           type="password"
@@ -149,14 +149,15 @@ export function HypercashCard({ password }: { password: string }) {
         </Button>
         <Button
           size="sm"
-          variant="destructive"
+          variant="ghost"
+          className="text-[#b42318] hover:bg-[#fef3f2] hover:text-[#b42318]"
           disabled={(!masked?.secret && !masked?.public) || !!busy}
           onClick={remove}
         >
           {busy === "delete" ? "Apagando…" : "Apagar chaves"}
         </Button>
       </div>
-      {msg && <p className="text-xs">{msg}</p>}
-    </Card>
+      {msg && <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msg}</p>}
+    </SettingCard>
   );
 }

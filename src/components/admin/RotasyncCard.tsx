@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   deleteRotasyncKeyFn,
@@ -12,6 +11,7 @@ import {
   saveRotasyncKeyFn,
   testRotasyncKeyFn,
 } from "@/lib/rotasync.functions";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 
 type Pendente = {
   id: string;
@@ -181,66 +181,66 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
   };
 
   return (
-    <Card className="mt-3 p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Truck className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden />
-        <div>
-          <div className="font-medium">Envio pela RotaSync</div>
-          <div className="text-xs text-muted-foreground">
-            Cada pedido pago vai para a RotaSync com endereço e itens (com tamanho e cor), e o
-            código de rastreio volta para a página de rastreio do cliente.
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <SettingCard>
+      <SettingHeader
+        icon={<Truck />}
+        title="RotaSync"
+        description="Cada pedido pago vai para a RotaSync com endereço e itens (tamanho e cor), e o código de rastreio volta para a página de rastreio do cliente."
+        status={
+          configured === null ? null : configured ? (
+            <Pill tone="green">{source === "env" ? "Conectada (variável)" : "Conectada"}</Pill>
+          ) : (
+            <Pill tone="amber">Sem chave</Pill>
+          )
+        }
+      />
+      {configured === false && (
+        <p className="rounded-lg border border-[#fedf89] bg-[#fffaeb] px-3 py-2 text-xs text-[#b54708]">
+          Sem chave, os pedidos pagos não vão para a RotaSync.
+        </p>
+      )}
+      {maskedKey && (
+        <p className="text-xs text-[#667085]">
+          Chave atual: <span className="font-mono text-[#98a2b3]">{maskedKey}</span>
+        </p>
+      )}
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           type="password"
           placeholder={
-            configured ? "Chave salva — cole uma nova para trocar" : "Cole a chave da loja na RotaSync"
+            configured
+              ? "Chave salva — cole uma nova para trocar"
+              : "Cole a chave da loja na RotaSync"
           }
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          className="sm:max-w-sm"
         />
-        <div className="flex items-center gap-2">
-          <Button size="sm" disabled={!key.trim() || saving} onClick={save}>
-            {saving ? "Conferindo…" : "Salvar"}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            disabled={source !== "admin" || deleting}
-            onClick={remove}
-          >
-            {deleting ? "Apagando…" : "Apagar"}
-          </Button>
-          <Button size="sm" variant="outline" disabled={!configured || testing} onClick={runTest}>
-            {testing ? "Testando…" : "Testar"}
-          </Button>
-        </div>
+        <Button disabled={!key.trim() || saving} onClick={save}>
+          {saving ? "Conferindo…" : "Salvar chave"}
+        </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <span className="text-muted-foreground">
-          {configured === null
-            ? "…"
-            : configured
-              ? source === "env"
-                ? "Conectada (chave da variável RASTREIO_API_KEY)"
-                : "Conectada"
-              : "Sem chave: os pedidos não vão para a RotaSync"}
-        </span>
-        {maskedKey && (
-          <span className="font-mono text-muted-foreground">Chave atual: {maskedKey}</span>
-        )}
-        {msg && <span className="text-foreground">{msg}</span>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" disabled={!configured || testing} onClick={runTest}>
+          {testing ? "Testando…" : "Testar conexão"}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-[#b42318] hover:bg-[#fef3f2] hover:text-[#b42318]"
+          disabled={source !== "admin" || deleting}
+          onClick={remove}
+        >
+          {deleting ? "Apagando…" : "Apagar chave"}
+        </Button>
       </div>
+      {msg && <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msg}</p>}
 
       {configured && (
-        <div className="flex flex-col gap-3 border-t pt-4">
+        <div className="flex flex-col gap-3 border-t border-[#eef0f3] pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-medium">Pedidos antigos</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm font-medium text-[#101828]">Pedidos antigos</div>
+              <div className="text-xs text-[#667085]">
                 Pedidos pagos que ainda não foram para a RotaSync. Desmarque os que você já
                 despachou por outro caminho antes de enviar.
               </div>
@@ -259,7 +259,7 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
               </p>
             ) : (
               <>
-                <ul className="max-h-96 divide-y overflow-auto rounded-md border text-sm">
+                <ul className="max-h-96 divide-y divide-[#eef0f3] overflow-auto rounded-lg border border-[#e4e7ec] text-sm">
                   {pendentes.map((p) => {
                     const r = resultados[p.id];
                     return (
@@ -310,9 +310,11 @@ export function RotasyncCard({ password }: RotasyncCardProps) {
                 </div>
               </>
             ))}
-          {msgAntigos && <p className="text-xs text-foreground">{msgAntigos}</p>}
+          {msgAntigos && (
+            <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msgAntigos}</p>
+          )}
         </div>
       )}
-    </Card>
+    </SettingCard>
   );
 }

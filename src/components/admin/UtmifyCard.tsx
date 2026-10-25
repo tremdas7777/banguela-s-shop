@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   deleteUtmifyTokenFn,
@@ -10,6 +9,7 @@ import {
   saveUtmifyTokenFn,
   sendUtmifyTest,
 } from "@/lib/utmify.functions";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 
 export interface UtmifyCardProps {
   password: string;
@@ -92,18 +92,25 @@ export function UtmifyCard({ password }: UtmifyCardProps) {
   };
 
   return (
-    <Card className="mt-3 p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <BarChart3 className="w-5 h-5 text-muted-foreground" aria-hidden />
-        <div>
-          <div className="font-medium">Integração UTMify</div>
-          <div className="text-xs text-muted-foreground">
-            Cada Pix gerado (pendente) e cada pagamento aprovado é enviado à UTMify com as UTMs do
-            cliente.
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <SettingCard>
+      <SettingHeader
+        icon={<BarChart3 />}
+        title="UTMify"
+        description="Cada Pix gerado (pendente) e cada pagamento aprovado vai para a UTMify com as UTMs do cliente."
+        status={
+          configured === null ? null : configured ? (
+            <Pill tone="green">Conectada</Pill>
+          ) : (
+            <Pill tone="gray">Sem token</Pill>
+          )
+        }
+      />
+      {maskedToken && (
+        <p className="text-xs text-[#667085]">
+          Token atual: <span className="font-mono text-[#98a2b3]">{maskedToken}</span>
+        </p>
+      )}
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           type="password"
           placeholder={
@@ -111,47 +118,39 @@ export function UtmifyCard({ password }: UtmifyCardProps) {
           }
           value={token}
           onChange={(e) => setToken(e.target.value)}
-          className="sm:max-w-sm"
         />
-        <div className="flex items-center gap-2">
-          <Button size="sm" disabled={!token.trim() || saving} onClick={save}>
-            {saving ? "Salvando…" : "Salvar"}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            disabled={!configured || deleting}
-            onClick={remove}
-          >
-            {deleting ? "Apagando…" : "Apagar"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={!configured || testing}
-            onClick={() => runTest("paid")}
-          >
-            {testing ? "Testando…" : "Testar conexão (pago)"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={!configured || testing}
-            onClick={() => runTest("waiting_payment")}
-          >
-            {testing ? "Testando…" : "Testar conexão (pendente)"}
-          </Button>
-        </div>
+        <Button disabled={!token.trim() || saving} onClick={save}>
+          {saving ? "Salvando…" : "Salvar token"}
+        </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <span className="text-muted-foreground">
-          {configured === null ? "…" : configured ? "Conectada" : "Sem token"}
-        </span>
-        {maskedToken && (
-          <span className="font-mono text-muted-foreground">Token atual: {maskedToken}</span>
-        )}
-        {msg && <span className="text-foreground">{msg}</span>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!configured || testing}
+          onClick={() => runTest("paid")}
+        >
+          {testing ? "Testando…" : "Enviar venda de teste (paga)"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!configured || testing}
+          onClick={() => runTest("waiting_payment")}
+        >
+          {testing ? "Testando…" : "Enviar teste (pendente)"}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-[#b42318] hover:bg-[#fef3f2] hover:text-[#b42318]"
+          disabled={!configured || deleting}
+          onClick={remove}
+        >
+          {deleting ? "Apagando…" : "Apagar token"}
+        </Button>
       </div>
-    </Card>
+      {msg && <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msg}</p>}
+    </SettingCard>
   );
 }

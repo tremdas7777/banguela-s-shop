@@ -1,27 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, MessageCircle, RefreshCw } from "lucide-react";
+import { CircleDollarSign, MessageCircle, QrCode, ShoppingCart, UserRound } from "lucide-react";
 import {
   getAbandonedCheckouts,
   type AbandonedCheckout,
   type AbandonStep,
 } from "@/lib/admin.functions";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { brand } from "@/lib/brand";
+import { brl, fmtDateTime, fmtPhone, tempoRelativo, whatsappUrl } from "@/lib/admin-format";
+import {
+  Avatar,
+  EmptyState,
+  Kpi,
+  PageHeader,
+  Panel,
+  Pill,
+  RefreshButton,
+  Segmented,
+  type Tone,
+} from "./kit";
 
 const PERIODS = [
-  { days: 1, label: "Hoje" },
-  { days: 7, label: "7d" },
-  { days: 30, label: "30d" },
+  { value: 1, label: "Hoje" },
+  { value: 7, label: "7 dias" },
+  { value: 30, label: "30 dias" },
 ] as const;
 
 /** Onde a pessoa parou (etapa mais avançada que ela chegou). */
-const STEP_INFO: Record<AbandonStep, { label: string; cls: string }> = {
-  checkout: { label: "Entrou e saiu", cls: "bg-gray-100 text-gray-700" },
-  dados: { label: "Parou na entrega", cls: "bg-amber-100 text-amber-800" },
-  entrega: { label: "Parou no pagamento", cls: "bg-orange-100 text-orange-800" },
-  pix: { label: "Gerou Pix e não pagou", cls: "bg-red-100 text-red-700" },
+const STEP_INFO: Record<AbandonStep, { label: string; tone: Tone }> = {
+  checkout: { label: "Entrou e saiu", tone: "gray" },
+  dados: { label: "Parou na entrega", tone: "amber" },
+  entrega: { label: "Parou no pagamento", tone: "orange" },
+  pix: { label: "Gerou Pix e não pagou", tone: "red" },
 };
 
 const FUNNEL: { key: AbandonStep | "pago"; label: string }[] = [
@@ -32,23 +42,37 @@ const FUNNEL: { key: AbandonStep | "pago"; label: string }[] = [
   { key: "pago", label: "Pagaram" },
 ];
 
-const brl = (v: number | null) =>
-  v == null ? "—" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-const fmtPhone = (d: string) =>
-  d.length === 11
-    ? d.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
-    : d.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-
-function whatsappLink(r: AbandonedCheckout) {
-  if (!r.phone) return null;
+function mensagem(r: AbandonedCheckout) {
   const first = (r.name ?? "").split(/\s+/)[0];
-  const msg =
-    r.step === "pix"
-      ? `Oi ${first}! Vi que você gerou o Pix do seu pedido (${r.plano ?? "Banguela Shop"}) e ainda não finalizou. Posso te ajudar com alguma dúvida?`
-      : `Oi ${first}! Vi que você começou seu pedido (${r.plano ?? "Banguela Shop"}) no nosso site. Ficou alguma dúvida? Estou aqui pra te ajudar.`;
-  return `https://wa.me/55${r.phone.replace(/^55/, "")}?text=${encodeURIComponent(msg)}`;
+  const produto = r.plano ?? brand.name;
+  return r.step === "pix"
+    ? `Oi ${first}! Vi que você gerou o Pix do seu pedido (${produto}) e ainda não finalizou. Posso te ajudar com alguma dúvida?`
+    : `Oi ${first}! Vi que você começou seu pedido (${produto}) no nosso site. Ficou alguma dúvida? Estou aqui pra te ajudar.`;
+}
+
+function StepPill({ r }: { r: AbandonedCheckout }) {
+  const info = STEP_INFO[r.step];
+  return r.pixPending ? (
+    <Pill tone="blue">Pix gerado (aguardando)</Pill>
+  ) : (
+    <Pill tone={info.tone}>{info.label}</Pill>
+  );
+}
+
+function ChamarButton({ r, compact }: { r: AbandonedCheckout; compact?: boolean }) {
+  if (!r.phone) return null;
+  return (
+    <a
+      href={whatsappUrl(r.phone, mensagem(r))}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#16a34a] px-2.5 text-xs font-semibold text-white hover:bg-[#15803d]"
+    >
+      <MessageCircle className="h-3.5 w-3.5" />
+      {compact ? "Chamar" : "Chamar no WhatsApp"}
+    </a>
+  );
 }
 
 export function AbandonedTab({ password }: { password: string }) {
@@ -93,174 +117,165 @@ export function AbandonedTab({ password }: { password: string }) {
     return c;
   }, [data]);
 
+  const comContato = (data?.rows ?? []).filter((r) => r.step !== "checkout");
+  const valorParado = comContato.reduce((t, r) => t + (r.value ?? 0), 0);
   const top = data?.funnel.checkout || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        {PERIODS.map((p) => (
-          <Button
-            key={p.days}
-            size="sm"
-            variant={days === p.days ? "default" : "outline"}
-            onClick={() => setDays(p.days)}
-          >
-            {p.label}
-          </Button>
-        ))}
-        <Button size="sm" variant="outline" className="ml-auto" onClick={load} disabled={loading}>
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}{" "}
-          Atualizar
-        </Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Carrinhos abandonados"
+        description="Quem começou a comprar e não terminou. Chame no WhatsApp para recuperar a venda."
+        actions={
+          <>
+            <Segmented options={PERIODS} value={days} onChange={setDays} />
+            <RefreshButton loading={loading} onClick={load} />
+          </>
+        }
+      />
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
-      {/* Funil: onde as pessoas param */}
-      <Card className="p-5">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Onde abandonam
-        </h3>
-        <div className="space-y-3">
-          {FUNNEL.map((f, i) => {
-            const n = data?.funnel[f.key] ?? 0;
-            const prev = i === 0 ? n : (data?.funnel[FUNNEL[i - 1]!.key] ?? 0);
-            const pct = top ? Math.round((n / top) * 100) : 0;
-            const lost = i === 0 ? 0 : prev - n;
-            return (
-              <div key={f.key}>
-                <div className="mb-1 flex items-baseline justify-between text-sm">
-                  <span className="font-medium">{f.label}</span>
-                  <span className="tabular-nums">
-                    <b>{n}</b> <span className="text-muted-foreground">({pct}%)</span>
-                    {lost > 0 && (
-                      <span className="ml-2 text-xs text-red-600">−{lost} saíram aqui</span>
-                    )}
-                  </span>
-                </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={cn(
-                      "h-full rounded-full",
-                      f.key === "pago" ? "bg-green-600" : "bg-primary",
-                    )}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Começa a contar a partir desta atualização do site. Quem pagou (mesmo em outra visita,
-          pelo e-mail) não aparece como abandono.
+      {error && (
+        <p className="mb-4 rounded-lg border border-[#fecdca] bg-[#fef3f2] px-4 py-3 text-sm text-[#b42318]">
+          {error}
         </p>
-      </Card>
+      )}
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant={filter === "todos" ? "default" : "outline"}
-          onClick={() => setFilter("todos")}
-        >
-          Com contato ({counts.dados + counts.entrega + counts.pix})
-        </Button>
-        {(["pix", "entrega", "dados", "checkout"] as AbandonStep[]).map((s) => (
-          <Button
-            key={s}
-            size="sm"
-            variant={filter === s ? "default" : "outline"}
-            onClick={() => setFilter(s)}
-          >
-            {STEP_INFO[s].label} ({counts[s]})
-          </Button>
-        ))}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Kpi
+          tone="brand"
+          label="Para recuperar"
+          icon={<UserRound />}
+          value={comContato.length}
+          hint="deixaram nome e telefone"
+        />
+        <Kpi
+          label="Pix não pagos"
+          icon={<QrCode />}
+          value={counts.pix}
+          hint="geraram o Pix e saíram"
+        />
+        <Kpi
+          label="Valor parado"
+          icon={<CircleDollarSign />}
+          value={brl(valorParado)}
+          hint="soma dos carrinhos com contato"
+        />
+        <Kpi
+          label="Entraram e saíram"
+          icon={<ShoppingCart />}
+          value={counts.checkout}
+          hint="sem deixar contato"
+        />
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="max-h-[700px] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/50">
-              <tr className="text-left">
-                <th className="px-4 py-2 font-medium">Quando</th>
-                <th className="px-4 py-2 font-medium">Onde parou</th>
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Telefone</th>
-                <th className="px-4 py-2 font-medium">Produto</th>
-                <th className="px-4 py-2 font-medium">Valor</th>
-                <th className="px-4 py-2 font-medium">Local</th>
-                <th className="px-4 py-2 font-medium">Origem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const wa = whatsappLink(r);
-                const info = STEP_INFO[r.step];
-                return (
-                  <tr key={r.sessionId} className="border-t hover:bg-muted/30">
-                    <td className="whitespace-nowrap px-4 py-2 text-muted-foreground">
-                      {fmtDate(r.lastAt)}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={cn(
-                          "inline-block whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium",
-                          info.cls,
-                        )}
-                      >
-                        {r.pixPending ? "Pix gerado (aguardando)" : info.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{r.name ?? "—"}</div>
-                      <div className="text-xs text-muted-foreground">{r.email ?? ""}</div>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2">
-                      {r.phone ? fmtPhone(r.phone) : "—"}
-                      {wa && (
-                        <a
-                          href={wa}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-green-700"
-                        >
-                          <MessageCircle className="h-3 w-3" /> Chamar
-                        </a>
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      {r.plano ?? "—"}
-                      {r.bumps.length > 0 && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          + {r.bumps.join(" + ")}
-                        </span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 tabular-nums">{brl(r.value)}</td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {r.cidade ? `${r.cidade}/${r.uf ?? ""}` : "—"}
-                    </td>
-                    <td className="px-4 py-2 text-xs text-muted-foreground">
-                      {r.utmSource ?? "—"}
-                    </td>
-                  </tr>
-                );
-              })}
-              {rows.length === 0 && !loading && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
-                    Nenhum checkout abandonado neste período.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Panel
+          className="lg:col-span-1 lg:self-start"
+          title="Onde as pessoas desistem"
+          description="Do checkout até o pagamento"
+        >
+          <ol className="space-y-4">
+            {FUNNEL.map((f, i) => {
+              const n = data?.funnel[f.key] ?? 0;
+              const prev = i === 0 ? n : (data?.funnel[FUNNEL[i - 1]!.key] ?? 0);
+              const pct = top ? Math.round((n / top) * 100) : 0;
+              const lost = i === 0 ? 0 : prev - n;
+              return (
+                <li key={f.key}>
+                  <div className="mb-1.5 flex items-baseline justify-between gap-2 text-[13px]">
+                    <span className="font-medium text-[#344054]">{f.label}</span>
+                    <span className="tabular-nums text-[#667085]">
+                      <b className="text-[#101828]">{n}</b> · {pct}%
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[#f2f4f7]">
+                    <div
+                      className={
+                        f.key === "pago"
+                          ? "h-full rounded-full bg-[#17b26a]"
+                          : "h-full rounded-full bg-[var(--adm-brand)]"
+                      }
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  {lost > 0 && (
+                    <p className="mt-1 text-xs text-[#b42318]">−{lost} desistiram aqui</p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          <p className="mt-5 text-xs leading-relaxed text-[#98a2b3]">
+            Quem pagou (mesmo em outra visita, pelo e-mail) não aparece como abandono.
+          </p>
+        </Panel>
+
+        <Panel className="lg:col-span-2" bodyClassName="p-0">
+          <div className="border-b border-[#eef0f3] p-4">
+            <Segmented
+              options={[
+                {
+                  value: "todos" as const,
+                  label: "Com contato",
+                  count: counts.dados + counts.entrega + counts.pix,
+                },
+                { value: "pix" as const, label: "Pix não pago", count: counts.pix },
+                { value: "entrega" as const, label: "No pagamento", count: counts.entrega },
+                { value: "dados" as const, label: "Na entrega", count: counts.dados },
+                { value: "checkout" as const, label: "Sem contato", count: counts.checkout },
+              ]}
+              value={filter}
+              onChange={setFilter}
+            />
+          </div>
+
+          {rows.length === 0 && !loading ? (
+            <EmptyState
+              icon={<ShoppingCart />}
+              title="Nenhum carrinho abandonado aqui"
+              text="Mude o período ou o filtro para ver outros."
+            />
+          ) : (
+            <ul className="max-h-[720px] divide-y divide-[#eef0f3] overflow-y-auto">
+              {rows.map((r) => (
+                <li
+                  key={r.sessionId}
+                  className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5"
+                >
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <Avatar name={r.name} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="truncate text-sm font-semibold text-[#101828]">
+                          {r.name ?? "Sem nome"}
+                        </p>
+                        <StepPill r={r} />
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-[#667085]">
+                        {[r.plano, r.bumps.length ? `+ ${r.bumps.join(" + ")}` : null]
+                          .filter(Boolean)
+                          .join(" ") || "—"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[#98a2b3]">
+                        <span title={fmtDateTime(r.lastAt)}>{tempoRelativo(r.lastAt)}</span>
+                        {r.phone && ` · ${fmtPhone(r.phone)}`}
+                        {r.cidade && ` · ${r.cidade}/${r.uf ?? ""}`}
+                        {r.utmSource && ` · ${r.utmSource}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 pl-12 sm:justify-end sm:pl-0">
+                    <span className="text-sm font-semibold tabular-nums text-[#101828]">
+                      {brl(r.value)}
+                    </span>
+                    <ChamarButton r={r} compact />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }

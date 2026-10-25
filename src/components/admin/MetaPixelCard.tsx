@@ -2,9 +2,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getMetaAdmin, saveMetaAdmin, testMetaAdmin } from "@/lib/meta.functions";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 
 export interface MetaPixelCardProps {
   password: string;
@@ -67,18 +67,17 @@ export function MetaPixelCard({ password }: MetaPixelCardProps) {
   };
 
   return (
-    <Card className="mt-3 p-5">
-      <div className="flex items-center gap-3 mb-4">
-        <Target className="w-5 h-5 text-muted-foreground" aria-hidden />
-        <div>
-          <div className="font-medium">Pixel do Meta (Facebook/Instagram)</div>
-          <div className="text-xs text-muted-foreground">
-            Rastreia pelo navegador e pelo servidor (API de Conversões), sem contar em dobro.
-          </div>
-        </div>
-      </div>
+    <SettingCard>
+      <SettingHeader
+        icon={<Target />}
+        title="Pixel do Meta (opcional)"
+        description="As vendas já chegam ao Meta pela UTMify. Preencha só se quiser o pixel direto, pelo navegador e pela API de Conversões, sem contar em dobro."
+        status={
+          tokenHint ? <Pill tone="green">Configurado</Pill> : <Pill tone="gray">Não usado</Pill>
+        }
+      />
       <form onSubmit={save} className="grid gap-3 md:grid-cols-3">
-        <label className="text-xs text-muted-foreground space-y-1">
+        <label className="space-y-1.5 text-xs font-medium text-[#344054]">
           <span>ID do pixel</span>
           <Input
             value={pixelId}
@@ -87,7 +86,7 @@ export function MetaPixelCard({ password }: MetaPixelCardProps) {
             required
           />
         </label>
-        <label className="text-xs text-muted-foreground space-y-1">
+        <label className="space-y-1.5 text-xs font-medium text-[#344054]">
           <span>Token de acesso {tokenHint && `(atual ${tokenHint})`}</span>
           <Input
             type="password"
@@ -97,7 +96,7 @@ export function MetaPixelCard({ password }: MetaPixelCardProps) {
             autoComplete="off"
           />
         </label>
-        <label className="text-xs text-muted-foreground space-y-1">
+        <label className="space-y-1.5 text-xs font-medium text-[#344054]">
           <span>Código de teste (opcional)</span>
           <Input
             value={testCode}
@@ -118,9 +117,9 @@ export function MetaPixelCard({ password }: MetaPixelCardProps) {
           >
             Enviar teste
           </Button>
-          {msg && <span className="text-xs text-foreground">{msg}</span>}
+          {msg && <span className="text-xs text-[#344054]">{msg}</span>}
         </div>
       </form>
-    </Card>
+    </SettingCard>
   );
 }

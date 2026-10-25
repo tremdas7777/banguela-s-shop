@@ -1,108 +1,71 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  CheckCircle2,
+  BadgeCheck,
+  CircleDollarSign,
   Clock,
-  DollarSign,
+  Copy,
   Download,
-  Loader2,
+  MessageCircle,
   Receipt,
-  RefreshCw,
   Search,
 } from "lucide-react";
 import { getAdminOrders, type AdminOrder } from "@/lib/admin.functions";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  brlCents,
+  brlCompacto,
+  fmtCpf,
+  fmtDateTime,
+  fmtPhone,
+  isPaid,
+  origemDoPedido,
+  origemTexto,
+  statusLabel,
+  tempoRelativo,
+  whatsappUrl,
+} from "@/lib/admin-format";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import {
+  Avatar,
+  EmptyState,
+  GhostButton,
+  Kpi,
+  PageHeader,
+  Panel,
+  Pill,
+  ProductThumb,
+  RefreshButton,
+  Segmented,
+  nomeEVariacao,
+} from "./kit";
 
 export interface OrdersTabProps {
   password: string;
 }
 
 const PERIODS = [
-  { days: 1, label: "Hoje" },
-  { days: 7, label: "7d" },
-  { days: 30, label: "30d" },
-  { days: 90, label: "90d" },
-  { days: 365, label: "1 ano" },
+  { value: 1, label: "Hoje" },
+  { value: 7, label: "7 dias" },
+  { value: 30, label: "30 dias" },
+  { value: 90, label: "90 dias" },
+  { value: 365, label: "1 ano" },
 ] as const;
 
-const STATUS_FILTERS = [
-  { key: "all", label: "Todos" },
-  { key: "paid", label: "Pagos" },
-  { key: "pending", label: "Aguardando" },
-] as const;
-type StatusFilter = (typeof STATUS_FILTERS)[number]["key"];
+type StatusFilter = "all" | "paid" | "pending";
 
-// No banco, "paid" só é gravado depois da confirmação do gateway (reportPaidOnce).
-const isPaid = (o: AdminOrder) => o.status === "paid";
-
-const brl = (cents: number) =>
-  (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleString("pt-BR") : "—");
-
-const fmtCpf = (v: string) =>
-  v.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-
-const fmtPhone = (v: string) => {
-  const d = v.replace(/\D/g, "");
-  return d.length === 11
-    ? d.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
-    : d.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-};
-
-type Origem = { titulo: string; detalhe?: string; alerta?: boolean };
-
-/** "Nome|123456" (formato da UTMify) → "Nome". */
-const semId = (v?: string | null) => (v ?? "").split("|")[0]!.trim();
-const maiuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-/** Nome conhecido da origem (utm_source) para exibir. */
-const NOMES: Record<string, string> = {
-  ig: "Instagram",
-  "instagram.com": "Instagram",
-  "facebook.com": "Facebook",
-  "chatgpt.com": "ChatGPT",
-};
-
-/**
- * De onde veio o pedido, legível: anúncio do Meta (campanha · anúncio), busca orgânica, outro site.
- * Pedido sem UTM nenhuma: o navegador (app do Instagram/Facebook) ainda diz de onde veio.
- */
-function origemDoPedido(o: AdminOrder): Origem {
-  const u = o.utm ?? {};
-  const src = (u["utm_source"] ?? "").trim();
-  if (!src) {
-    const ua = o.ua ?? "";
-    if (/Instagram/.test(ua))
-      return { titulo: "Instagram sem UTM", detalhe: "link sem parâmetros", alerta: true };
-    if (/FBAN|FBAV|FB_IAB/.test(ua))
-      return { titulo: "Facebook sem UTM", detalhe: "link sem parâmetros", alerta: true };
-    return { titulo: "Sem UTM", detalhe: "direto ou site sem parâmetros", alerta: true };
-  }
-  // O Meta não trocou {{campaign.name}} etc.: a UTMify não consegue ligar a venda ao anúncio.
-  if (Object.values(u).some((v) => v?.includes("{{")))
-    return { titulo: "Meta", detalhe: "anúncio com UTMs não preenchidas", alerta: true };
-  const medium = (u["utm_medium"] ?? "").trim();
-  if (/^(fb|facebook|meta)$/i.test(src)) {
-    const partes = [semId(u["utm_campaign"]), semId(u["utm_content"])].filter(Boolean);
-    return { titulo: "Meta Ads", detalhe: partes.join(" · ") || undefined };
-  }
-  if (medium === "organic") return { titulo: `${maiuscula(src)} (busca orgânica)` };
-  const nome = NOMES[src.toLowerCase()] ?? src;
-  if (medium === "referral") return { titulo: nome, detalhe: "link sem UTM" };
-  const partes = [medium, u["utm_campaign"], u["utm_content"]].map(semId).filter(Boolean);
-  return { titulo: nome, detalhe: partes.join(" · ") || undefined };
+function StatusPill({ status }: { status: string }) {
+  return <Pill tone={status === "paid" ? "green" : "amber"}>{statusLabel(status)}</Pill>;
 }
 
 function OrigemCell({ order }: { order: AdminOrder }) {
   const o = origemDoPedido(order);
   return (
-    <div className="max-w-[220px]">
-      <div className={`font-medium ${o.alerta ? "text-amber-700" : ""}`}>{o.titulo}</div>
+    <div className="max-w-[180px] text-xs">
+      <div className={o.alerta ? "font-medium text-[#b54708]" : "font-medium text-[#344054]"}>
+        {o.titulo}
+      </div>
       {o.detalhe && (
-        <div className="truncate text-muted-foreground" title={o.detalhe}>
+        <div className="truncate text-[#667085]" title={o.detalhe}>
           {o.detalhe}
         </div>
       )}
@@ -110,7 +73,7 @@ function OrigemCell({ order }: { order: AdminOrder }) {
   );
 }
 
-/** Aba de pedidos Pix: lista, filtros, busca, detalhes completos e exportação CSV. */
+/** Aba de pedidos: lista, filtros, busca, detalhes completos e exportação CSV. */
 export function OrdersTab({ password }: OrdersTabProps) {
   const fetchOrders = useServerFn(getAdminOrders);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
@@ -153,6 +116,7 @@ export function OrdersTab({ password }: OrdersTabProps) {
         o.id.toLowerCase().includes(q) ||
         c.name?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q) ||
+        o.bundle_name?.toLowerCase().includes(q) ||
         (qDigits.length >= 3 && (c.cpf?.includes(qDigits) || c.phone?.includes(qDigits)))
       );
     });
@@ -201,7 +165,7 @@ export function OrdersTab({ password }: OrdersTabProps) {
       const c = o.customer ?? ({} as AdminOrder["customer"]);
       const u = o.utm ?? {};
       return [
-        fmtDate(o.created_at),
+        fmtDateTime(o.created_at),
         o.id,
         statusLabel(o.status),
         c.name,
@@ -212,13 +176,13 @@ export function OrdersTab({ password }: OrdersTabProps) {
         o.bundle_name,
         c.frete?.name,
         (o.amount_cents / 100).toFixed(2).replace(".", ","),
-        (({ titulo, detalhe }) => [titulo, detalhe].filter(Boolean).join(" · "))(origemDoPedido(o)),
+        origemTexto(o),
         u.utm_source,
         u.utm_medium,
         u.utm_campaign,
         u.utm_content,
         u.utm_term,
-        isPaid(o) ? fmtDate(o.paid_reported_at ?? o.updated_at) : "",
+        isPaid(o) ? fmtDateTime(o.paid_reported_at ?? o.updated_at) : "",
       ]
         .map(esc)
         .join(";");
@@ -234,320 +198,343 @@ export function OrdersTab({ password }: OrdersTabProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-2">
-        {PERIODS.map((p) => (
-          <Button
-            key={p.days}
-            size="sm"
-            variant={days === p.days ? "default" : "outline"}
-            onClick={() => setDays(p.days)}
-          >
-            {p.label}
-          </Button>
-        ))}
-        <div className="ml-auto flex gap-2">
-          <Button size="sm" variant="outline" onClick={load} disabled={loading}>
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4" />
-            )}
-            Atualizar
-          </Button>
-          <Button size="sm" variant="outline" onClick={exportCsv} disabled={!filtered.length}>
-            <Download className="w-4 h-4" />
-            CSV
-          </Button>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title="Pedidos"
+        description="Todos os pedidos da loja, com cliente, produto, pagamento e origem."
+        actions={
+          <>
+            <RefreshButton loading={loading} onClick={load} />
+            <GhostButton onClick={exportCsv} disabled={!filtered.length}>
+              <Download /> <span className="hidden sm:inline">Exportar</span> CSV
+            </GhostButton>
+          </>
+        }
+      />
 
-      {/* Resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Stat icon={<Receipt className="w-5 h-5" />} label="Pedidos" value={stats.total} />
-        <Stat
-          icon={<CheckCircle2 className="w-5 h-5" />}
-          label="Pagos"
-          value={stats.paid}
-          helper={`${stats.conv}% de aprovação`}
-        />
-        <Stat icon={<Clock className="w-5 h-5" />} label="Aguardando" value={stats.pending} />
-        <Stat
-          icon={<DollarSign className="w-5 h-5" />}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Kpi
+          tone="brand"
           label="Faturamento"
-          value={brl(stats.revenue)}
-          helper="somente pagos"
+          icon={<CircleDollarSign />}
+          value={brlCompacto(stats.revenue)}
+          hint="somente pedidos pagos"
         />
-        <Stat
-          icon={<DollarSign className="w-5 h-5" />}
-          label="Ticket médio"
-          value={brl(stats.ticket)}
+        <Kpi
+          label="Pagos"
+          icon={<BadgeCheck />}
+          value={stats.paid}
+          hint={`${stats.conv}% dos ${stats.total} pedidos`}
         />
+        <Kpi label="Aguardando" icon={<Clock />} value={stats.pending} hint="Pix ainda não pago" />
+        <Kpi label="Ticket médio" icon={<Receipt />} value={brlCents(stats.ticket)} />
       </div>
 
-      {/* Busca + status */}
-      <div className="flex flex-col md:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Buscar por nome, e-mail, CPF, telefone ou ID"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+      <Panel className="mt-4" bodyClassName="p-0">
+        <div className="flex flex-col gap-3 border-b border-[#eef0f3] p-4 lg:flex-row lg:items-center">
+          <Segmented options={PERIODS} value={days} onChange={setDays} stretch />
+          <Segmented
+            options={[
+              { value: "all" as const, label: "Todos", count: stats.total },
+              { value: "paid" as const, label: "Pagos", count: stats.paid },
+              { value: "pending" as const, label: "Aguardando", count: stats.pending },
+            ]}
+            value={status}
+            onChange={setStatus}
+            stretch
           />
+          <label className="relative lg:ml-auto lg:w-80">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98a2b3]" />
+            <input
+              className="h-9 w-full rounded-lg border border-[#d0d5dd] bg-white pl-9 pr-3 text-sm text-[#101828] shadow-[0_1px_2px_rgba(16,24,40,0.05)] outline-none placeholder:text-[#98a2b3] focus:border-[var(--adm-brand)] focus:ring-2 focus:ring-[var(--adm-brand-soft)]"
+              placeholder="Buscar cliente, CPF, telefone, produto…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
         </div>
-        <div className="flex gap-2">
-          {STATUS_FILTERS.map((s) => (
-            <Button
-              key={s.key}
-              size="sm"
-              variant={status === s.key ? "default" : "outline"}
-              onClick={() => setStatus(s.key)}
-            >
-              {s.label}
-            </Button>
-          ))}
-        </div>
-      </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="px-5 pt-4 text-sm text-[#b42318]">{error}</p>}
 
-      {/* Tabela */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto max-h-[700px]">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 sticky top-0">
-              <tr className="text-left">
-                <th className="px-4 py-2 font-medium">Data</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Telefone</th>
-                <th className="px-4 py-2 font-medium">Plano</th>
-                <th className="px-4 py-2 font-medium">Frete</th>
-                <th className="px-4 py-2 font-medium">Valor</th>
-                <th className="px-4 py-2 font-medium">Origem</th>
-                <th className="px-4 py-2 font-medium">UTMify</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((o) => (
-                <tr
-                  key={o.id}
-                  className="border-t hover:bg-muted/30 cursor-pointer"
-                  onClick={() => setSelected(o)}
-                >
-                  <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">
-                    {fmtDate(o.created_at)}
-                  </td>
-                  <td className="px-4 py-2">
-                    <StatusBadge status={o.status} />
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="font-medium">{o.customer?.name}</div>
-                    <div className="text-xs text-muted-foreground">{o.customer?.email}</div>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    {o.customer?.phone ? fmtPhone(o.customer.phone) : "—"}
-                  </td>
-                  <td className="px-4 py-2">{o.bundle_name}</td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {o.customer?.frete?.name ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 tabular-nums whitespace-nowrap">
-                    {brl(o.amount_cents)}
-                  </td>
-                  <td className="px-4 py-2 text-xs">
-                    <OrigemCell order={o} />
-                  </td>
-                  <td className="px-4 py-2">
-                    <UtmifyBadge order={o} />
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && !loading && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
-                    Nenhum pedido encontrado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+        {filtered.length === 0 && !loading ? (
+          <EmptyState
+            icon={<Receipt />}
+            title="Nenhum pedido encontrado"
+            text={query ? "Tente outra busca ou mude o período." : "Mude o período para ver mais."}
+          />
+        ) : (
+          <>
+            {/* Celular: um cartão por pedido */}
+            <ul className="divide-y divide-[#eef0f3] md:hidden">
+              {filtered.map((o) => {
+                const { nome } = nomeEVariacao(o.bundle_name);
+                return (
+                  <li key={o.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelected(o)}
+                      className="flex w-full items-start gap-3 px-4 py-3.5 text-left active:bg-[#f9fafb]"
+                    >
+                      <ProductThumb id={o.bundle_id} className="h-11 w-11" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate text-sm font-semibold text-[#101828]">
+                            {o.customer?.name || "Cliente"}
+                          </p>
+                          <p className="shrink-0 text-sm font-semibold tabular-nums text-[#101828]">
+                            {brlCents(o.amount_cents)}
+                          </p>
+                        </div>
+                        <p className="truncate text-xs text-[#667085]">{nome}</p>
+                        <div className="mt-1.5 flex items-center justify-between gap-2">
+                          <StatusPill status={o.status} />
+                          <span className="text-xs text-[#98a2b3]">
+                            {tempoRelativo(o.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-      <OrderDialog order={selected} onClose={() => setSelected(null)} />
+            {/* Computador: tabela */}
+            <div className="hidden max-h-[720px] overflow-auto md:block">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-[#f9fafb] text-left text-xs font-medium text-[#667085]">
+                  <tr className="border-b border-[#eef0f3]">
+                    <th className="px-5 py-3 font-medium">Cliente</th>
+                    <th className="px-4 py-3 font-medium">Produto</th>
+                    <th className="px-4 py-3 text-right font-medium">Valor</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Origem</th>
+                    <th className="px-5 py-3 text-right font-medium">Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eef0f3]">
+                  {filtered.map((o) => {
+                    const { nome, variacao } = nomeEVariacao(o.bundle_name);
+                    return (
+                      <tr
+                        key={o.id}
+                        className="cursor-pointer hover:bg-[#f9fafb]"
+                        onClick={() => setSelected(o)}
+                      >
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar name={o.customer?.name} />
+                            <div className="min-w-0">
+                              <div className="max-w-[170px] truncate font-medium text-[#101828]">
+                                {o.customer?.name || "Cliente"}
+                              </div>
+                              <div className="max-w-[170px] truncate text-xs text-[#667085]">
+                                {o.customer?.email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <ProductThumb id={o.bundle_id} />
+                            <div className="min-w-0">
+                              <div className="max-w-[220px] truncate text-[#101828]">{nome}</div>
+                              {variacao && (
+                                <div
+                                  className="max-w-[220px] truncate text-xs text-[#667085]"
+                                  title={variacao}
+                                >
+                                  {variacao}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-[#101828]">
+                          {brlCents(o.amount_cents)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col items-start gap-1">
+                            <StatusPill status={o.status} />
+                            <UtmifyFalha order={o} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <OrigemCell order={o} />
+                        </td>
+                        <td
+                          className="whitespace-nowrap px-5 py-3 text-right text-xs text-[#667085]"
+                          title={fmtDateTime(o.created_at)}
+                        >
+                          {tempoRelativo(o.created_at)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </Panel>
+
+      <OrderSheet order={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
 
-function OrderDialog({ order: o, onClose }: { order: AdminOrder | null; onClose: () => void }) {
-  if (!o) return null;
+function OrderSheet({ order: o, onClose }: { order: AdminOrder | null; onClose: () => void }) {
+  return (
+    <Sheet open={!!o} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
+        side="right"
+        className="adm w-full overflow-y-auto border-l border-[#e4e7ec] bg-white p-0 sm:max-w-lg"
+      >
+        {o && <OrderDetails o={o} />}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function OrderDetails({ o }: { o: AdminOrder }) {
   const c = o.customer ?? ({} as AdminOrder["customer"]);
   const utmEntries = Object.entries(o.utm ?? {}).filter(([, v]) => v);
-  const whats = c.phone ? `https://wa.me/55${c.phone.replace(/\D/g, "")}` : null;
-
+  const { nome, variacao } = nomeEVariacao(o.bundle_name);
+  const og = origemDoPedido(o);
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            Pedido <span className="font-mono text-sm text-muted-foreground">{o.id}</span>
-            <StatusBadge status={o.status} />
-          </DialogTitle>
-        </DialogHeader>
+    <div>
+      <div className="border-b border-[#eef0f3] px-6 pb-5 pt-6">
+        <div className="flex items-center gap-2">
+          <StatusPill status={o.status} />
+          <span className="font-mono text-xs text-[#98a2b3]">{o.id}</span>
+        </div>
+        <SheetTitle className="mt-3 text-xl font-semibold text-[#101828]">
+          {c.name || "Cliente"}
+        </SheetTitle>
+        <SheetDescription className="mt-0.5 text-sm text-[#667085]">
+          {fmtDateTime(o.created_at)} · {brlCents(o.amount_cents)}
+        </SheetDescription>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {c.phone && (
+            <a
+              href={whatsappUrl(c.phone)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#16a34a] px-3 text-[13px] font-semibold text-white hover:bg-[#15803d]"
+            >
+              <MessageCircle className="h-4 w-4" /> WhatsApp
+            </a>
+          )}
+          {c.email && (
+            <a
+              href={`mailto:${c.email}`}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#d0d5dd] bg-white px-3 text-[13px] font-medium text-[#344054] hover:bg-[#f9fafb]"
+            >
+              E-mail
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-6 px-6 py-5">
+        <div className="flex items-center gap-3 rounded-xl border border-[#eef0f3] bg-[#f9fafb] p-3">
+          <ProductThumb id={o.bundle_id} className="h-14 w-14" />
+          <div className="min-w-0">
+            <p className="font-medium text-[#101828]">{nome}</p>
+            {variacao && <p className="text-xs text-[#667085]">{variacao}</p>}
+          </div>
+        </div>
+
+        {c.qrcode && <PixCode code={c.qrcode} paid={isPaid(o)} />}
 
         <Section title="Cliente">
           <Row label="Nome" value={c.name} />
           <Row label="E-mail" value={c.email} />
-          <Row
-            label="Telefone"
-            value={
-              c.phone ? (
-                <span>
-                  {fmtPhone(c.phone)}
-                  {whats && (
-                    <a
-                      href={whats}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-2 text-xs text-green-700 underline"
-                    >
-                      WhatsApp
-                    </a>
-                  )}
-                </span>
-              ) : null
-            }
-          />
+          <Row label="Telefone" value={c.phone ? fmtPhone(c.phone) : null} />
           <Row label="CPF" value={c.cpf ? fmtCpf(c.cpf) : null} />
           <Row label="Endereço" value={c.endereco} />
         </Section>
 
-        {c.qrcode && <PixCode code={c.qrcode} paid={isPaid(o)} />}
-
-        <Section title="Pedido">
-          <Row label="Plano" value={`${o.bundle_name} (${o.bundle_id})`} />
+        <Section title="Pagamento">
+          <Row label="Valor total" value={brlCents(o.amount_cents)} />
+          <Row
+            label="Forma"
+            value={
+              c.method === "card"
+                ? `Cartão${c.card?.brand ? ` ${c.card.brand}` : ""}${c.card?.lastDigits ? ` final ${c.card.lastDigits}` : ""} — ${c.installments ?? 1}x`
+                : `Pix${c.discount ? ` (desconto ${brlCents(Math.round(c.discount * 100))})` : ""}`
+            }
+          />
           <Row
             label="Frete"
             value={
               c.frete
-                ? `${c.frete.name} — ${c.frete.price ? brl(Math.round(c.frete.price * 100)) : "Grátis"}`
+                ? `${c.frete.name} — ${c.frete.price ? brlCents(Math.round(c.frete.price * 100)) : "Grátis"}`
                 : null
             }
           />
-          <Row label="Valor total" value={brl(o.amount_cents)} />
-          <Row
-            label="Pagamento"
-            value={
-              c.method === "card"
-                ? `Cartão${c.card?.brand ? ` ${c.card.brand}` : ""}${c.card?.lastDigits ? ` final ${c.card.lastDigits}` : ""} — ${c.installments ?? 1}x`
-                : `Pix${c.discount ? ` (desconto ${brl(Math.round(c.discount * 100))})` : ""}`
-            }
-          />
-          <Row label="Criado em" value={fmtDate(o.created_at)} />
+          <Row label="Plano" value={o.bundle_id} />
+          <Row label="Criado em" value={fmtDateTime(o.created_at)} />
           <Row
             label="Pago em"
-            value={isPaid(o) ? fmtDate(o.paid_reported_at ?? o.updated_at) : null}
+            value={isPaid(o) ? fmtDateTime(o.paid_reported_at ?? o.updated_at) : null}
           />
-          <Row label="Atualizado em" value={fmtDate(o.updated_at)} />
+          <Row label="Atualizado em" value={fmtDateTime(o.updated_at)} />
         </Section>
 
-        <Section title="Origem / UTM">
+        <Section title="Origem">
           <Row
             label="Origem"
-            value={(() => {
-              const og = origemDoPedido(o);
-              return [og.titulo, og.detalhe].filter(Boolean).join(" · ");
-            })()}
+            value={
+              <span className={og.alerta ? "text-[#b54708]" : undefined}>
+                {[og.titulo, og.detalhe].filter(Boolean).join(" · ")}
+              </span>
+            }
           />
           {utmEntries.map(([k, v]) => (
             <Row key={k} label={k} value={v} />
           ))}
           <Row label="URL" value={o.url} />
+          <Row label="UTMify" value={<UtmifyBadge order={o} />} />
         </Section>
 
         <Section title="Técnico">
           <Row label="IP" value={o.ip} />
-          <Row label="User agent" value={o.ua} />
+          <Row label="Navegador" value={o.ua} />
           <Row label="fbp" value={o.fbp} />
           <Row label="fbc" value={o.fbc} />
           <Row
-            label="Reportado (UTMify/Meta)"
-            value={o.paid_reported_at ? fmtDate(o.paid_reported_at) : null}
+            label="Reportado"
+            value={o.paid_reported_at ? fmtDateTime(o.paid_reported_at) : null}
           />
           {o.report_result != null && (
-            <pre className="mt-2 rounded bg-muted p-3 text-xs overflow-x-auto">
+            <pre className="mt-2 overflow-x-auto rounded-lg bg-[#f2f4f7] p-3 text-[11px] text-[#344054]">
               {JSON.stringify(o.report_result, null, 2)}
             </pre>
           )}
         </Section>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="border-t pt-4 first:border-t-0 first:pt-0">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+    <div>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#98a2b3]">
         {title}
       </h3>
-      <dl className="space-y-1">{children}</dl>
+      <dl className="divide-y divide-[#f2f4f7] rounded-xl border border-[#eef0f3]">{children}</dl>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="grid grid-cols-[140px_1fr] gap-3 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="break-all">{value || "—"}</dd>
+    <div className="grid grid-cols-[110px_1fr] gap-3 px-3 py-2 text-[13px]">
+      <dt className="text-[#667085]">{label}</dt>
+      <dd className="break-words text-[#101828]">{value || "—"}</dd>
     </div>
-  );
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-  helper,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string;
-  helper?: string;
-}) {
-  return (
-    <Card className="p-5">
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        {icon}
-        <span className="text-xs uppercase tracking-wider">{label}</span>
-      </div>
-      <div className="text-2xl font-display tabular-nums">{value}</div>
-      {helper && <div className="text-xs text-muted-foreground mt-1">{helper}</div>}
-    </Card>
-  );
-}
-
-function statusLabel(status: string) {
-  if (status === "paid") return "Pago";
-  if (status === "waiting_payment" || status === "pending") return "Aguardando";
-  if (status === "expired") return "Expirado";
-  if (status === "refunded") return "Reembolsado";
-  return status;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const paid = status === "paid";
-  const cls = paid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800";
-  return (
-    <span
-      className={`inline-block px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${cls}`}
-    >
-      {statusLabel(status)}
-    </span>
   );
 }
 
@@ -558,24 +545,25 @@ function UtmifyBadge({ order: o }: { order: AdminOrder }) {
     { ok?: boolean; status?: number; error?: string } | undefined
   >;
   const r = isPaid(o) ? rr["utmify"] : rr["utmifyPending"];
-  if (!r) return <span className="text-xs text-muted-foreground">—</span>;
-  if (r.ok)
-    return (
-      <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-        ✓ enviado
-      </span>
-    );
+  if (!r) return <span className="text-xs text-[#98a2b3]">—</span>;
+  if (r.ok) return <Pill tone="green">Enviado</Pill>;
   return (
-    <span
-      title={`${r.status ?? ""} ${r.error ?? ""}`.trim()}
-      className="cursor-help rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700"
-    >
-      ✗{" "}
-      {r.error === "Token não configurado"
-        ? "sem token"
-        : `recusado${r.status ? ` (${r.status})` : ""}`}
+    <span title={`${r.status ?? ""} ${r.error ?? ""}`.trim()} className="cursor-help">
+      <Pill tone="red">
+        {r.error === "Token não configurado"
+          ? "Sem token"
+          : `Recusado${r.status ? ` (${r.status})` : ""}`}
+      </Pill>
     </span>
   );
+}
+
+/** Na tabela, a UTMify só aparece quando o envio falhou (o detalhe mostra sempre). */
+function UtmifyFalha({ order: o }: { order: AdminOrder }) {
+  const rr = (o.report_result ?? {}) as Record<string, { ok?: boolean } | undefined>;
+  const r = isPaid(o) ? rr["utmify"] : rr["utmifyPending"];
+  if (!r || r.ok) return null;
+  return <UtmifyBadge order={o} />;
 }
 
 /** Pix copia e cola gerado para o pedido, com botão de copiar (para reenviar ao cliente). */
@@ -591,19 +579,19 @@ function PixCode({ code, paid }: { code: string; paid: boolean }) {
     }
   };
   return (
-    <div className="border-t pt-4 first:border-t-0 first:pt-0">
+    <div>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#98a2b3]">
           Pix copia e cola
         </h3>
-        <Button size="sm" variant="outline" onClick={copy}>
-          {copied ? "Copiado!" : "Copiar código"}
-        </Button>
+        <GhostButton onClick={copy} className="h-8">
+          <Copy /> {copied ? "Copiado!" : "Copiar código"}
+        </GhostButton>
       </div>
-      <p className="max-h-24 overflow-y-auto break-all rounded bg-muted p-3 font-mono text-xs">
+      <p className="max-h-24 overflow-y-auto break-all rounded-xl border border-[#eef0f3] bg-[#f9fafb] p-3 font-mono text-[11px] text-[#475467]">
         {code}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="mt-1.5 text-xs text-[#667085]">
         {paid
           ? "Este Pix já foi pago."
           : "O código vale por 30 minutos depois de gerado. Depois disso, o cliente precisa gerar um novo."}

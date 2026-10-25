@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 import {
   deletePaySharkKeyFn,
   deletePixgateKeyFn,
@@ -126,59 +127,73 @@ export function PixGatewayCard({ password }: { password: string }) {
     });
 
   return (
-    <Card className="mt-3 p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <ArrowLeftRight className="w-5 h-5 text-muted-foreground" aria-hidden />
-          <div>
-            <div className="font-medium">Gateway do Pix</div>
-            <div className="text-xs text-muted-foreground">
-              Escolha quem gera os próximos Pix (padrão: PixGate). A troca vale na hora; pedidos já
-              gerados continuam sendo confirmados pelo gateway em que foram criados.
-            </div>
-          </div>
-        </div>
-        <span className="text-xs whitespace-nowrap text-emerald-600">
-          {status ? `Em uso: ${LABEL[status.active]}` : "…"}
-        </span>
-      </div>
+    <SettingCard>
+      <SettingHeader
+        icon={<ArrowLeftRight />}
+        title="Gateway do Pix"
+        description="Quem gera os próximos Pix. A troca vale na hora; pedidos já gerados continuam sendo confirmados pelo gateway em que foram criados."
+        status={status ? <Pill tone="green">Em uso: {LABEL[status.active]}</Pill> : null}
+      />
 
-      <div className="grid grid-cols-3 gap-2">
-        {GATEWAYS.map((g) => (
-          <Button
-            key={g}
-            size="sm"
-            variant={status?.selected === g ? "default" : "outline"}
-            disabled={!status || !!busy || status.selected === g}
-            onClick={() => choose(g)}
-          >
-            {busy === `set-${g}` ? "Salvando…" : LABEL[g]}
-            {status && !status.configured[g] ? " (sem chave)" : ""}
-          </Button>
-        ))}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {GATEWAYS.map((g) => {
+          const on = status?.selected === g;
+          const temChave = !!status?.configured[g];
+          return (
+            <button
+              key={g}
+              type="button"
+              disabled={!status || !!busy || on}
+              onClick={() => choose(g)}
+              className={cn(
+                "relative flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors disabled:cursor-default",
+                on
+                  ? "border-[var(--adm-brand)] bg-[var(--adm-brand-soft)] ring-1 ring-[var(--adm-brand)]"
+                  : "border-[#e4e7ec] bg-white hover:border-[#d0d5dd] hover:bg-[#f9fafb]",
+              )}
+            >
+              <span className="text-sm font-semibold text-[#101828]">
+                {busy === `set-${g}` ? "Salvando…" : LABEL[g]}
+              </span>
+              <span className={cn("text-xs", temChave ? "text-[#067647]" : "text-[#98a2b3]")}>
+                {status ? (temChave ? "Chave cadastrada" : "Sem chave") : "…"}
+              </span>
+              {on && (
+                <CheckCircle2 className="absolute right-2.5 top-2.5 h-4 w-4 text-[var(--adm-brand)]" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {status && status.active !== status.selected && (
-        <p className="text-xs text-destructive">
+        <p className="rounded-lg border border-[#fedf89] bg-[#fffaeb] px-3 py-2 text-xs text-[#b54708]">
           A {LABEL[status.selected]} está escolhida mas sem chave, então o checkout está usando a{" "}
           {LABEL[status.active]}. Cadastre a chave para ela entrar em uso.
         </p>
       )}
 
-      {GATEWAYS.map((g) => (
-        <KeySection
-          key={g}
-          gateway={g}
-          info={status?.keys[g] ?? null}
-          loading={status === null}
-          busy={busy}
-          onSave={(key) => saveKey(g, key)}
-          onDelete={() => deleteKey(g)}
-          onTest={() => testKey(g)}
-        />
-      ))}
-      {msg && <p className="text-xs">{msg}</p>}
-    </Card>
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#98a2b3]">
+          Chaves de API
+        </p>
+        <ul className="divide-y divide-[#eef0f3] rounded-lg border border-[#e4e7ec]">
+          {GATEWAYS.map((g) => (
+            <KeySection
+              key={g}
+              gateway={g}
+              info={status?.keys[g] ?? null}
+              loading={status === null}
+              busy={busy}
+              onSave={(key) => saveKey(g, key)}
+              onDelete={() => deleteKey(g)}
+              onTest={() => testKey(g)}
+            />
+          ))}
+        </ul>
+      </div>
+      {msg && <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msg}</p>}
+    </SettingCard>
   );
 }
 
@@ -200,55 +215,89 @@ function KeySection({
   onTest: () => Promise<boolean>;
 }) {
   const [key, setKey] = useState("");
-  const label = loading
-    ? "…"
-    : info?.source === "admin"
-      ? "Chave do painel"
-      : info?.source === "secret"
-        ? "Secret do Lovable"
-        : "Sem chave";
+  const [editando, setEditando] = useState(false);
+  const fonte = loading ? null : info?.source;
 
   return (
-    <div className="flex flex-col gap-2 border-t pt-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-sm font-medium">Chave da API {LABEL[gateway]}</div>
-        <span
-          className={`text-xs whitespace-nowrap ${info?.source ? "text-emerald-600" : "text-destructive"}`}
-        >
-          {label}
-        </span>
+    <li className="px-3 py-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-[#101828]">{LABEL[gateway]}</span>
+            {loading ? (
+              <span className="text-xs text-[#98a2b3]">…</span>
+            ) : fonte === "admin" ? (
+              <Pill tone="green">Chave do painel</Pill>
+            ) : fonte === "secret" ? (
+              <Pill tone="blue">Secret do Lovable</Pill>
+            ) : (
+              <Pill tone="gray">Sem chave</Pill>
+            )}
+          </div>
+          {info?.key && <p className="mt-0.5 font-mono text-xs text-[#98a2b3]">{info.key}</p>}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={!info?.source || !!busy}
+            onClick={onTest}
+          >
+            {busy === `test-${gateway}` ? "Testando…" : "Testar"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={!!busy}
+            onClick={() => setEditando((v) => !v)}
+          >
+            {editando ? "Cancelar" : info?.source ? "Trocar" : "Cadastrar"}
+          </Button>
+          {info?.source === "admin" && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-[#b42318] hover:bg-[#fef3f2] hover:text-[#b42318]"
+              disabled={!!busy}
+              onClick={onDelete}
+            >
+              {busy === `delete-${gateway}` ? "Apagando…" : "Apagar"}
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="text-xs text-muted-foreground">
-        A chave salva aqui tem prioridade. Sem ela, vale o secret {SECRET[gateway]} do Lovable.
-      </div>
-      <Input
-        type="password"
-        autoComplete="off"
-        aria-label={`Chave da API ${LABEL[gateway]}`}
-        placeholder={info?.key ? `Chave em uso (${info.key})` : `Chave da API ${LABEL[gateway]}`}
-        value={key}
-        onChange={(e) => setKey(e.target.value)}
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          disabled={key.trim().length < 10 || !!busy}
-          onClick={() => onSave(key.trim()).then((ok) => ok && setKey(""))}
-        >
-          {busy === `save-${gateway}` ? "Salvando…" : `Salvar chave ${LABEL[gateway]}`}
-        </Button>
-        <Button size="sm" variant="outline" disabled={!info?.source || !!busy} onClick={onTest}>
-          {busy === `test-${gateway}` ? "Testando…" : `Testar chave ${LABEL[gateway]}`}
-        </Button>
-        <Button
-          size="sm"
-          variant="destructive"
-          disabled={info?.source !== "admin" || !!busy}
-          onClick={onDelete}
-        >
-          {busy === `delete-${gateway}` ? "Apagando…" : "Apagar chave do painel"}
-        </Button>
-      </div>
-    </div>
+      {editando && (
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="password"
+            autoComplete="off"
+            aria-label={`Chave da API ${LABEL[gateway]}`}
+            placeholder={`Cole a chave da API ${LABEL[gateway]}`}
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+          />
+          <Button
+            disabled={key.trim().length < 10 || !!busy}
+            onClick={() =>
+              onSave(key.trim()).then((ok) => {
+                if (ok) {
+                  setKey("");
+                  setEditando(false);
+                }
+              })
+            }
+          >
+            {busy === `save-${gateway}` ? "Salvando…" : "Salvar chave"}
+          </Button>
+        </div>
+      )}
+      {editando && (
+        <p className="mt-1.5 text-xs text-[#98a2b3]">
+          A chave salva aqui tem prioridade. Sem ela, vale o secret {SECRET[gateway]} do Lovable.
+        </p>
+      )}
+    </li>
   );
 }

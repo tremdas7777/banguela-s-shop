@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,6 +12,7 @@ import {
   setWhatsappNumber,
 } from "@/lib/site-settings.functions";
 import { formatWhatsapp, normalizeWhatsapp, whatsappLink } from "@/lib/whatsapp";
+import { Pill, SettingCard, SettingHeader } from "./kit";
 
 export interface WhatsappCardProps {
   password: string;
@@ -104,40 +105,40 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
   };
 
   return (
-    <Card className="p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <MessageCircle className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden />
-          <div>
-            <div className="font-medium">Botão de WhatsApp</div>
-            <div className="text-xs text-muted-foreground">
-              Quando desativado, o botão e o número somem do site.
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">
-            {enabled === null ? "…" : enabled ? "Ativo" : "Desativado"}
-          </span>
-          <Button
-            size="sm"
-            variant={enabled ? "destructive" : "default"}
-            disabled={toggling || enabled === null}
-            onClick={toggle}
-          >
-            {toggling ? "Salvando…" : enabled ? "Desativar" : "Ativar"}
-          </Button>
-        </div>
-      </div>
+    <SettingCard>
+      <SettingHeader
+        icon={<MessageCircle />}
+        title="Botão de WhatsApp"
+        description="Aparece no rodapé, no contato e no botão flutuante. Desligado, o botão e o número somem do site."
+        status={
+          enabled === null ? null : enabled ? (
+            <Pill tone="green">Ativo</Pill>
+          ) : (
+            <Pill tone="gray">Desligado</Pill>
+          )
+        }
+      />
+      <label className="flex items-center justify-between gap-4 rounded-lg border border-[#e4e7ec] bg-[#f9fafb] px-4 py-3">
+        <span className="text-sm font-medium text-[#101828]">
+          {toggling ? "Salvando…" : "Mostrar o WhatsApp no site"}
+        </span>
+        <Switch
+          checked={!!enabled}
+          disabled={toggling || enabled === null}
+          onCheckedChange={() => toggle()}
+          aria-label="Mostrar o WhatsApp no site"
+        />
+      </label>
 
       <div className="flex flex-col gap-2">
-        <div className="text-sm">
+        <div className="text-sm font-medium text-[#101828]">Número</div>
+        <div className="text-[13px]">
           {phone ? (
-            <>
-              Número atual: <span className="font-medium">{formatWhatsapp(phone)}</span>
-            </>
+            <span className="text-[#475467]">
+              Em uso: <span className="font-semibold text-[#101828]">{formatWhatsapp(phone)}</span>
+            </span>
           ) : (
-            <span className="text-muted-foreground">
+            <span className="text-[#b54708]">
               Nenhum número cadastrado: o botão não aparece no site.
             </span>
           )}
@@ -164,7 +165,7 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="wa-mensagem" className="text-sm font-medium">
+        <label htmlFor="wa-mensagem" className="text-sm font-medium text-[#101828]">
           Mensagem pronta
         </label>
         <p className="text-xs text-muted-foreground">
@@ -191,7 +192,7 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
 
       {link && (
         <div className="flex flex-col gap-2">
-          <div className="text-sm font-medium">Link do WhatsApp</div>
+          <div className="text-sm font-medium text-[#101828]">Link do WhatsApp</div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Input
               readOnly
@@ -213,7 +214,7 @@ export function WhatsappCard({ password }: WhatsappCardProps) {
         </div>
       )}
 
-      {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
-    </Card>
+      {msg && <p className="rounded-lg bg-[#f2f4f7] px-3 py-2 text-xs text-[#344054]">{msg}</p>}
+    </SettingCard>
   );
 }
