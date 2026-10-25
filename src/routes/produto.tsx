@@ -213,6 +213,13 @@ function Page() {
   const crocs1 = getBundle("crocs1");
   const crocs2 = getBundle("crocs2");
   const crocsOfferOptions = crocsOfferQty === 1 ? crocs1.options : crocs2.options;
+  const crocsOfferUnits =
+    crocsOfferQty === 1
+      ? [{ label: "Seu Crocs", model: "Modelo", size: "Tamanho" }]
+      : [
+          { label: "1º par", model: "Modelo do 1º Crocs", size: "Tamanho do 1º Crocs" },
+          { label: "2º par", model: "Modelo do 2º Crocs", size: "Tamanho do 2º Crocs" },
+        ];
   const crocsOfferValues = crocsOfferOptions.map((o) => crocsOfferSel[o.name]);
   const crocsOfferComplete = crocsOfferValues.every(Boolean);
   const openCrocsOffer = (action: "comprar" | "carrinho") => {
@@ -361,40 +368,86 @@ function Page() {
                 </button>
               ))}
             </div>
-            <div className="mt-5 space-y-4">
-              {crocsOfferOptions.map((o) => (
-                <label key={o.name} className="block text-left">
-                  <span className="mb-1.5 block text-[13px] font-bold text-[var(--night)]">
-                    {o.name}
-                  </span>
-                  <select
-                    value={crocsOfferSel[o.name] ?? ""}
-                    onChange={(e) =>
-                      setCrocsOfferSel((current) => ({ ...current, [o.name]: e.target.value }))
-                    }
-                    className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[14px] text-[var(--night)] outline-none focus:border-[var(--night)]"
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {crocsOfferUnits.map((unit, index) => {
+                const model = crocsOfferSel[unit.model];
+                const size = crocsOfferSel[unit.size];
+                const image = model ? crocs2.optionImages?.[model] : undefined;
+                return (
+                  <section
+                    key={unit.model}
+                    className={`rounded-2xl border-2 p-3 transition ${
+                      model && size
+                        ? "border-[var(--night)] bg-[var(--mint)]/45"
+                        : "border-[var(--ink)]/12 bg-[var(--tile)]/45"
+                    }`}
                   >
-                    <option value="">Escolha uma opção</option>
-                    {o.values.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                  {o.name.toLowerCase().startsWith("modelo") && crocsOfferSel[o.name] && (
-                    <div className="mt-2 flex items-center gap-3 rounded-xl bg-[var(--tile)] p-2">
-                      <img
-                        src={crocs2.optionImages?.[crocsOfferSel[o.name]]}
-                        alt={`Prévia: ${crocsOfferSel[o.name]}`}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-                      <span className="text-[12px] font-semibold text-[var(--ink)]/70">
-                        {crocsOfferSel[o.name]}
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-[14px] font-extrabold text-[var(--night)]">
+                        {unit.label}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                          model && size
+                            ? "bg-[var(--night)] text-white"
+                            : "bg-white text-[var(--ink)]/55"
+                        }`}
+                      >
+                        {model && size ? "Pronto" : `Etapa ${index + 1}`}
                       </span>
                     </div>
-                  )}
-                </label>
-              ))}
+                    <div className="mb-3 overflow-hidden rounded-xl bg-white">
+                      <img
+                        src={image ?? crocs2.img}
+                        alt={model ? `Prévia: ${model}` : `Escolha o modelo do ${unit.label}`}
+                        className="aspect-[1.35] w-full object-cover"
+                      />
+                    </div>
+                    <label className="block text-left">
+                      <span className="mb-1.5 block text-[12px] font-bold text-[var(--night)]">
+                        Modelo
+                      </span>
+                      <select
+                        value={model ?? ""}
+                        onChange={(e) =>
+                          setCrocsOfferSel((current) => ({ ...current, [unit.model]: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[13px] text-[var(--night)] outline-none focus:border-[var(--night)]"
+                      >
+                        <option value="">Escolha o modelo</option>
+                        {crocsOfferOptions
+                          .find((option) => option.name === unit.model)
+                          ?.values.map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label className="mt-3 block text-left">
+                      <span className="mb-1.5 block text-[12px] font-bold text-[var(--night)]">
+                        Tamanho (34 a 46)
+                      </span>
+                      <select
+                        value={size ?? ""}
+                        onChange={(e) =>
+                          setCrocsOfferSel((current) => ({ ...current, [unit.size]: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[13px] text-[var(--night)] outline-none focus:border-[var(--night)]"
+                      >
+                        <option value="">Escolha o tamanho</option>
+                        {crocsOfferOptions
+                          .find((option) => option.name === unit.size)
+                          ?.values.map((value) => (
+                            <option key={value} value={value}>
+                              Número {value}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                  </section>
+                );
+              })}
             </div>
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
               <button
