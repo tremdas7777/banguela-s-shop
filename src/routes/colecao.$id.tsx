@@ -117,15 +117,20 @@ function Page() {
                 Oferta especial
               </p>
               <h2 className="mt-1 text-[24px] font-bold text-[var(--night)] md:text-[30px]">
-                Crocs originais: 1 por R$ 99 ou 2 por R$ 149
+                Crocs originais: 1 par por R$ 99 ou 2 pares por R$ 149
               </h2>
               <p className="mt-2 text-[14px] text-[var(--ink)]/70">
-                Escolha os modelos e tamanhos na página do produto.
+                Você escolhe qualquer modelo da loja para cada par e informa o tamanho de cada um.
               </p>
             </div>
             <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 md:gap-5">
               {promoItems.map((p) => (
-                <ProductCard key={p.id} p={p} />
+                <div key={p.id}>
+                  <ProductCard p={p} />
+                  <p className="mt-2 text-center text-[12px] font-semibold text-[var(--ink)]/55">
+                    Escolha o modelo e o tamanho{p.unidades === 2 ? " de cada par" : ""}
+                  </p>
+                </div>
               ))}
             </div>
           </section>
