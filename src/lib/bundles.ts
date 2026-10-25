@@ -33,6 +33,10 @@ export const BUNDLE_IDS = [
   "kgban4",
   "kgfur2",
   "kgfur4",
+  "kgdnot1",
+  "kgdnot2",
+  "kgdnev1",
+  "kgdnev2",
   "pantufa2",
   "pantufa4",
   "ursinho",
@@ -904,6 +908,122 @@ const kigurumis: Bundle[] = [
 ];
 
 /**
+ * Kigurumi felpudo de dragão com capuz de boquinha: Dragão Noturno (preto) e Dragão da Neve
+ * (branco), um produto por cor, vendido em 1 unidade (R$ 79) ou 2 (R$ 129). No de 2 o cliente
+ * escolhe o modelo e o tamanho de cada um; nas vitrines aparece o de 1 unidade.
+ */
+const DRAGOES = ["Dragão Noturno", "Dragão da Neve"] as const;
+type Dragao = (typeof DRAGOES)[number];
+const DRAGAO_FOTOS: Record<Dragao, string> = {
+  "Dragão Noturno": img("kgd-noturno.jpg"),
+  "Dragão da Neve": img("kgd-neve.jpg"),
+};
+const DRAGAO_PRECOS = { 1: 79, 2: 129 } as const;
+const KIGURUMIS_DRAGAO: {
+  nome: Dragao;
+  slug: string;
+  visual: string;
+  fotos: readonly string[];
+  ids: Record<1 | 2, BundleId>;
+}[] = [
+  {
+    nome: "Dragão Noturno",
+    slug: "noturno",
+    visual:
+      "preto, com capuz de dragão de olhos amarelos e boquinha de dentinhos, e patinhas nas pernas",
+    fotos: ["", "-capuz", "-cama", "-casal", "-casal2"],
+    ids: { 1: "kgdnot1", 2: "kgdnot2" },
+  },
+  {
+    nome: "Dragão da Neve",
+    slug: "neve",
+    visual: "branco, com capuz de dragão de olhos azuis e chifrinhos, e patinhas azuis nas pernas",
+    fotos: ["", "-cama", "-casal"],
+    ids: { 1: "kgdnev1", 2: "kgdnev2" },
+  },
+];
+
+function kigurumiDragao(k: (typeof KIGURUMIS_DRAGAO)[number], n: 1 | 2): Bundle {
+  const price = DRAGAO_PRECOS[n];
+  const foto = (sufixo = "") => img(`kgd-${k.slug}${sufixo}.jpg`);
+  const outro = DRAGOES.find((d) => d !== k.nome)!;
+  return {
+    id: k.ids[n],
+    name: `Pijama Kigurumi ${k.nome}`,
+    tag: "Macacão felpudo com capuz de dragão",
+    price,
+    img: foto(),
+    images: [...k.fotos.map(foto), DRAGAO_FOTOS[outro]],
+    options:
+      n === 1
+        ? [
+            { name: "Modelo", values: [k.nome] },
+            { name: "Tamanho", values: TAM_ADULTO },
+          ]
+        : ate(2).flatMap((i) => [
+            { name: `Modelo (${i}º pijama)`, values: DRAGOES },
+            { name: `Tamanho (${i}º pijama)`, values: TAM_ADULTO },
+          ]),
+    optionCards: { Modelo: DRAGAO_FOTOS },
+    benefits: [
+      n === 1
+        ? `Leve 2 por ${brl(DRAGAO_PRECOS[2])}: sai ${brl(DRAGAO_PRECOS[2] / 2)} cada`
+        : `2 por ${brl(price)}: ${brl(price / n)} cada pijama`,
+      n === 1
+        ? "Tecido felpudo e quentinho para o frio"
+        : "Você escolhe o modelo e o tamanho de cada um",
+      "Preto e branco para combinar em casal",
+      "Tamanhos adultos P, M, G e GG",
+    ],
+    description: [
+      `Pijama kigurumi de corpo inteiro ${k.visual}. O tecido é felpudo e macio, gostoso na pele e quentinho para os dias frios.`,
+      `Tem em dois modelos: o Dragão Noturno, preto, e o Dragão da Neve, branco. Sai 1 por ${brl(DRAGAO_PRECOS[1])} ou 2 por ${brl(DRAGAO_PRECOS[2])}, e levando 2 você escolhe o modelo e o tamanho de cada um: um de cada para o casal ou dois iguais.`,
+    ],
+    specs: [
+      ["Vem no pedido", n === 1 ? "1 pijama kigurumi" : "2 pijamas kigurumi"],
+      ["Modelos", "Dragão Noturno (preto) e Dragão da Neve (branco)"],
+      ["Tecido", "Felpudo e macio"],
+      ["Modelagem", "Macacão com capuz, soltinho no corpo"],
+      ["Tamanhos", `Adulto ${listaTamanhos(TAM_ADULTO)}`],
+      ["Cuidados", "Lavar com água fria, não usar alvejante e secar à sombra"],
+    ],
+    richSections: [
+      {
+        title: "Felpudo do capuz até a barra",
+        text: "Feito para quem ama conforto e um visual divertido para usar em casa: no sofá, na cama ou na noite do pijama.",
+        points: [
+          "Tecido felpudo, macio e quentinho",
+          "Modelagem soltinha para dormir ou ficar no sofá",
+          `Capuz com o rostinho do ${k.nome}`,
+        ],
+        media: foto("-cama"),
+      },
+      {
+        title: "Um preto e um branco para o casal",
+        text: `Levando 2 por ${brl(DRAGAO_PRECOS[2])}, você escolhe o modelo e o tamanho de cada pijama. Um Dragão Noturno e um Dragão da Neve fazem o par perfeito.`,
+        media: foto("-casal"),
+      },
+    ],
+    category: "kigurumi",
+    checkoutProductName: n === 1 ? `Pijama Kigurumi ${k.nome}` : "2 Pijamas Kigurumi de Dragão",
+    checkoutProductDescription:
+      n === 1 ? "Pijama kigurumi felpudo de dragão." : "2 pijamas kigurumi felpudos de dragão.",
+    checkoutUrl: `/checkout?plano=${k.ids[n]}`,
+    group: `kgd-${k.slug}`,
+    groupLabel: n === 1 ? "1 unidade" : "2 unidades",
+    groupTitle: "Escolha a quantidade",
+    unidades: n,
+    semPromo: true,
+    ...(n === 1 ? { comboVitrine: k.ids[2] } : { listed: false }),
+  };
+}
+
+const kigurumisDragao: Bundle[] = KIGURUMIS_DRAGAO.flatMap((k) => [
+  kigurumiDragao(k, 1),
+  kigurumiDragao(k, 2),
+]);
+
+/**
  * Umidificador de dragão: 1 por R$ 69, 2 por R$ 99 ou 3 por R$ 129. Cada quantidade é um produto do
  * mesmo grupo (preço fechado, fora da promoção de 50%); nas vitrines aparece o de 1 unidade.
  */
@@ -1164,6 +1284,7 @@ const baseBundles: Bundle[] = [
   ...brinquedos,
   ...moletons,
   ...kigurumis,
+  ...kigurumisDragao,
   ...crocs,
   ...crocsPromo,
   {
