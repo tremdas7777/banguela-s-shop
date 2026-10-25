@@ -53,6 +53,63 @@ const fmtPhone = (v: string) => {
     : d.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
 };
 
+type Origem = { titulo: string; detalhe?: string; alerta?: boolean };
+
+/** "Nome|123456" (formato da UTMify) → "Nome". */
+const semId = (v?: string | null) => (v ?? "").split("|")[0]!.trim();
+const maiuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** Nome conhecido da origem (utm_source) para exibir. */
+const NOMES: Record<string, string> = {
+  ig: "Instagram",
+  "instagram.com": "Instagram",
+  "facebook.com": "Facebook",
+  "chatgpt.com": "ChatGPT",
+};
+
+/**
+ * De onde veio o pedido, legível: anúncio do Meta (campanha · anúncio), busca orgânica, outro site.
+ * Pedido sem UTM nenhuma: o navegador (app do Instagram/Facebook) ainda diz de onde veio.
+ */
+function origemDoPedido(o: AdminOrder): Origem {
+  const u = o.utm ?? {};
+  const src = (u["utm_source"] ?? "").trim();
+  if (!src) {
+    const ua = o.ua ?? "";
+    if (/Instagram/.test(ua))
+      return { titulo: "Instagram sem UTM", detalhe: "link sem parâmetros", alerta: true };
+    if (/FBAN|FBAV|FB_IAB/.test(ua))
+      return { titulo: "Facebook sem UTM", detalhe: "link sem parâmetros", alerta: true };
+    return { titulo: "Sem UTM", detalhe: "direto ou site sem parâmetros", alerta: true };
+  }
+  // O Meta não trocou {{campaign.name}} etc.: a UTMify não consegue ligar a venda ao anúncio.
+  if (Object.values(u).some((v) => v?.includes("{{")))
+    return { titulo: "Meta", detalhe: "anúncio com UTMs não preenchidas", alerta: true };
+  const medium = (u["utm_medium"] ?? "").trim();
+  if (/^(fb|facebook|meta)$/i.test(src)) {
+    const partes = [semId(u["utm_campaign"]), semId(u["utm_content"])].filter(Boolean);
+    return { titulo: "Meta Ads", detalhe: partes.join(" · ") || undefined };
+  }
+  if (medium === "organic") return { titulo: `${maiuscula(src)} (busca orgânica)` };
+  const nome = NOMES[src.toLowerCase()] ?? src;
+  if (medium === "referral") return { titulo: nome, detalhe: "link sem UTM" };
+  const partes = [medium, u["utm_campaign"], u["utm_content"]].map(semId).filter(Boolean);
+  return { titulo: nome, detalhe: partes.join(" · ") || undefined };
+}
+
+function OrigemCell({ order }: { order: AdminOrder }) {
+  const o = origemDoPedido(order);
+  return (
+    <div className="max-w-[220px]">
+      <div className={`font-medium ${o.alerta ? "text-amber-700" : ""}`}>{o.titulo}</div>
+      {o.detalhe && (
+        <div className="truncate text-muted-foreground" title={o.detalhe}>
+          {o.detalhe}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Aba de pedidos Pix: lista, filtros, busca, detalhes completos e exportação CSV. */
 export function OrdersTab({ password }: OrdersTabProps) {
   const fetchOrders = useServerFn(getAdminOrders);
@@ -127,6 +184,7 @@ export function OrdersTab({ password }: OrdersTabProps) {
       "Plano",
       "Frete",
       "Valor",
+      "Origem",
       "utm_source",
       "utm_medium",
       "utm_campaign",
@@ -154,6 +212,7 @@ export function OrdersTab({ password }: OrdersTabProps) {
         o.bundle_name,
         c.frete?.name,
         (o.amount_cents / 100).toFixed(2).replace(".", ","),
+        (({ titulo, detalhe }) => [titulo, detalhe].filter(Boolean).join(" · "))(origemDoPedido(o)),
         u.utm_source,
         u.utm_medium,
         u.utm_campaign,
@@ -298,8 +357,8 @@ export function OrdersTab({ password }: OrdersTabProps) {
                   <td className="px-4 py-2 tabular-nums whitespace-nowrap">
                     {brl(o.amount_cents)}
                   </td>
-                  <td className="px-4 py-2 text-xs text-muted-foreground">
-                    {o.utm?.utm_source ?? "—"}
+                  <td className="px-4 py-2 text-xs">
+                    <OrigemCell order={o} />
                   </td>
                   <td className="px-4 py-2">
                     <UtmifyBadge order={o} />
@@ -396,7 +455,13 @@ function OrderDialog({ order: o, onClose }: { order: AdminOrder | null; onClose:
         </Section>
 
         <Section title="Origem / UTM">
-          {utmEntries.length === 0 && <p className="text-sm text-muted-foreground">Sem UTMs.</p>}
+          <Row
+            label="Origem"
+            value={(() => {
+              const og = origemDoPedido(o);
+              return [og.titulo, og.detalhe].filter(Boolean).join(" · ");
+            })()}
+          />
           {utmEntries.map(([k, v]) => (
             <Row key={k} label={k} value={v} />
           ))}

@@ -60,9 +60,15 @@ const CONJUNTO = / \((\d[ºª] (?:conjunto|pijama|par|pelúcia))\)$/;
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
   // Conjuntos que não são mais vendidos sozinhos (ex.: kit avulso) abrem o combo.
-  beforeLoad: ({ search }) => {
+  beforeLoad: ({ search, location }) => {
     const to = getBundle(bundleIdFromSearch(search)).redirectTo;
-    if (to) throw redirect({ to: "/produto", search: { plano: to }, replace: true });
+    if (!to) return;
+    // Leva junto as UTMs e o fbclid do anúncio (sem elas a venda chega sem origem na UTMify).
+    // As opções do produto antigo não valem no novo.
+    const q = new URLSearchParams(location.searchStr);
+    for (const k of ["plano", "variante", "pantufas", "itens"]) q.delete(k);
+    q.set("plano", to);
+    throw redirect({ href: `/produto?${q}`, replace: true });
   },
   loaderDeps: ({ search }) => ({ plano: search.plano }),
   loader: ({ deps }) => ({ id: bundleIdFromSearch({ plano: deps.plano }) }),

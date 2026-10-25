@@ -23,7 +23,41 @@ const UTM_KEYS = [
 ] as const;
 const UTM_STORE = "bshop_utms";
 
-/** Guarda as UTMs da primeira visita com UTM (localStorage) para enviá-las na venda. */
+/** Domínios da própria loja (navegação interna não é origem). */
+const PROPRIOS = /(^|\.)(banguelashop\.store|lovable\.app|lovableproject\.com)$/;
+/** Buscadores: a visita sem UTM vinda deles é busca orgânica. */
+const BUSCADORES = /^(google|bing|yahoo|duckduckgo|ecosia|yandex)\./;
+
+/**
+ * Origem de uma visita SEM UTM, pelo site de onde veio: busca no Google vira "google / organic";
+ * outros sites (Instagram sem parâmetros, ChatGPT, etc.) viram "<site> / referral". Sem isso a venda
+ * chega na UTMify sem origem nenhuma ("não trackeada").
+ */
+function utmsDoReferrer(): Record<string, string> {
+  let site = "";
+  try {
+    const r = new URL(document.referrer);
+    if (r.protocol === "android-app:") {
+      // App Android que abriu o link (ex.: app do Google, com.google.android.googlequicksearchbox).
+      site = r.hostname.includes("google") ? "google.com" : r.hostname;
+    } else if (r.protocol === "http:" || r.protocol === "https:") {
+      if (r.hostname === window.location.hostname || PROPRIOS.test(r.hostname)) return {};
+      site = r.hostname.replace(/^(www|l|lm|m|mobile)\./, "");
+    }
+  } catch {
+    return {};
+  }
+  if (!site) return {};
+  return BUSCADORES.test(site)
+    ? { utm_source: site.split(".")[0]!, utm_medium: "organic" }
+    : { utm_source: site.slice(0, 300), utm_medium: "referral" };
+}
+
+/**
+ * Guarda as UTMs da visita (localStorage) para enviá-las na venda. UTM na URL sempre vale (é o
+ * anúncio). Sem UTM e sem nada guardado, guarda a origem pelo referrer; ela nunca substitui UTMs
+ * de anúncio já guardadas.
+ */
 export function getStoredUtms(): Record<string, string | null> {
   if (typeof window === "undefined") return {};
   const p = new URLSearchParams(window.location.search);
@@ -38,7 +72,10 @@ export function getStoredUtms(): Record<string, string | null> {
       return fromUrl;
     }
     const raw = localStorage.getItem(UTM_STORE);
-    return raw ? (JSON.parse(raw) as Record<string, string | null>) : {};
+    if (raw) return JSON.parse(raw) as Record<string, string | null>;
+    const ref = utmsDoReferrer();
+    if (Object.keys(ref).length) localStorage.setItem(UTM_STORE, JSON.stringify(ref));
+    return ref;
   } catch {
     return fromUrl;
   }
