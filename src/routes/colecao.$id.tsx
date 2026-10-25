@@ -12,6 +12,8 @@ import {
 } from "@/lib/bundles";
 import { titulo, type MaisVendidos } from "@/lib/mais-vendidos";
 import { getMaisVendidos } from "@/lib/mais-vendidos.functions";
+import { COLECAO_TEXTOS } from "@/lib/colecao-textos";
+import { collectionJsonLd, seo } from "@/lib/seo";
 
 /** "Mais vendidos" vem dos pedidos (servidor); as outras coleções saem do catálogo. */
 const MAIS_VENDIDOS = "mais-vendidos";
@@ -42,16 +44,15 @@ export const Route = createFileRoute("/colecao/$id")({
         ? findCollection(loaderData.id)
         : undefined;
     if (!c) return {};
-    const title = `${c.name} | ${brand.name}`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: `${c.name}: ${c.desc}. Pix ou cartão em até 12x.` },
-        { property: "og:title", content: title },
-        { property: "og:image", content: c.img },
-      ],
-      links: [{ rel: "canonical", href: `/colecao/${c.id}` }],
-    };
+    const t = COLECAO_TEXTOS[c.id];
+    return seo({
+      path: `/colecao/${c.id}`,
+      title: `${t?.title ?? c.name} | ${brand.name}`,
+      description: t?.description ?? `${c.name}: ${c.desc}. Pix ou cartão em até 12x.`,
+      image: c.img,
+      imageAlt: c.name,
+      jsonLd: collectionJsonLd(c, c.items),
+    });
   },
   component: Page,
 });
@@ -60,6 +61,7 @@ function Page() {
   const { id, maisVendidos } = Route.useLoaderData();
   const c = maisVendidos ? colecaoMaisVendidos(maisVendidos) : findCollection(id)!;
   const items = c.items;
+  const texto = COLECAO_TEXTOS[c.id];
   const promoItems = id === "crocs" ? items.filter((p) => p.group === "crocs-promocao") : [];
   // Coleção com subdivisões (ex.: Crocs → Toy Story, Stitch...): atalhos no topo e um bloco por seção.
   const secoes = (c.secoes ?? [])
@@ -170,6 +172,17 @@ function Page() {
               <ProductCard key={p.id} p={p} />
             ))}
           </div>
+        )}
+
+        {texto && (
+          <section className="mx-auto mt-14 max-w-3xl">
+            <h2 className="text-[20px] font-bold text-[var(--night)] md:text-[22px]">{texto.h2}</h2>
+            {texto.paragrafos.map((p) => (
+              <p key={p} className="mt-3 text-[15px] leading-relaxed text-[var(--ink)]/70">
+                {p}
+              </p>
+            ))}
+          </section>
         )}
 
         <div className="mt-14 border-t border-[var(--border)] pt-8 text-center">

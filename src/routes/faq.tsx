@@ -3,21 +3,16 @@ import { ChevronDown } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
+import { faqJsonLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    meta: [
-      { title: `Perguntas Frequentes | ${brand.name}` },
-      {
-        name: "description",
-        content: `Tire suas dúvidas sobre a ${brand.name}: prazo de entrega, frete grátis, pagamento, tamanhos e trocas.`,
-      },
-      { property: "og:title", content: `Perguntas frequentes | ${brand.name}` },
-      { property: "og:description", content: "Entrega, frete, pagamento, tamanhos e trocas." },
-      { property: "og:url", content: "/faq" },
-    ],
-    links: [{ rel: "canonical", href: "/faq" }],
-  }),
+  head: () =>
+    seo({
+      path: "/faq",
+      title: `Perguntas Frequentes | ${brand.name}`,
+      description: `Tire suas dúvidas sobre a ${brand.name}: prazo de entrega, frete grátis, pagamento, tamanhos e trocas.`,
+      jsonLd: [faqJsonLd(FAQ)],
+    }),
   component: Page,
 });
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
 import { brand } from "@/lib/brand";
 import { FREE_SHIPPING_MIN } from "@/lib/bundles";
@@ -10,9 +11,9 @@ export const Route = createFileRoute("/politica-envio")({
       { name: "description", content: `Saiba como funciona o envio dos pedidos da ${brand.name}.` },
       { property: "og:title", content: "Política de Envio" },
       { property: "og:description", content: "Envio para todo o Brasil com rastreamento." },
-      { property: "og:url", content: "/politica-envio" },
+      { property: "og:url", content: absUrl("/politica-envio") },
     ],
-    links: [{ rel: "canonical", href: "/politica-envio" }],
+    links: [{ rel: "canonical", href: absUrl("/politica-envio") }],
   }),
   component: () => (
     <PolicyPage title="Política de Envio" intro="Enviamos para todo o Brasil com rastreamento.">

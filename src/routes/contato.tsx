@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { absUrl } from "@/lib/seo";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site/Layout";
@@ -13,9 +14,9 @@ export const Route = createFileRoute("/contato")({
       { name: "description", content: `Fale com a equipe da ${brand.name}. Atendimento humano.` },
       { property: "og:title", content: `Contato ${brand.name}` },
       { property: "og:description", content: `Fale com a equipe da ${brand.name}.` },
-      { property: "og:url", content: "/contato" },
+      { property: "og:url", content: absUrl("/contato") },
     ],
-    links: [{ rel: "canonical", href: "/contato" }],
+    links: [{ rel: "canonical", href: absUrl("/contato") }],
   }),
   component: Page,
 });

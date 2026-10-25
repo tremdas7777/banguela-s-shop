@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
 import { brand } from "@/lib/brand";
 
@@ -9,9 +10,9 @@ export const Route = createFileRoute("/politica-privacidade")({
       { name: "description", content: `Como a ${brand.name} protege os seus dados pessoais.` },
       { property: "og:title", content: "Política de Privacidade" },
       { property: "og:description", content: `Proteção de dados na ${brand.name}.` },
-      { property: "og:url", content: "/politica-privacidade" },
+      { property: "og:url", content: absUrl("/politica-privacidade") },
     ],
-    links: [{ rel: "canonical", href: "/politica-privacidade" }],
+    links: [{ rel: "canonical", href: absUrl("/politica-privacidade") }],
   }),
   component: () => (
     <PolicyPage

@@ -101,12 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { name: "twitter:description", content: DESCRIPTION },
-      // Troque por uma URL absoluta (https://seudominio.com.br/og-image.jpg) quando tiver o domínio.
-      { property: "og:image", content: "/og-image.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: `${brand.name} — produtos de dragão` },
-      { name: "twitter:image", content: "/og-image.jpg" },
+      // Padrão das páginas sem imagem própria (as da loja trocam via seo() em src/lib/seo.ts).
+      { property: "og:image", content: `${brand.siteUrl}/og-image.jpg` },
+      { property: "og:image:alt", content: `${brand.name}: produtos de dragão` },
+      { name: "twitter:image", content: `${brand.siteUrl}/og-image.jpg` },
+      { property: "og:locale", content: "pt_BR" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -116,6 +115,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap",
       },
       { rel: "stylesheet", href: appCss },
+      // O Google só mostra no resultado ícone com lado múltiplo de 48 px.
+      { rel: "icon", type: "image/png", sizes: "144x144", href: "/favicon-144.png" },
       { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],

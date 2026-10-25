@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
 import { brand } from "@/lib/brand";
 
@@ -15,9 +16,9 @@ export const Route = createFileRoute("/politica-reembolso")({
         property: "og:description",
         content: `Direito de arrependimento, trocas e reembolso na ${brand.name}.`,
       },
-      { property: "og:url", content: "/politica-reembolso" },
+      { property: "og:url", content: absUrl("/politica-reembolso") },
     ],
-    links: [{ rel: "canonical", href: "/politica-reembolso" }],
+    links: [{ rel: "canonical", href: absUrl("/politica-reembolso") }],
   }),
   component: () => (
     <PolicyPage

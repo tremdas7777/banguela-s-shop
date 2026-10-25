@@ -39,6 +39,7 @@ import {
 import type { CartItem } from "@/lib/cart";
 import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import { pijamaInfantil } from "@/lib/pantufa-oferta";
+import { productJsonLd, productPath, seo } from "@/lib/seo";
 import {
   availableBundles,
   groupBundles,
@@ -74,21 +75,15 @@ export const Route = createFileRoute("/produto")({
   loader: ({ deps }) => ({ id: bundleIdFromSearch({ plano: deps.plano }) }),
   head: ({ loaderData }) => {
     const p = getBundle(loaderData?.id);
-    const title = `${p.name} | ${brand.name}`;
-    return {
-      meta: [
-        { title },
-        {
-          name: "description",
-          content: `${p.name}: ${p.checkoutProductDescription} ${bundleShippingLabel(p)}.`,
-        },
-        { property: "og:title", content: title },
-        { property: "og:description", content: p.checkoutProductDescription },
-        { property: "og:image", content: p.img },
-        { property: "og:type", content: "product" },
-      ],
-      links: [{ rel: "canonical", href: `/produto?plano=${p.id}` }],
-    };
+    return seo({
+      path: productPath(p),
+      title: `${p.name} | ${brand.name}`,
+      description: `${p.name} por ${brl(p.price)}. ${p.checkoutProductDescription} ${bundleShippingLabel(p)}.`,
+      image: p.img,
+      imageAlt: p.name,
+      type: "product",
+      jsonLd: productJsonLd(p),
+    });
   },
   component: Page,
 });

@@ -9,10 +9,19 @@ import { FAQ } from "@/lib/faq";
 import { bundlesByCategory, categories, getBundle, type BundleId } from "@/lib/bundles";
 import { titulo, type MaisVendidos } from "@/lib/mais-vendidos";
 import { getMaisVendidos } from "@/lib/mais-vendidos.functions";
+import { seo, storeJsonLd } from "@/lib/seo";
 
-// Sem head() aqui: a home herda título/descrição/og do __root.tsx.
 export const Route = createFileRoute("/")({
   loader: () => getMaisVendidos(),
+  head: () =>
+    seo({
+      path: "/",
+      title: `${brand.name} | Pijama de dragão, kigurumi e pelúcia gigante`,
+      description:
+        "Loja de produtos de dragão: pijama de casal, kigurumi, pelúcia gigante de 1,10 m, cobertor vestível, pantufas e luminárias. Envio com rastreio para todo o Brasil.",
+      imageAlt: `${brand.name}: produtos de dragão`,
+      jsonLd: storeJsonLd(),
+    }),
   component: Home,
 });
 
@@ -129,7 +138,7 @@ function Hero() {
 
   return (
     <section aria-label="Destaques" className="relative">
-      <h1 className="sr-only">{brand.name}: produtos de dragão</h1>
+      <h1 className="sr-only">{brand.name}: pijamas, kigurumis, pelúcias e presentes de dragão</h1>
       <div
         ref={ref}
         onScroll={(e) =>
@@ -372,8 +381,9 @@ function About() {
             Sobre a {brand.name}
           </h2>
           <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/70">
-            Loja online de produtos de dragão: calças de pijama, Snuggy, pantufas, joias e mascotes
-            para carro. Enviamos para todo o Brasil com código de rastreio.
+            Loja online de produtos de dragão: pijamas de casal e infantis, kigurumis, pelúcia
+            gigante, cobertor vestível, pantufas, luminárias, joias e mascotes para carro. Enviamos
+            para todo o Brasil com código de rastreio.
           </p>
         </div>
         <Link

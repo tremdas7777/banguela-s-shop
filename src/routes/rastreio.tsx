@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { absUrl } from "@/lib/seo";
 import { SiteLayout } from "@/components/site/Layout";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -15,9 +16,9 @@ export const Route = createFileRoute("/rastreio")({
       },
       { property: "og:title", content: "Rastrear Pedido" },
       { property: "og:description", content: "Acompanhe a entrega do seu pedido." },
-      { property: "og:url", content: "/rastreio" },
+      { property: "og:url", content: absUrl("/rastreio") },
     ],
-    links: [{ rel: "canonical", href: "/rastreio" }],
+    links: [{ rel: "canonical", href: absUrl("/rastreio") }],
   }),
   component: Page,
 });

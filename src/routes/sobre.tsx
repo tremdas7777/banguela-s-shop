@@ -1,24 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/Layout";
 import { brand } from "@/lib/brand";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/sobre")({
-  head: () => ({
-    meta: [
-      { title: `Sobre a ${brand.name}` },
-      {
-        name: "description",
-        content: `A ${brand.name} reúne produtos de dragão para vestir, presentear e decorar.`,
-      },
-      { property: "og:title", content: `Sobre a ${brand.name}` },
-      {
-        property: "og:description",
-        content: "Loja online de produtos de dragão, com envio rastreado para todo o Brasil.",
-      },
-      { property: "og:url", content: "/sobre" },
-    ],
-    links: [{ rel: "canonical", href: "/sobre" }],
-  }),
+  head: () =>
+    seo({
+      path: "/sobre",
+      title: `Sobre a ${brand.name}`,
+      description: `A ${brand.name} é uma loja online de produtos de dragão para vestir, presentear e decorar, com envio rastreado para todo o Brasil.`,
+    }),
   component: Page,
 });
 
