@@ -129,12 +129,12 @@ export const categories: readonly {
   {
     id: "crocs",
     name: "Crocs",
-    desc: "Promoção: 1 Crocs por R$ 79 ou 2 por R$ 99. Modelos originais Disney, Pokémon, Bluey e Snoopy.",
+    desc: "Promoção: 1 Crocs por R$ 99 ou 2 por R$ 149. Modelos originais Disney, Pokémon, Bluey e Snoopy.",
     img: "/produtos/crocs/cr21a-1.jpg",
     banner: {
       mobile: "/banners/crocs-c.webp",
       desktop: "/banners/crocs-cd.webp",
-      alt: "Promoção Crocs originais: 1 por R$ 79 ou 2 por R$ 99",
+      alt: "Promoção Crocs originais: 1 por R$ 99 ou 2 por R$ 149",
     },
     secoes: CROCS_SECOES,
   },
