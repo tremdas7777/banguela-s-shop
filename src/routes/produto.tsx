@@ -628,6 +628,8 @@ function Page() {
                   const quem = CONJUNTO.exec(o.name)?.[1];
                   const prev = i > 0 ? CONJUNTO.exec(p.options[i - 1]!.name)?.[1] : undefined;
                   const cards = p.optionCards?.[o.name.replace(CONJUNTO, "")];
+                  const crocsModelSelector =
+                    p.category === "crocs" && o.name.toLowerCase().startsWith("modelo");
                   return (
                     <div
                       key={o.name}
@@ -657,6 +659,25 @@ function Page() {
                           <Swatch value={o.values[0]!} />
                           {o.values[0]}
                         </span>
+                      ) : crocsModelSelector ? (
+                        <div className="relative">
+                          <select
+                            aria-label={o.name}
+                            value={sel[o.name] ?? ""}
+                            onChange={(e) => choose(o.name, e.target.value)}
+                            className={`h-12 w-full appearance-none rounded-xl border-2 bg-white px-4 pr-11 text-[14px] font-semibold text-[var(--night)] outline-none transition focus:border-[var(--night)] ${
+                              sel[o.name] ? "border-[var(--night)]" : "border-[var(--ink)]/20"
+                            }`}
+                          >
+                            <option value="">Escolha o modelo</option>
+                            {o.values.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink)]/60" />
+                        </div>
                       ) : cards ? (
                         <OptionCards
                           values={o.values}
