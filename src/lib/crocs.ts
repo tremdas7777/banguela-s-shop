@@ -81,6 +81,9 @@ const promoOpcoesDuas = [
   { name: "Modelo do 2º Crocs", values: promoModelos },
   { name: "Tamanho do 2º Crocs", values: promoTamanhos },
 ];
+const promoModelImages = Object.fromEntries(
+  CROCS_MODELOS.map((m) => [m.nome, img(versaoExibida(m).imgs[0]!)]),
+);
 
 const promoBase = {
   name: "Promoção Crocs",
@@ -88,6 +91,7 @@ const promoBase = {
   img: img("crocs/cr21a-1.jpg"),
   images: [img("crocs/cr21a-1.jpg")],
   options: promoOpcoes,
+  optionImages: promoModelImages,
   benefits: [
     "Crocs originais",
     "Leves e confortáveis",

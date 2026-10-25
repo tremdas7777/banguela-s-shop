@@ -381,6 +381,18 @@ function Page() {
                       </option>
                     ))}
                   </select>
+                  {o.name.toLowerCase().startsWith("modelo") && crocsOfferSel[o.name] && (
+                    <div className="mt-2 flex items-center gap-3 rounded-xl bg-[var(--tile)] p-2">
+                      <img
+                        src={crocs2.optionImages?.[crocsOfferSel[o.name]]}
+                        alt={`Prévia: ${crocsOfferSel[o.name]}`}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <span className="text-[12px] font-semibold text-[var(--ink)]/70">
+                        {crocsOfferSel[o.name]}
+                      </span>
+                    </div>
+                  )}
                 </label>
               ))}
             </div>
