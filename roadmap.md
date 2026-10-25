@@ -1,4 +1,5 @@
 # Configuração Banguela Shop
+- [ ] Recuperar disponibilidade do banco para o Pix: Lovable Cloud em inicialização; aguarda estado saudável.
 - [x] Ativar Lovable Cloud.
 - [x] Aplicar as seis migrations existentes, sem alterações, em ordem.
 - [x] Conferir configuração e variáveis públicas e servidor.
