@@ -117,7 +117,7 @@ function Page() {
                 Oferta especial
               </p>
               <h2 className="mt-1 text-[24px] font-bold text-[var(--night)] md:text-[30px]">
-                Crocs originais: 1 por R$ 79 ou 2 por R$ 99
+                Crocs originais: 1 por R$ 99 ou 2 por R$ 149
               </h2>
               <p className="mt-2 text-[14px] text-[var(--ink)]/70">
                 Escolha os modelos e tamanhos na página do produto.

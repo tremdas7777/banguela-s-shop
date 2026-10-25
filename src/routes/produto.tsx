@@ -336,7 +336,7 @@ function Page() {
                 Quantos Crocs você quer?
               </h2>
               <p className="mt-2 text-[14px] text-[var(--ink)]/70">
-                Escolha 1 par por R$ 79 ou aproveite 2 pares por R$ 99. Você escolhe os modelos e
+                Escolha 1 par por {brl(crocs1.price)} ou aproveite 2 pares por {brl(crocs2.price)}. Você escolhe os modelos e
                 tamanhos.
               </p>
             </div>
@@ -356,7 +356,7 @@ function Page() {
                     {qty} {qty === 1 ? "par" : "pares"}
                   </span>
                   <span className="mt-1 block text-[13px] font-semibold text-[var(--ink)]/65">
-                    {qty === 1 ? "R$ 79" : "R$ 99"}
+                    {brl(qty === 1 ? crocs1.price : crocs2.price)}
                   </span>
                 </button>
               ))}

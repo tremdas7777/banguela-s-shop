@@ -1,4 +1,6 @@
 # Configuração Banguela Shop
+- [ ] Atualizar todos os Crocs para R$ 99 e dois por R$ 149; verificar escolha e checkout.
+- [ ] Recuperar disponibilidade do banco para o Pix: Lovable Cloud em inicialização; aguarda estado saudável.
 - [x] Ativar Lovable Cloud.
 - [x] Aplicar as seis migrations existentes, sem alterações, em ordem.
 - [x] Conferir configuração e variáveis públicas e servidor.
