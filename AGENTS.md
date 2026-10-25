@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Crocs offer upgrades use `src/lib/crocs-selection.ts` to preserve the first model and size and append only the second pair; catalog prices remain the checkout source of truth.
+- Business-rule tests live beside catalog helpers and run with `bun test` to validate prices and selection serialization without adding a test dependency.
