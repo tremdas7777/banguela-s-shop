@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
-Disallow: /checkout
 Disallow: /pedido/
 Disallow: /obrigado/
 Disallow: /upsell/
