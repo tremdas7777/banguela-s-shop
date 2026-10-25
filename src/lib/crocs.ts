@@ -57,6 +57,8 @@ export const crocs: Bundle[] = CROCS_MODELOS.map((m): Bundle => {
       checkoutProductDescription: `${nome}, Crocs original.`,
       checkoutUrl: `/checkout?plano=${v.id}`,
       badge: "1 por R$ 99",
+      group: "crocs-promocao",
+      groupTitle: "Escolha sua promoção",
       semPromo: true,
     };
   });

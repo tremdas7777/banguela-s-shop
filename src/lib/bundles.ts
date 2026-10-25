@@ -1792,7 +1792,11 @@ export function findCollection(id: string) {
 
 /** Opções do mesmo grupo (combo casal / avulsos), na ordem do catálogo. */
 export const groupBundles = (b: Bundle) =>
-  b.group ? availableBundles.filter((x) => x.group === b.group) : [];
+  b.category === "crocs"
+    ? availableBundles.filter((x) => x.id === "crocs1" || x.id === "crocs2")
+    : b.group
+      ? availableBundles.filter((x) => x.group === b.group)
+      : [];
 
 export const discountPct = (b: Pick<Bundle, "price" | "compareAtPrice">) =>
   b.compareAtPrice ? Math.round((1 - b.price / b.compareAtPrice) * 100) : 0;
