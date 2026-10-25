@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { brand } from "@/lib/brand";
 import {
   categories,
+  brl,
   findCollection,
   getBundle,
   type CollectionBanner,
@@ -63,6 +64,12 @@ function Page() {
   const items = c.items;
   const texto = COLECAO_TEXTOS[c.id];
   const promoItems = id === "crocs" ? items.filter((p) => p.group === "crocs-promocao") : [];
+  const kigurumiPromoItems =
+    id === "kigurumi"
+      ? [2, 4]
+          .map((unidades) => items.find((p) => p.unidades === unidades))
+          .filter((p): p is (typeof items)[number] => Boolean(p))
+      : [];
   // Coleção com subdivisões (ex.: Crocs → Toy Story, Stitch...): atalhos no topo e um bloco por seção.
   const secoes = (c.secoes ?? [])
     .map((s) => ({ ...s, itens: items.filter((p) => p.secao === s.id) }))
@@ -132,6 +139,55 @@ function Page() {
                   </p>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+        {kigurumiPromoItems.length > 0 && (
+          <section className="mb-12 rounded-[24px] bg-[var(--mint)] p-5 md:p-8">
+            <div className="mb-5 text-center">
+              <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/55">
+                Oferta especial
+              </p>
+              <h2 className="mt-1 text-[24px] font-bold text-[var(--night)] md:text-[30px]">
+                Kigurumi: 2 pijamas por R$ 79 ou 4 por R$ 129
+              </h2>
+              <p className="mt-2 text-[14px] text-[var(--ink)]/70">
+                Escolha o personagem e o tamanho de cada pijama. No combo de 4, o ursinho é grátis.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 md:gap-5">
+              {kigurumiPromoItems.map((p) => {
+                const quatro = p.unidades === 4;
+                return (
+                  <Link
+                    key={p.id}
+                    to="/produto"
+                    search={{ plano: p.id }}
+                    className="group block text-center"
+                  >
+                    <div className="relative aspect-square overflow-hidden rounded-[20px] bg-[var(--tile)]">
+                      <img
+                        src={p.img}
+                        alt={quatro ? "Combo com 4 pijamas Kigurumi" : "Combo com 2 pijamas Kigurumi"}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                      />
+                      <span className="absolute left-2.5 top-2.5 rounded-full bg-[var(--primary-dark)] px-3 py-1.5 text-[13px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]">
+                        {quatro ? "4 por R$ 129" : "2 por R$ 79"}
+                      </span>
+                    </div>
+                    <h3 className="mt-3 px-1 text-[15px] font-semibold leading-snug text-[var(--ink)]">
+                      {quatro ? "Combo de 4 + ursinho grátis" : "Combo de 2 pijamas"}
+                    </h3>
+                    <p className="mt-1 text-[13px] font-extrabold text-[var(--primary-dark)]">
+                      {brl(p.price)}
+                    </p>
+                    <p className="mt-2 text-[12px] font-semibold text-[var(--ink)]/55">
+                      Escolha cada personagem e tamanho
+                    </p>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}
