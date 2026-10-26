@@ -1024,10 +1024,11 @@ const kigurumisDragao: Bundle[] = KIGURUMIS_DRAGAO.flatMap((k) => [
 ]);
 
 /**
- * Umidificador de dragão: um produto só, preto ou branco, 1 por R$ 69, 2 por R$ 99 ou 3 por R$ 129
- * (o cliente escolhe a cor de cada um). Cada quantidade é um produto do mesmo grupo (preço fechado,
- * fora da promoção de 50%); nas vitrines aparece o de 1 unidade, com a promoção
- * "1 por R$ 69 / ou 2 por R$ 99" no card. As fotos do branco são as do preto recoloridas.
+ * Umidificador de dragão: um produto só, preto ou branco, 1 por R$ 69 ou 2 por R$ 99 (o cliente
+ * escolhe a cor de cada um). Cada quantidade é um produto do mesmo grupo (preço fechado, fora da
+ * promoção de 50%); nas vitrines aparece o de 1 unidade, com a promoção "1 por R$ 69 / ou 2 por
+ * R$ 99" no card. O de 3 por R$ 129 saiu: fica no catálogo para pedidos e carrinhos antigos, e a
+ * página dele leva para o de 2. As fotos do branco foram editadas no Gemini a partir das do preto.
  */
 const UMIDIFICADOR_CORES = ["Preto", "Branco"] as const;
 const UMIDIFICADOR_FOTOS: Readonly<Record<string, string>> = {
@@ -1114,9 +1115,10 @@ const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
     checkoutProductDescription: `${qtd} do umidificador de dragão com névoa azul.`,
     checkoutUrl: `/checkout?plano=${id}`,
     badge: "Novo",
-    group: "umidificador",
-    groupLabel: qtd,
-    groupTitle: "Escolha a quantidade",
+    // Fora do grupo, o de 3 some do seletor "Escolha a quantidade".
+    ...(n < 3
+      ? { group: "umidificador", groupLabel: qtd, groupTitle: "Escolha a quantidade" }
+      : { redirectTo: "umid2" as BundleId }),
     unidades: n,
     semPromo: true,
     ...(n === 1 ? { comboVitrine: "umid2" as BundleId } : { listed: false }),
