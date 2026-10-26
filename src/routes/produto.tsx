@@ -45,6 +45,7 @@ import {
   groupBundles,
   listedBundles,
   brl,
+  brlCurto,
   bundleShippingLabel,
   categories,
   discountPct,
@@ -56,7 +57,7 @@ import {
 } from "@/lib/bundles";
 
 /** Sufixo das opções de combo, que vira o título do grupo: "Camiseta (1º conjunto)", "Tamanho (2º pijama)". */
-const CONJUNTO = / \((\d[ºª] (?:conjunto|pijama|par|pelúcia))\)$/;
+const CONJUNTO = / \((\d[ºª] (?:conjunto|pijama|par|pelúcia|umidificador))\)$/;
 
 export const Route = createFileRoute("/produto")({
   validateSearch: planSearchSchema,
@@ -269,6 +270,9 @@ function Page() {
       : "Escolha as opções";
   const related = listedBundles.filter((b) => b.id !== p.id && (!p.group || b.group !== p.group));
   const group = groupBundles(p);
+  // Produto de 1 com combo maior (umidificador, pelúcia): "ou 2 por R$ 99" no selo da foto e no preço.
+  const comboMaior = p.comboVitrine ? ofertaCombo(getBundle(p.comboVitrine)) : undefined;
+  const seloOferta = ofertaCombo(p) ?? comboMaior;
   // Combos com nº de peças: o de menor preço por peça ganha o selo "Melhor valor".
   const porPeca = group.filter((g) => g.unidades);
   const melhorValor =
@@ -508,9 +512,9 @@ function Page() {
           <div className="md:sticky md:top-[calc(var(--site-chrome-h,7rem)+1.5rem)] md:self-start">
             <div className="relative -mx-6 aspect-square overflow-hidden bg-[var(--tile)] md:mx-0 md:rounded-[24px]">
               <img src={img} alt={p.name} className="h-full w-full object-cover" />
-              {ofertaCombo(p) ? (
+              {seloOferta ? (
                 <span className="absolute left-4 top-4 rounded-full bg-[var(--primary-dark)] px-3.5 py-1.5 text-[14px] font-extrabold leading-none text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.35)]">
-                  {ofertaCombo(p)}
+                  {seloOferta}
                 </span>
               ) : (
                 p.badge && (
@@ -556,7 +560,7 @@ function Page() {
 
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[26px] font-extrabold leading-none text-[var(--night)]">
-                {ofertaCombo(p) ?? brl(p.price)}
+                {ofertaCombo(p) ?? (comboMaior ? `1 por ${brlCurto(p.price)}` : brl(p.price))}
               </span>
               {p.compareAtPrice && (
                 <>
@@ -565,6 +569,11 @@ function Page() {
                     {off}% de desconto
                   </span>
                 </>
+              )}
+              {comboMaior && (
+                <span className="text-[18px] font-extrabold leading-none text-[var(--primary-dark)]">
+                  ou {comboMaior}
+                </span>
               )}
             </div>
             <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">

@@ -1024,9 +1024,16 @@ const kigurumisDragao: Bundle[] = KIGURUMIS_DRAGAO.flatMap((k) => [
 ]);
 
 /**
- * Umidificador de dragão: 1 por R$ 69, 2 por R$ 99 ou 3 por R$ 129. Cada quantidade é um produto do
- * mesmo grupo (preço fechado, fora da promoção de 50%); nas vitrines aparece o de 1 unidade.
+ * Umidificador de dragão: um produto só, preto ou branco, 1 por R$ 69, 2 por R$ 99 ou 3 por R$ 129
+ * (o cliente escolhe a cor de cada um). Cada quantidade é um produto do mesmo grupo (preço fechado,
+ * fora da promoção de 50%); nas vitrines aparece o de 1 unidade, com a promoção
+ * "1 por R$ 69 / ou 2 por R$ 99" no card. As fotos do branco são as do preto recoloridas.
  */
+const UMIDIFICADOR_CORES = ["Preto", "Branco"] as const;
+const UMIDIFICADOR_FOTOS: Readonly<Record<string, string>> = {
+  Preto: img("umidificador-1.jpg"),
+  Branco: img("umidificador-branco-1.jpg"),
+};
 const UMIDIFICADOR_COMBOS: { id: BundleId; n: 1 | 2 | 3; price: number }[] = [
   { id: "umid1", n: 1, price: 69 },
   { id: "umid2", n: 2, price: 99 },
@@ -1034,30 +1041,45 @@ const UMIDIFICADOR_COMBOS: { id: BundleId; n: 1 | 2 | 3; price: number }[] = [
 ];
 
 const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
-  const nome = "Umidificador Dragão Noturno";
+  const nome = "Umidificador de Dragão";
   const qtd = n === 1 ? "1 unidade" : `${n} unidades`;
   return {
     id,
     name: nome,
-    tag: "Solta névoa azul pela boca e os olhos acendem",
+    tag: "Preto ou branco, solta névoa azul pela boca e os olhos acendem",
     price,
     img: img("umidificador-1.jpg"),
-    images: [img("umidificador-1.jpg"), img("umidificador-2.jpg"), img("umidificador-3.jpg")],
-    options: [],
+    images: [
+      img("umidificador-1.jpg"),
+      img("umidificador-branco-1.jpg"),
+      img("umidificador-2.jpg"),
+      img("umidificador-branco-2.jpg"),
+      img("umidificador-3.jpg"),
+      img("umidificador-branco-3.jpg"),
+    ],
+    options:
+      n === 1
+        ? [{ name: "Cor", values: UMIDIFICADOR_CORES }]
+        : Array.from({ length: n }, (_, i) => ({
+            name: `Cor (${i + 1}º umidificador)`,
+            values: UMIDIFICADOR_CORES,
+          })),
+    optionCards: { Cor: UMIDIFICADOR_FOTOS },
     benefits: [
-      "Dragão preto que solta névoa azul pela boca, como se cuspisse fogo",
-      "Olhos e detalhes que acendem em azul",
+      "Dragão preto ou branco que solta névoa azul pela boca, como se cuspisse fogo",
+      "Olhos e detalhes que acendem",
       "Névoa fria que ajuda a umidificar o ar seco do quarto",
     ],
     description: [
-      "Um umidificador em forma de dragão noturno: ele solta pela boca uma névoa azul iluminada, com efeito de fogo mágico, enquanto os olhos acendem em azul.",
+      "Um umidificador em forma de dragão: ele solta pela boca uma névoa azul iluminada, com efeito de fogo mágico, enquanto os olhos acendem.",
+      "Tem em duas cores, preto ou branco, e levando mais de um você escolhe a cor de cada: um de cada ou todos iguais.",
       "A névoa é fria e ajuda a deixar o ar menos seco, criando um clima aconchegante no quarto, no setup gamer ou na escrivaninha. Mesmo desligado, é uma peça de decoração que chama atenção.",
     ],
     specs: [
       ["Vem no pedido", n === 1 ? "1 umidificador" : `${n} umidificadores`],
       ["Tipo", "Umidificador de névoa fria"],
       ["Efeito", "Névoa azul saindo da boca e olhos iluminados"],
-      ["Cor", "Preto com detalhes em azul"],
+      ["Cores", "Preto ou branco"],
       ["Ideal para", "Quarto, setup gamer, escrivaninha e quarto infantil"],
     ],
     richSections: [
@@ -1067,19 +1089,24 @@ const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
         media: img("umidificador.mp4"),
       },
       {
-        title: "Ar mais úmido e um clima aconchegante",
-        text: "A névoa fria ajuda a umidificar o ar seco, principalmente no inverno e com ar-condicionado ligado, e a luz azul deixa o ambiente calmo para relaxar ou dormir.",
+        title: "Preto ou branco, você escolhe",
+        text: "Os dois soltam a mesma névoa azul pela boca. Levando 2 por R$ 99, você escolhe a cor de cada um.",
         points: [
           "Névoa fria, sem aquecer a água",
-          "Luz azul suave nos olhos e na névoa",
+          "Luz azul suave na névoa",
           "Decoração de dragão que chama atenção",
         ],
+        media: img("umidificador-branco-1.jpg"),
+      },
+      {
+        title: "Ar mais úmido e um clima aconchegante",
+        text: "A névoa fria ajuda a umidificar o ar seco, principalmente no inverno e com ar-condicionado ligado, e a luz azul deixa o ambiente calmo para relaxar ou dormir.",
         media: img("umidificador-1.jpg"),
       },
       {
         title: "Para o quarto, o setup e a escrivaninha",
         text: "Fica lindo na mesa do computador, na estante ou no quarto das crianças que amam dragões. Um presente certeiro para fãs de Como Treinar o Seu Dragão.",
-        media: img("umidificador-3.jpg"),
+        media: img("umidificador-branco-3.jpg"),
       },
     ],
     category: "casa",
@@ -1092,7 +1119,7 @@ const umidificadores: Bundle[] = UMIDIFICADOR_COMBOS.map(({ id, n, price }) => {
     groupTitle: "Escolha a quantidade",
     unidades: n,
     semPromo: true,
-    ...(n > 1 ? { listed: false } : {}),
+    ...(n === 1 ? { comboVitrine: "umid2" as BundleId } : { listed: false }),
   };
 });
 

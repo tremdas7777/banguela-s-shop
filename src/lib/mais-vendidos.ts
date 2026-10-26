@@ -19,7 +19,7 @@ export const MAX_MAIS_VENDIDOS = 12;
 
 /**
  * Sempre aparecem primeiro, antes do ranking (escolha da loja): o destaque, os kigurumis, a
- * pelúcia gigante (1 por R$ 69 / 2 por R$ 89) e o umidificador de dragão.
+ * pelúcia gigante (1 por R$ 69 / 2 por R$ 89) e o umidificador de dragão (1 por R$ 69 / 2 por R$ 99).
  */
 export const FIXOS: readonly BundleId[] = [
   ...DESTAQUE_LOJA,
