@@ -909,8 +909,8 @@ const kigurumis: Bundle[] = [
 
 /**
  * Kigurumi felpudo de dragão com capuz de boquinha: Dragão Noturno (preto) e Dragão da Neve
- * (branco), um produto por cor, vendido em 1 unidade (R$ 79) ou 2 (R$ 129). No de 2 o cliente
- * escolhe o modelo e o tamanho de cada um; nas vitrines aparece o de 1 unidade.
+ * (branco), um produto por cor, vendido em 1 unidade (R$ 99) ou 2 (R$ 149), do infantil 2 anos ao
+ * adulto GG. No de 2 o cliente escolhe o modelo e o tamanho de cada um; nas vitrines aparece o de 1.
  */
 const DRAGOES = ["Dragão Noturno", "Dragão da Neve"] as const;
 type Dragao = (typeof DRAGOES)[number];
@@ -918,7 +918,9 @@ const DRAGAO_FOTOS: Record<Dragao, string> = {
   "Dragão Noturno": img("kgd-noturno.jpg"),
   "Dragão da Neve": img("kgd-neve.jpg"),
 };
-const DRAGAO_PRECOS = { 1: 79, 2: 129 } as const;
+const DRAGAO_PRECOS = { 1: 99, 2: 149 } as const;
+/** Do infantil 2 anos ao adulto GG (sem plus size). */
+const TAM_DRAGAO = [...TAM_INF, ...TAM_ADULTO];
 const KIGURUMIS_DRAGAO: {
   nome: Dragao;
   slug: string;
@@ -958,11 +960,11 @@ function kigurumiDragao(k: (typeof KIGURUMIS_DRAGAO)[number], n: 1 | 2): Bundle 
       n === 1
         ? [
             { name: "Modelo", values: [k.nome] },
-            { name: "Tamanho", values: TAM_ADULTO },
+            { name: "Tamanho", values: TAM_DRAGAO },
           ]
         : ate(2).flatMap((i) => [
             { name: `Modelo (${i}º pijama)`, values: DRAGOES },
-            { name: `Tamanho (${i}º pijama)`, values: TAM_ADULTO },
+            { name: `Tamanho (${i}º pijama)`, values: TAM_DRAGAO },
           ]),
     optionCards: { Modelo: DRAGAO_FOTOS },
     benefits: [
@@ -972,19 +974,20 @@ function kigurumiDragao(k: (typeof KIGURUMIS_DRAGAO)[number], n: 1 | 2): Bundle 
       n === 1
         ? "Tecido felpudo e quentinho para o frio"
         : "Você escolhe o modelo e o tamanho de cada um",
-      "Preto e branco para combinar em casal",
-      "Tamanhos adultos P, M, G e GG",
+      "Preto e branco para combinar em casal ou com os filhos",
+      "Do infantil 2 anos ao adulto GG",
     ],
     description: [
       `Pijama kigurumi de corpo inteiro ${k.visual}. O tecido é felpudo e macio, gostoso na pele e quentinho para os dias frios.`,
-      `Tem em dois modelos: o Dragão Noturno, preto, e o Dragão da Neve, branco. Sai 1 por ${brl(DRAGAO_PRECOS[1])} ou 2 por ${brl(DRAGAO_PRECOS[2])}, e levando 2 você escolhe o modelo e o tamanho de cada um: um de cada para o casal ou dois iguais.`,
+      `Tem em dois modelos: o Dragão Noturno, preto, e o Dragão da Neve, branco. Sai 1 por ${brl(DRAGAO_PRECOS[1])} ou 2 por ${brl(DRAGAO_PRECOS[2])}, e levando 2 você escolhe o modelo e o tamanho de cada um: um de cada para o casal, para a família ou dois iguais. Tem do infantil 2 anos ao adulto GG.`,
     ],
     specs: [
       ["Vem no pedido", n === 1 ? "1 pijama kigurumi" : "2 pijamas kigurumi"],
       ["Modelos", "Dragão Noturno (preto) e Dragão da Neve (branco)"],
       ["Tecido", "Felpudo e macio"],
       ["Modelagem", "Macacão com capuz, soltinho no corpo"],
-      ["Tamanhos", `Adulto ${listaTamanhos(TAM_ADULTO)}`],
+      ["Tamanhos infantis", "2, 4, 6, 8, 10, 12 e 14"],
+      ["Tamanhos adultos", listaTamanhos(TAM_ADULTO)],
       ["Cuidados", "Lavar com água fria, não usar alvejante e secar à sombra"],
     ],
     richSections: [
