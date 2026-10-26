@@ -1,5 +1,5 @@
 import { FREE_SHIPPING_MIN } from "@/lib/bundles";
-import { CARD_MAX_INSTALLMENTS, PIX_DISCOUNT } from "@/lib/payment-pricing";
+import { PIX_DISCOUNT } from "@/lib/payment-pricing";
 
 /** Perguntas frequentes da loja (home e /faq). */
 export const FAQ: readonly { q: string; a: string }[] = [
@@ -13,7 +13,7 @@ export const FAQ: readonly { q: string; a: string }[] = [
   },
   {
     q: "Quais as formas de pagamento?",
-    a: `Pix, com ${Math.round(PIX_DISCOUNT * 100)}% de desconto quando o cartão estiver liberado, e cartão de crédito em até ${CARD_MAX_INSTALLMENTS}x.`,
+    a: `Pix, com ${Math.round(PIX_DISCOUNT * 100)}% de desconto quando o cartão estiver liberado, e cartão de crédito à vista.`,
   },
   {
     q: "Como escolho o tamanho?",

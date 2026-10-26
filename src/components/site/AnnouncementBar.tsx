@@ -6,7 +6,7 @@ const messages = [
   "Brinde: chaveiro de dragão em toda compra",
   "Pelúcia gigante 1,10 m: 1 por R$ 69 ou 2 por R$ 89",
   "Pantufas de pelúcia: 2 pares por R$ 49,90",
-  "Pix com desconto · Cartão em até 12x",
+  "Pix com desconto · Cartão de crédito",
   "Envio para todo o Brasil com rastreio",
 ];
 

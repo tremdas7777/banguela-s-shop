@@ -16,6 +16,7 @@ import { ComboExtras } from "@/components/shop/ComboExtras";
 import { OfertaPantufas } from "@/components/shop/OfertaPantufas";
 import { OptionCards } from "@/components/shop/OptionCards";
 import { SizeSelect } from "@/components/shop/SizeSelect";
+import { StoreSelect } from "@/components/shop/StoreSelect";
 import { MedidasKigurumi, TabelaMedidas } from "@/components/shop/TabelaMedidas";
 import { PijamaDestaques } from "@/components/shop/PijamaDestaques";
 import { temDestaquesPijama } from "@/lib/pijama-destaques";
@@ -37,7 +38,6 @@ import {
   type ComboExtras as Extras,
 } from "@/lib/combo-extras";
 import type { CartItem } from "@/lib/cart";
-import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import { pijamaInfantil } from "@/lib/pantufa-oferta";
 import { productJsonLd, productPath, seo } from "@/lib/seo";
 import {
@@ -227,8 +227,8 @@ function Page() {
     setCrocsOfferAction(action);
     setCrocsOfferQty(1);
     setCrocsOfferSel({
-      "Modelo": sel.Modelo ?? "",
-      "Tamanho": sel.Tamanho ?? "",
+      Modelo: sel.Modelo ?? "",
+      Tamanho: sel.Tamanho ?? "",
       "Modelo do 1º Crocs": sel.Modelo ?? "",
       "Tamanho do 1º Crocs": sel.Tamanho ?? "",
     });
@@ -247,7 +247,12 @@ function Page() {
       return;
     }
     markCartCheckout(false);
-    trackCheckoutClick({ source: "product_page", bundleId: bundle.id, bundleName: label, value: bundle.price });
+    trackCheckoutClick({
+      source: "product_page",
+      bundleId: bundle.id,
+      bundleName: label,
+      value: bundle.price,
+    });
     navigate({
       to: "/checkout",
       search: { plano: bundle.id, variante: encodeVariant(chosen) },
@@ -340,15 +345,12 @@ function Page() {
               <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink)]/55">
                 Escolha sua oferta
               </p>
-              <h2
-                id="crocs-offer-title"
-                className="mt-1 text-[25px] font-bold text-[var(--night)]"
-              >
+              <h2 id="crocs-offer-title" className="mt-1 text-[25px] font-bold text-[var(--night)]">
                 Quantos Crocs você quer?
               </h2>
               <p className="mt-2 text-[14px] text-[var(--ink)]/70">
-                Escolha 1 par por {brl(crocs1.price)} ou aproveite 2 pares por {brl(crocs2.price)}. Você escolhe os modelos e
-                tamanhos.
+                Escolha 1 par por {brl(crocs1.price)} ou aproveite 2 pares por {brl(crocs2.price)}.
+                Você escolhe os modelos e tamanhos.
               </p>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
@@ -407,48 +409,57 @@ function Page() {
                         className="aspect-[1.35] w-full object-cover"
                       />
                     </div>
-                    <label className="block text-left">
+                    <div className="text-left">
                       <span className="mb-1.5 block text-[12px] font-bold text-[var(--night)]">
                         Modelo
                       </span>
-                      <select
-                        value={model ?? ""}
-                        onChange={(e) =>
-                          setCrocsOfferSel((current) => ({ ...current, [unit.model]: e.target.value }))
+                      <StoreSelect
+                        title={`Modelo do ${unit.label}`}
+                        placeholder="Escolha o modelo"
+                        layout="lista"
+                        groups={[
+                          {
+                            nome: "",
+                            itens: (
+                              crocsOfferOptions.find((option) => option.name === unit.model)
+                                ?.values ?? []
+                            ).map((value) => ({
+                              value,
+                              label: value,
+                              img: crocs2.optionImages?.[value],
+                            })),
+                          },
+                        ]}
+                        value={model}
+                        onChange={(v) =>
+                          setCrocsOfferSel((current) => ({ ...current, [unit.model]: v }))
                         }
-                        className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[13px] text-[var(--night)] outline-none focus:border-[var(--night)]"
-                      >
-                        <option value="">Escolha o modelo</option>
-                        {crocsOfferOptions
-                          .find((option) => option.name === unit.model)
-                          ?.values.map((value) => (
-                            <option key={value} value={value}>
-                              {value}
-                            </option>
-                          ))}
-                      </select>
-                    </label>
-                    <label className="mt-3 block text-left">
+                        className="h-12 rounded-xl border border-[var(--ink)]/20 bg-white px-3 text-[13px]"
+                      />
+                    </div>
+                    <div className="mt-3 text-left">
                       <span className="mb-1.5 block text-[12px] font-bold text-[var(--night)]">
                         Tamanho (34 a 46)
                       </span>
-                      <select
-                        value={size ?? ""}
-                        onChange={(e) =>
-                          setCrocsOfferSel((current) => ({ ...current, [unit.size]: e.target.value }))
+                      <StoreSelect
+                        title={`Tamanho do ${unit.label}`}
+                        placeholder="Escolha o tamanho"
+                        groups={[
+                          {
+                            nome: "Numeração",
+                            itens: (
+                              crocsOfferOptions.find((option) => option.name === unit.size)
+                                ?.values ?? []
+                            ).map((value) => ({ value, label: `Número ${value}`, short: value })),
+                          },
+                        ]}
+                        value={size}
+                        onChange={(v) =>
+                          setCrocsOfferSel((current) => ({ ...current, [unit.size]: v }))
                         }
-                        className="w-full rounded-xl border border-[var(--ink)]/20 bg-white px-3 py-3 text-[13px] text-[var(--night)] outline-none focus:border-[var(--night)]"
-                      >
-                        <option value="">Escolha o tamanho</option>
-                        {crocsOfferOptions
-                          .find((option) => option.name === unit.size)
-                          ?.values.map((value) => (
-                            <option key={value} value={value}>
-                              Número {value}
-                            </option>
-                          ))}
-                      </select>
-                    </label>
+                        className="h-12 rounded-xl border border-[var(--ink)]/20 bg-white px-3 text-[13px]"
+                      />
+                    </div>
                   </section>
                 );
               })}
@@ -577,7 +588,7 @@ function Page() {
               )}
             </div>
             <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">
-              Pix com desconto ou até {CARD_MAX_INSTALLMENTS}x no cartão
+              Pix com desconto ou cartão de crédito
             </p>
 
             <ul className="mt-5 space-y-2.5">
@@ -751,24 +762,30 @@ function Page() {
                           {o.values[0]}
                         </span>
                       ) : crocsModelSelector ? (
-                        <div className="relative">
-                          <select
-                            aria-label={o.name}
-                            value={sel[o.name] ?? ""}
-                            onChange={(e) => choose(o.name, e.target.value)}
-                            className={`h-12 w-full appearance-none rounded-xl border-2 bg-white px-4 pr-11 text-[14px] font-semibold text-[var(--night)] outline-none transition focus:border-[var(--night)] ${
-                              sel[o.name] ? "border-[var(--night)]" : "border-[var(--ink)]/20"
-                            }`}
-                          >
-                            <option value="">Escolha o modelo</option>
-                            {o.values.map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink)]/60" />
-                        </div>
+                        <StoreSelect
+                          title="Escolha o modelo"
+                          placeholder="Escolha o modelo"
+                          label={o.name}
+                          layout="lista"
+                          groups={[
+                            {
+                              nome: "",
+                              itens: o.values.map((v) => ({
+                                value: v,
+                                label: v,
+                                img: p.optionImages?.[v],
+                              })),
+                            },
+                          ]}
+                          value={sel[o.name]}
+                          onChange={(v) => choose(o.name, v)}
+                          invalid={nudge}
+                          className={`h-12 rounded-xl border-2 px-4 text-[14px] font-semibold ${
+                            sel[o.name]
+                              ? "border-[var(--night)] bg-white"
+                              : "border-[var(--ink)]/20 bg-white"
+                          }`}
+                        />
                       ) : cards ? (
                         <OptionCards
                           values={o.values}
@@ -1058,7 +1075,7 @@ function Page() {
               ["conforto", "moletons", "kigurumi", "crocs"].includes(p.category)
                 ? "Troca de tamanho em até 30 dias"
                 : "7 dias para desistir da compra",
-              `Pix ou cartão em até ${CARD_MAX_INSTALLMENTS}x`,
+              "Pix ou cartão de crédito",
             ].map((t) => (
               <li key={t} className="flex gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" strokeWidth={3} />

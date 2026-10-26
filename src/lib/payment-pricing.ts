@@ -3,7 +3,8 @@
  * Preço de tabela = cartão. Pix tem desconto sobre os produtos (o frete não entra no desconto).
  */
 export const PIX_DISCOUNT = 0.1;
-export const CARD_MAX_INSTALLMENTS = 12;
+/** Sem parcelamento: o cartão é só à vista (o usuário pediu em 26/10). */
+export const CARD_MAX_INSTALLMENTS = 1;
 
 export type PayMethod = "pix" | "card";
 

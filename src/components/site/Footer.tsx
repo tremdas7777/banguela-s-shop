@@ -5,7 +5,6 @@ import { ChevronDown, MessageCircle, ShieldCheck } from "lucide-react";
 import logo from "@/assets/logo-full.webp";
 import { brand } from "@/lib/brand";
 import { categories, FREE_SHIPPING_LABEL } from "@/lib/bundles";
-import { CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
 import { getSiteSettings } from "@/lib/site-settings.functions";
 import { formatWhatsapp, whatsappLink } from "@/lib/whatsapp";
 
@@ -118,7 +117,7 @@ export function Footer() {
             </a>
           )}
           <div className="mt-2 flex flex-wrap justify-center gap-2">
-            {["Pix", `Cartão em até ${CARD_MAX_INSTALLMENTS}x`, "Site seguro (SSL)"].map((t) => (
+            {["Pix", "Cartão de crédito", "Site seguro (SSL)"].map((t) => (
               <span
                 key={t}
                 className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-semibold text-[var(--night)]"

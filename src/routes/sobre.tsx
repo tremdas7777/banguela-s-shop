@@ -16,7 +16,7 @@ export const Route = createFileRoute("/sobre")({
 const VALUES = [
   ["Envio rastreado", "Pedidos despachados em até 1 dia útil, com código de rastreio por e-mail."],
   ["Troca de tamanho", "Pijamas, Snuggy e pantufas podem ser trocados em até 30 dias."],
-  ["Pagamento seguro", "Pix ou cartão em até 12x, em site com certificado SSL."],
+  ["Pagamento seguro", "Pix ou cartão de crédito, em site com certificado SSL."],
   ["Atendimento", "Respondemos dúvidas sobre tamanho, prazo e troca em dias úteis."],
 ] as const;
 

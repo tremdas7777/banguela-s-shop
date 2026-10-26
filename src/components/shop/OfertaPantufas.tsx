@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { StoreSelect } from "@/components/shop/StoreSelect";
 import {
   brl,
   getBundle,
@@ -132,32 +133,25 @@ export function OfertaPantufas({
                     </span>
                   </button>
                   {on && (
-                    <select
-                      aria-label={`Número da pantufa ${nome}`}
-                      value={num[i] ?? ""}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setNum((s) => s.map((x, j) => (j === i ? v : x)));
-                        setNudge(false);
-                      }}
-                      className={cn(
-                        "mt-2 block w-full rounded-xl border-2 bg-white px-2 py-2 text-center text-[14px] font-bold text-[var(--night)]",
-                        nudge && !num[i] ? "border-[var(--sale)]" : "border-black/15",
-                      )}
-                    >
-                      <option value="" disabled>
-                        Número
-                      </option>
-                      {(infantilPrimeiro ? GRUPOS : [...GRUPOS].reverse()).map((g) => (
-                        <optgroup key={g.label} label={g.label}>
-                          {g.numeros.map((n) => (
-                            <option key={n} value={n}>
-                              {n}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
+                    <div className="mt-2">
+                      <StoreSelect
+                        title={`Número da pantufa ${nome}`}
+                        placeholder="Número"
+                        groups={(infantilPrimeiro ? GRUPOS : [...GRUPOS].reverse()).map((g) => ({
+                          nome: g.label,
+                          itens: g.numeros.map((n) => ({ value: n, label: n })),
+                        }))}
+                        value={num[i]}
+                        onChange={(v) => {
+                          setNum((s) => s.map((x, j) => (j === i ? v : x)));
+                          setNudge(false);
+                        }}
+                        className={cn(
+                          "h-10 rounded-xl border-2 bg-white px-3 text-[14px] font-bold",
+                          nudge && !num[i] ? "border-[var(--sale)]" : "border-black/15",
+                        )}
+                      />
+                    </div>
                   )}
                 </div>
               );

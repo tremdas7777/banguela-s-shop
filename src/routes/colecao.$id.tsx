@@ -49,7 +49,7 @@ export const Route = createFileRoute("/colecao/$id")({
     return seo({
       path: `/colecao/${c.id}`,
       title: `${t?.title ?? c.name} | ${brand.name}`,
-      description: t?.description ?? `${c.name}: ${c.desc}. Pix ou cartão em até 12x.`,
+      description: t?.description ?? `${c.name}: ${c.desc}. Pix ou cartão de crédito.`,
       image: c.img,
       imageAlt: c.name,
       jsonLd: collectionJsonLd(c, c.items),
