@@ -728,7 +728,24 @@ function Page() {
                           {p.optionNotes[o.name.replace(CONJUNTO, "")]}
                         </p>
                       )}
-                      {o.values.length === 1 ? (
+                      {o.values.length === 1 && p.trocaModelo && cards ? (
+                        // Um modelo por produto: os outros cartões levam para a página deles.
+                        <OptionCards
+                          values={Object.keys(p.trocaModelo)}
+                          images={cards}
+                          value={o.values[0]}
+                          onPick={(v) => {
+                            const to = p.trocaModelo?.[v];
+                            if (to && to !== p.id)
+                              navigate({
+                                to: "/produto",
+                                search: { plano: to },
+                                replace: true,
+                                resetScroll: false,
+                              });
+                          }}
+                        />
+                      ) : o.values.length === 1 ? (
                         <span className="inline-flex h-11 items-center gap-2 rounded-full border border-[var(--night)] bg-[var(--night)] px-4 text-[14px] font-semibold text-white">
                           <Swatch value={o.values[0]!} />
                           {o.values[0]}

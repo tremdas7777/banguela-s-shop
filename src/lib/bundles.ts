@@ -248,6 +248,11 @@ export type Bundle = {
   unidades?: number;
   /** Combo maior do grupo anunciado no card da vitrine junto do preço de 1 ("ou 2 por R$ 89"). */
   comboVitrine?: BundleId;
+  /**
+   * Opção "Modelo" de valor único que mostra também os outros modelos (valor → produto): tocar num
+   * deles leva para a página daquele produto. Ex.: kigurumi de dragão de 1 unidade, preto ou branco.
+   */
+  trocaModelo?: Readonly<Record<string, BundleId>>;
   /** Opções mostradas como cartões com foto (nome da opção sem o "(1º pijama)" → valor → foto). */
   optionCards?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Combo de pijamas: a página oferece ursinhos extras e, ao comprar, as pantufas. */
@@ -1017,7 +1022,12 @@ function kigurumiDragao(k: (typeof KIGURUMIS_DRAGAO)[number], n: 1 | 2): Bundle 
     groupTitle: "Escolha a quantidade",
     unidades: n,
     semPromo: true,
-    ...(n === 1 ? { comboVitrine: k.ids[2] } : { listed: false }),
+    ...(n === 1
+      ? {
+          comboVitrine: k.ids[2],
+          trocaModelo: Object.fromEntries(KIGURUMIS_DRAGAO.map((d) => [d.nome, d.ids[1]])),
+        }
+      : { listed: false }),
   };
 }
 
