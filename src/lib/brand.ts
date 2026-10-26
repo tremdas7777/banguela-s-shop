@@ -1,6 +1,6 @@
 /**
  * Marca da loja — Banguela Shop.
- * PREENCHA `cnpj`, `email` e `whatsapp` com os dados da sua empresa antes de vender.
+ * A loja não tem e-mail: o atendimento é pelo WhatsApp (número abaixo ou o do admin).
  */
 export const brand = {
   name: "Banguela Shop",
@@ -13,8 +13,8 @@ export const brand = {
   taglineShort: "Produtos de dragão",
   manufacturer: "Banguela Shop",
   manufacturerTagline: "Feito para fãs de dragão",
-  cnpj: "00.000.000/0000-00",
-  email: "contato@seudominio.com.br",
+  /** Mesma empresa da BEAM RIVALS (é o CNPJ cadastrado no Merchant Center). */
+  cnpj: "64.756.111/0001-05",
   whatsapp: {
     /**
      * Número inicial em E.164 (55 + DDD + número), sem símbolos. Depois de trocado no

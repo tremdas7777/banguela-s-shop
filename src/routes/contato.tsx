@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { absUrl } from "@/lib/seo";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site/Layout";
+import { useWhatsappSuporte } from "@/components/site/WhatsappSuporte";
 import { brand } from "@/lib/brand";
-import { getSiteSettings } from "@/lib/site-settings.functions";
-import { formatWhatsapp, whatsappLink } from "@/lib/whatsapp";
+import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
@@ -22,18 +20,7 @@ export const Route = createFileRoute("/contato")({
 });
 
 function Page() {
-  const fetchSettings = useServerFn(getSiteSettings);
-  const { data: settings } = useQuery({
-    queryKey: ["site-settings"],
-    queryFn: () => fetchSettings(),
-    staleTime: 60_000,
-  });
-  const whatsappPhone = settings?.whatsappPhone ?? "";
-  const whatsappEnabled = (settings?.whatsappEnabled ?? false) && !!whatsappPhone;
-  const whatsappHref = whatsappLink(
-    whatsappPhone,
-    settings?.whatsappMessage ?? brand.whatsapp.message,
-  );
+  const whatsapp = useWhatsappSuporte();
   return (
     <SiteLayout>
       <section className="pt-32 md:pt-44 pb-24">
@@ -49,23 +36,23 @@ function Page() {
             </p>
             <ul className="mt-12 space-y-6 text-sm">
               <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
-                <div className="eyebrow text-[var(--ink)]/40 mb-2">E-mail</div>
-                <div>{brand.email}</div>
+                <div className="eyebrow text-[var(--ink)]/40 mb-2">WhatsApp</div>
+                <a
+                  href={whatsapp.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline"
+                  aria-label={`Chamar no WhatsApp ${whatsapp.label}`}
+                >
+                  {whatsapp.label}
+                </a>
               </li>
-              {whatsappEnabled && (
-                <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
-                  <div className="eyebrow text-[var(--ink)]/40 mb-2">WhatsApp</div>
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline"
-                    aria-label={`Chamar no WhatsApp ${formatWhatsapp(whatsappPhone)}`}
-                  >
-                    {formatWhatsapp(whatsappPhone)}
-                  </a>
-                </li>
-              )}
+              <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
+                <div className="eyebrow text-[var(--ink)]/40 mb-2">Empresa</div>
+                <div>
+                  {brand.name} · CNPJ {brand.cnpj}
+                </div>
+              </li>
               <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
                 <div className="eyebrow text-[var(--ink)]/40 mb-2">Atendimento</div>
                 <div>Online, para todo o Brasil</div>
@@ -77,19 +64,16 @@ function Page() {
             className="lg:col-span-7 bg-white p-10 md:p-12 border border-[rgba(13,13,13,0.08)] rounded-xl space-y-8"
             onSubmit={(e) => {
               e.preventDefault();
-              // Abre o e-mail do cliente já preenchido (o site não tem servidor de e-mail).
+              // Abre o WhatsApp da loja com a mensagem já escrita (a loja não tem e-mail).
               const f = new FormData(e.currentTarget);
-              const body = `${f.get("mensagem") ?? ""}\n\n— ${f.get("nome") ?? ""} (${f.get("email") ?? ""})`;
-              window.location.href = `mailto:${brand.email}?subject=${encodeURIComponent(
-                "Contato pelo site",
-              )}&body=${encodeURIComponent(body)}`;
+              const text = `${whatsapp.message}\n\n${f.get("mensagem") ?? ""}\n\n— ${f.get("nome") ?? ""}`;
+              window.open(whatsappLink(whatsapp.phone, text), "_blank", "noreferrer");
             }}
           >
             <Field label="Nome" name="nome" />
-            <Field label="E-mail" name="email" type="email" />
             <Field label="Mensagem" name="mensagem" textarea />
             <button className="w-full bg-[var(--primary)] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-colors">
-              Escrever e-mail
+              Enviar pelo WhatsApp
             </button>
           </form>
         </div>

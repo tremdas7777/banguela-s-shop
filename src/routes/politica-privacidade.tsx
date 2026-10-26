@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
+import { WhatsappSuporte } from "@/components/site/WhatsappSuporte";
 import { brand } from "@/lib/brand";
 
 export const Route = createFileRoute("/politica-privacidade")({
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/politica-privacidade")({
       <p>Utilizamos criptografia, SSL e provedores certificados para proteger suas informações.</p>
       <h2>Seus direitos</h2>
       <p>
-        Você pode solicitar acesso, correção ou exclusão dos seus dados pelo e-mail {brand.email}.
+        Você pode solicitar acesso, correção ou exclusão dos seus dados pelo <WhatsappSuporte />.
       </p>
     </PolicyPage>
   ),

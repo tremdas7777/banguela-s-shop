@@ -5,7 +5,8 @@ import { PIX_DISCOUNT } from "@/lib/payment-pricing";
 export const FAQ: readonly { q: string; a: string }[] = [
   {
     q: "Qual o prazo de entrega?",
-    a: "Os pedidos são despachados em até 1 dia útil após a confirmação do pagamento. A entrega leva em média de 3 a 7 dias úteis, conforme a região.",
+    // Mesmos prazos das opções de frete do checkout (FRETES em pix.functions.ts).
+    a: "Os pedidos são despachados em até 1 dia útil após a confirmação do pagamento. Depois disso, a entrega leva 5 dias úteis no Frete Padrão, 1 a 2 dias úteis no Frete Express e 7 a 10 dias úteis no Frete Grátis.",
   },
   {
     q: "O frete é grátis?",

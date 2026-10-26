@@ -82,16 +82,21 @@ const dias = (minValue: number, maxValue: number) => ({
 });
 
 /** Frete do produto sozinho: grátis a partir do mínimo, senão o Frete Padrão (FRETES em pix.functions.ts). */
+export const freteDoProduto = (price: number) =>
+  price >= FREE_SHIPPING_MIN
+    ? { nome: "Frete Grátis", valor: 0, prazo: [7, 10] as const }
+    : { nome: "Frete Padrão", valor: 20, prazo: [5, 5] as const };
+
 function shipping(price: number) {
-  const gratis = price >= FREE_SHIPPING_MIN;
+  const frete = freteDoProduto(price);
   return {
     "@type": "OfferShippingDetails",
-    shippingRate: { "@type": "MonetaryAmount", value: gratis ? 0 : 20, currency: "BRL" },
+    shippingRate: { "@type": "MonetaryAmount", value: frete.valor, currency: "BRL" },
     shippingDestination: { "@type": "DefinedRegion", addressCountry: "BR" },
     deliveryTime: {
       "@type": "ShippingDeliveryTime",
       handlingTime: dias(0, 1),
-      transitTime: gratis ? dias(7, 10) : dias(5, 5),
+      transitTime: dias(frete.prazo[0], frete.prazo[1]),
     },
   };
 }
@@ -144,7 +149,7 @@ export const productPath = (b: Bundle) => `/produto?plano=${canonicalBundle(b).i
 const categoryOf = (b: Bundle) => categories.find((c) => c.id === b.category);
 
 /** Fotos do produto, sem vídeos e GIFs. */
-const fotos = (b: Bundle) =>
+export const fotos = (b: Bundle) =>
   [...new Set([b.img, ...b.images])].filter((f) => !/\.(mp4|webm|gif)$/i.test(f));
 
 const breadcrumb = (items: readonly { name: string; path: string }[]) => ({

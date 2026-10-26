@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
+import { WhatsappSuporte } from "@/components/site/WhatsappSuporte";
 import { brand } from "@/lib/brand";
 import { FAQ } from "@/lib/faq";
 import { faqJsonLd, seo } from "@/lib/seo";
@@ -36,7 +37,7 @@ function Page() {
           ))}
         </div>
         <p className="mt-8 text-[15px] text-[var(--ink)]/65">
-          Não achou sua resposta? Escreva para <b>{brand.email}</b> ou use a página de{" "}
+          Não achou sua resposta? Fale com a gente pelo <WhatsappSuporte /> ou use a página de{" "}
           <a href="/contato" className="font-semibold text-[var(--primary)] hover:underline">
             contato
           </a>

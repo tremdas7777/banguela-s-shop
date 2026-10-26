@@ -123,7 +123,7 @@ export function CheckoutFooter() {
     <footer className="mt-auto bg-[var(--ck-footer)] px-4 py-8 text-center text-[13px] text-primary-foreground">
       <p className="font-medium">{brand.name} | Todos os direitos reservados</p>
       <p className="mt-2">
-        © {new Date().getFullYear()} · CNPJ: {brand.cnpj} · E-mail: {brand.email}
+        © {new Date().getFullYear()} · CNPJ: {brand.cnpj}
       </p>
       <p className="mt-3 text-sm">Formas de pagamento:</p>
       <div className="mt-2 flex justify-center gap-2">

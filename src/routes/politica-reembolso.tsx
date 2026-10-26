@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
+import { WhatsappSuporte } from "@/components/site/WhatsappSuporte";
 import { brand } from "@/lib/brand";
 
 export const Route = createFileRoute("/politica-reembolso")({
@@ -36,7 +37,10 @@ export const Route = createFileRoute("/politica-reembolso")({
         uso e com a etiqueta, sujeito à disponibilidade em estoque.
       </p>
       <h2>Como solicitar</h2>
-      <p>Entre em contato pelo e-mail {brand.email} com o número do pedido.</p>
+      <p>
+        Fale com a gente pelo <WhatsappSuporte /> com o número do pedido. Na desistência dentro dos
+        7 dias, o frete de devolução é por nossa conta.
+      </p>
       <h2>Prazo de reembolso</h2>
       <p>
         O reembolso é processado em até 7 dias úteis após o recebimento do produto em nosso centro

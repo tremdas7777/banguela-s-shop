@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { absUrl } from "@/lib/seo";
 import { PolicyPage } from "@/components/site/PolicyPage";
 import { brand } from "@/lib/brand";
-import { FREE_SHIPPING_MIN } from "@/lib/bundles";
+import { FREE_SHIPPING_MIN, brl } from "@/lib/bundles";
+import { FRETES } from "@/lib/pix.functions";
 
 export const Route = createFileRoute("/politica-envio")({
   head: () => ({
@@ -20,7 +21,15 @@ export const Route = createFileRoute("/politica-envio")({
       <h2>Prazo de envio</h2>
       <p>Os pedidos são processados em até 1 dia útil após a confirmação do pagamento.</p>
       <h2>Prazo de entrega</h2>
-      <p>O prazo médio é de 3 a 7 dias úteis, podendo variar de acordo com a região.</p>
+      <p>Depois do envio, o prazo depende do frete escolhido no checkout:</p>
+      <ul>
+        {FRETES.map((f) => (
+          <li key={f.id}>
+            {f.name}: {f.eta}
+            {f.price ? ` (${brl(f.price)})` : ` (compras a partir de R$ ${FREE_SHIPPING_MIN})`}
+          </li>
+        ))}
+      </ul>
       <h2>Rastreamento</h2>
       <p>Você recebe o código de rastreio por e-mail assim que o pedido for despachado.</p>
       <h2>Frete</h2>

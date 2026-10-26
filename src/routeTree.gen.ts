@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as PoliticaEnvioRouteImport } from './routes/politica-envio'
 import { Route as PoliticaPrivacidadeRouteImport } from './routes/politica-privacidade'
 import { Route as PoliticaReembolsoRouteImport } from './routes/politica-reembolso'
@@ -51,6 +52,11 @@ const ContatoRoute = ContatoRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaEnvioRoute = PoliticaEnvioRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/politica-envio': typeof PoliticaEnvioRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
   '/politica-reembolso': typeof PoliticaReembolsoRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/politica-envio': typeof PoliticaEnvioRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
   '/politica-reembolso': typeof PoliticaReembolsoRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/politica-envio': typeof PoliticaEnvioRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
   '/politica-reembolso': typeof PoliticaReembolsoRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contato'
     | '/faq'
+    | '/feed.xml'
     | '/politica-envio'
     | '/politica-privacidade'
     | '/politica-reembolso'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contato'
     | '/faq'
+    | '/feed.xml'
     | '/politica-envio'
     | '/politica-privacidade'
     | '/politica-reembolso'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contato'
     | '/faq'
+    | '/feed.xml'
     | '/politica-envio'
     | '/politica-privacidade'
     | '/politica-reembolso'
@@ -249,6 +261,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContatoRoute: typeof ContatoRoute
   FaqRoute: typeof FaqRoute
+  FeedDotxmlRoute: typeof FeedDotxmlRoute
   PoliticaEnvioRoute: typeof PoliticaEnvioRoute
   PoliticaPrivacidadeRoute: typeof PoliticaPrivacidadeRoute
   PoliticaReembolsoRoute: typeof PoliticaReembolsoRoute
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.xml': {
+      id: '/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/feed.xml'
+      preLoaderRoute: typeof FeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-envio': {
@@ -401,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContatoRoute: ContatoRoute,
   FaqRoute: FaqRoute,
+  FeedDotxmlRoute: FeedDotxmlRoute,
   PoliticaEnvioRoute: PoliticaEnvioRoute,
   PoliticaPrivacidadeRoute: PoliticaPrivacidadeRoute,
   PoliticaReembolsoRoute: PoliticaReembolsoRoute,
