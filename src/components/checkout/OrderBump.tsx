@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check } from "lucide-react";
-import { getBundle } from "@/lib/bundles";
+import { ESSENCIA_AROMAS, ESSENCIA_FOTOS, getBundle } from "@/lib/bundles";
 import type { BumpId, OrderBumpItem } from "@/lib/order-bump";
 import { cn } from "@/lib/utils";
 import { brl } from "./parts";
@@ -87,6 +87,8 @@ type BumpCardProps = {
   reveal?: boolean;
   /** Conteúdo extra antes do preço (ex.: escolha de estampa). */
   children?: ReactNode;
+  /** Linha abaixo do preço (envio). */
+  nota?: string;
 };
 
 /** Cartão do order bump, logo acima do botão de finalizar. */
@@ -105,6 +107,7 @@ function BumpCard({
   onChange,
   reveal = false,
   children,
+  nota = "Vai na mesma caixa do seu pedido — sem frete extra.",
 }: BumpCardProps) {
   const { ref, shown } = useReveal(reveal);
   const off = compareAt ? Math.round((1 - price / compareAt) * 100) : 0;
@@ -158,9 +161,7 @@ function BumpCard({
               {off}% OFF
             </span>
           )}
-          <span className="w-full text-[12px] text-muted-foreground">
-            Vai na mesma caixa do seu pedido — sem frete extra.
-          </span>
+          <span className="w-full text-[12px] text-muted-foreground">{nota}</span>
         </div>
 
         <label
@@ -345,6 +346,148 @@ export function MascaraBump({
           </div>
         </div>
       ))}
+    </BumpCard>
+  );
+}
+
+/** Escolha da essência: 3 frascos com os aromas escolhidos ou o kit com os 10. */
+export type EssenciaEscolha = { n: 3; aromas: string[] } | { n: 10 };
+
+/** Aromas que já vêm marcados nas 3 essências (o cliente troca tocando nos outros). */
+const AROMAS_INICIAIS = ["Lavanda", "Jasmim", "Dama da Noite"];
+
+/**
+ * Order bump das essências, só com umidificador no pedido: 3 por R$ 34,90 (o cliente escolhe 3
+ * aromas diferentes) ou o kit com as 10 por R$ 99,90. Vai para o pedido como item comum
+ * ("essencia3" + aromas ou "essencia10"), com o preço do catálogo, validado no servidor.
+ */
+export function EssenciaBump({
+  escolha,
+  onChange,
+  reveal = false,
+}: {
+  /** null = fora do pedido. */
+  escolha: EssenciaEscolha | null;
+  onChange: (e: EssenciaEscolha | null) => void;
+  reveal?: boolean;
+}) {
+  const tres = getBundle("essencia3");
+  const dez = getBundle("essencia10");
+  const [n, setN] = useState<3 | 10>(escolha?.n ?? 3);
+  const [aromas, setAromas] = useState<string[]>(
+    escolha?.n === 3 ? escolha.aromas : AROMAS_INICIAIS,
+  );
+  const checked = escolha !== null;
+  const atual = n === 10 ? dez : tres;
+  const valor = (qtd: 3 | 10, lista: string[]): EssenciaEscolha =>
+    qtd === 10 ? { n: 10 } : { n: 3, aromas: lista };
+  const escolherKit = (qtd: 3 | 10) => {
+    setN(qtd);
+    if (checked) onChange(valor(qtd, aromas));
+  };
+  // Sempre 3 aromas diferentes: tocar num que não está escolhido troca o mais antigo. Só a caixa de
+  // seleção põe a oferta no pedido; trocar aroma com ela marcada atualiza o item.
+  const tocarAroma = (a: string) => {
+    if (aromas.includes(a)) return;
+    const novos = [...aromas.slice(1), a];
+    setAromas(novos);
+    if (checked) onChange(valor(3, novos));
+  };
+  const marcar = (on: boolean) => onChange(on ? valor(n, aromas) : null);
+  return (
+    <BumpCard
+      img={dez.img}
+      alt="Essências para umidificador"
+      name={n === 10 ? "Kit com as 10 essências" : "3 essências"}
+      price={atual.price}
+      tag="Combina com o seu umidificador"
+      question="Quer deixar o quarto perfumado também?"
+      body={
+        <>
+          As <b className="text-foreground">essências à base de água</b> são para usar no
+          umidificador de dragão e deixar o ambiente cheiroso. Leve 3 e escolha os aromas, ou o kit
+          com os 10:
+        </>
+      }
+      benefits={[
+        "Frascos de 15 ml à base de água",
+        "10 aromas: lavanda, jasmim, dama da noite e mais",
+        "Para usar no umidificador de dragão",
+      ]}
+      cta={
+        n === 10
+          ? `Sim! Quero as 10 essências por + ${brl(dez.price)}`
+          : `Sim! Quero 3 essências por + ${brl(tres.price)}`
+      }
+      checked={checked}
+      onChange={marcar}
+      reveal={reveal}
+      nota="Sem frete extra."
+    >
+      <div className="mt-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Kit de essências">
+        {([3, 10] as const).map((q) => {
+          const b = q === 10 ? dez : tres;
+          const on = n === q;
+          return (
+            <button
+              key={q}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => escolherKit(q)}
+              className={cn(
+                "rounded-md border-2 bg-white px-2 py-2 text-center leading-tight transition",
+                on ? "border-[var(--ck-ok)]" : "border-border hover:border-amber-400",
+              )}
+            >
+              <span className="block text-[13.5px] font-bold">
+                {q === 10 ? "As 10" : "3"} por {brl(b.price)}
+              </span>
+              <span className="block text-[11.5px] text-muted-foreground">
+                {q === 10 ? `${brl(b.price / 10)} cada · melhor custo` : "você escolhe os aromas"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {n === 3 ? (
+        <div className="mt-3">
+          <p className="text-[12.5px] text-muted-foreground">
+            Seus 3 aromas: <b className="text-foreground">{aromas.join(", ")}</b>
+            <span className="block text-[11.5px]">Toque em outro aroma para trocar.</span>
+          </p>
+          <div className="mt-1.5 grid grid-cols-5 gap-1.5" role="group" aria-label="Aromas">
+            {ESSENCIA_AROMAS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-pressed={aromas.includes(a)}
+                title={a}
+                onClick={() => tocarAroma(a)}
+                className={cn(
+                  "overflow-hidden rounded border-2 bg-white transition",
+                  aromas.includes(a)
+                    ? "border-[var(--ck-ok)]"
+                    : "border-border hover:border-amber-400",
+                )}
+              >
+                <img
+                  src={ESSENCIA_FOTOS[a]}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-square w-full object-cover"
+                />
+                <span className="block px-0.5 pb-1 text-center text-[10px] leading-tight">{a}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 text-[12.5px] text-muted-foreground">
+          Vem um frasco de cada: {ESSENCIA_AROMAS.join(", ")}.
+        </p>
+      )}
     </BumpCard>
   );
 }

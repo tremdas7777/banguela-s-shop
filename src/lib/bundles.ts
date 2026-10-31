@@ -65,6 +65,8 @@ export const BUNDLE_IDS = [
   "lum3d",
   "mascara",
   "mascara2",
+  "essencia3",
+  "essencia10",
   "kitescola",
   ...BRINQUEDO_IDS,
   ...CROCS_IDS,
@@ -1227,6 +1229,85 @@ const mascaras: Bundle[] = MASCARA_COMBOS.map(({ id, n, price, de }) => {
 });
 
 /**
+ * Essências para o umidificador: order bump do checkout quando há umidificador no pedido
+ * (EssenciaBump). 3 essências por R$ 34,90 (o cliente escolhe os 3 aromas, sem repetir) ou o kit com
+ * as 10 por R$ 99,90. Frascos de 15 ml à base de água. Fora das vitrines: só aparecem no checkout.
+ */
+export const ESSENCIA_AROMAS = [
+  "Lavanda",
+  "Alfazema",
+  "Jasmim",
+  "Dama da Noite",
+  "Flor de Lótus",
+  "Gerânio",
+  "Violeta",
+  "Floral",
+  "Mil Flores",
+  "Natureza",
+] as const;
+export const ESSENCIA_FOTOS: Readonly<Record<string, string>> = {
+  Lavanda: img("essencia-lavanda.jpg"),
+  Alfazema: img("essencia-alfazema.jpg"),
+  Jasmim: img("essencia-jasmim.jpg"),
+  "Dama da Noite": img("essencia-dama-da-noite.jpg"),
+  "Flor de Lótus": img("essencia-flor-de-lotus.jpg"),
+  Gerânio: img("essencia-geranio.jpg"),
+  Violeta: img("essencia-violeta.jpg"),
+  Floral: img("essencia-floral.jpg"),
+  "Mil Flores": img("essencia-mil-flores.jpg"),
+  Natureza: img("essencia-natureza.jpg"),
+};
+export const UMIDIFICADOR_IDS: readonly BundleId[] = ["umid1", "umid2", "umid3"];
+export const ESSENCIA_COMBOS: { id: BundleId; n: 3 | 10; price: number }[] = [
+  { id: "essencia3", n: 3, price: 34.9 },
+  { id: "essencia10", n: 10, price: 99.9 },
+];
+
+const essencias: Bundle[] = ESSENCIA_COMBOS.map(({ id, n, price }) => {
+  const nome = n === 10 ? "Kit 10 Essências para Umidificador" : "3 Essências para Umidificador";
+  return {
+    id,
+    name: nome,
+    tag: n === 10 ? "Os 10 aromas, frascos de 15 ml" : "Você escolhe os 3 aromas, frascos de 15 ml",
+    price,
+    img: img("essencias-kit.jpg"),
+    images: [img("essencias-kit.jpg")],
+    options:
+      n === 10
+        ? []
+        : [1, 2, 3].map((i) => ({ name: `Aroma (${i}ª essência)`, values: ESSENCIA_AROMAS })),
+    optionImages: ESSENCIA_FOTOS,
+    benefits: [
+      n === 10 ? "Os 10 aromas, um frasco de cada" : "3 frascos, com os aromas que você escolher",
+      "Frascos de 15 ml à base de água",
+      "Para usar no umidificador de dragão",
+    ],
+    description: [
+      "Essências à base de água para deixar o quarto perfumado enquanto o umidificador de dragão solta a névoa.",
+      n === 10
+        ? "O kit traz os 10 aromas, um frasco de 15 ml de cada: Lavanda, Alfazema, Jasmim, Dama da Noite, Flor de Lótus, Gerânio, Violeta, Floral, Mil Flores e Natureza."
+        : "São 3 frascos de 15 ml, e você escolhe os aromas entre Lavanda, Alfazema, Jasmim, Dama da Noite, Flor de Lótus, Gerânio, Violeta, Floral, Mil Flores e Natureza.",
+    ],
+    specs: [
+      ["Vem no pedido", n === 10 ? "10 frascos, um de cada aroma" : "3 frascos"],
+      ["Volume", "15 ml cada"],
+      ["Base", "Água"],
+    ],
+    category: "casa",
+    checkoutProductName: nome,
+    checkoutProductDescription:
+      n === 10 ? "Kit com 10 essências de 15 ml à base de água." : "3 essências de 15 ml à base de água.",
+    checkoutUrl: `/checkout?plano=${id}`,
+    group: "essencia",
+    groupLabel: n === 10 ? "Kit com as 10" : "3 essências",
+    groupTitle: "Escolha o kit",
+    unidades: n,
+    semPromo: true,
+    listed: false,
+  };
+});
+
+/**
  * Pelúcia gigante: um produto só, preta ou branca, 1 por R$ 69 ou 2 por R$ 89 (o cliente escolhe a
  * cor de cada uma). Cada quantidade é um produto do grupo; nas vitrines aparece o de 1, com a oferta
  * de 2 no card.
@@ -1683,6 +1764,7 @@ const baseBundles: Bundle[] = [
     badge: "Novo",
   },
   ...mascaras,
+  ...essencias,
   {
     id: "kitescola",
     name: "Kit Escolar Dragão Noturno",

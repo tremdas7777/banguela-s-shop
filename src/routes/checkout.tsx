@@ -12,6 +12,7 @@ import {
   parseVariant,
   productLabel,
   variantLabel,
+  UMIDIFICADOR_IDS,
 } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
@@ -42,7 +43,12 @@ import {
 } from "@/components/checkout/parts";
 import { SummaryDesktop, SummaryMobile } from "@/components/checkout/Summary";
 import { StoreSelect } from "@/components/shop/StoreSelect";
-import { MascaraBump, OrderBump } from "@/components/checkout/OrderBump";
+import {
+  EssenciaBump,
+  MascaraBump,
+  OrderBump,
+  type EssenciaEscolha,
+} from "@/components/checkout/OrderBump";
 import { FreeShippingProgress } from "@/components/checkout/FreeShippingProgress";
 import { ORDER_BUMPS, bumpsTotal, getBumps, type BumpId } from "@/lib/order-bump";
 import { pantufaItems, pantufasTotal, parsePantufas } from "@/lib/pantufa-oferta";
@@ -152,6 +158,12 @@ function Page() {
   // Order bump da máscara de dormir: estampa de cada máscara (vazio = fora do pedido; 1 ou 2
   // máscaras). Entra como item comum ("mascara" ou "mascara2").
   const [mascaras, setMascaras] = useState<string[]>([]);
+  // Order bump das essências, só com umidificador no pedido: 3 com os aromas escolhidos ou o kit
+  // com as 10. Entra como item comum ("essencia3" ou "essencia10").
+  const [essencia, setEssencia] = useState<EssenciaEscolha | null>(null);
+  const temUmidificador =
+    UMIDIFICADOR_IDS.includes(bundle.id) ||
+    (search.itens ?? []).some((it) => UMIDIFICADOR_IDS.includes(it.plano));
   // Demais produtos do carrinho (só os com opções válidas; o servidor valida de novo).
   const itens = [
     ...(search.itens ?? []).filter((it) => parseVariant(getBundle(it.plano), it.variante)),
@@ -162,6 +174,13 @@ function Page() {
             variante: encodeVariant(mascaras),
             qtd: 1,
           },
+        ]
+      : []),
+    ...(essencia && temUmidificador
+      ? [
+          essencia.n === 10
+            ? { plano: "essencia10" as const, variante: "", qtd: 1 }
+            : { plano: "essencia3" as const, variante: encodeVariant(essencia.aromas), qtd: 1 },
         ]
       : []),
   ];
@@ -664,7 +683,10 @@ function Page() {
           sub="Todas as transações são seguras e criptografadas."
         />
         <div className="mt-6 space-y-6">
-          {bundle.group !== "mascara" && <MascaraBump estampas={mascaras} onChange={setMascaras} />}
+          {temUmidificador && <EssenciaBump escolha={essencia} onChange={setEssencia} />}
+          {bundle.group !== "mascara" && (
+            <MascaraBump estampas={mascaras} onChange={setMascaras} reveal={temUmidificador} />
+          )}
           {ORDER_BUMPS.filter((b) => b.id !== bundle.id).map((b, i) => (
             <OrderBump
               key={b.id}
