@@ -30,10 +30,11 @@ describe("resumo do pós-compra no /admin", () => {
     );
     expect(r.pedidosPagos).toBe(2);
     expect(r.linhas).toEqual([
-      { etapa: "pilhas", gerados: 2, pagos: 1, valorPago: 8990 },
-      { etapa: "ofertas", gerados: 1, pagos: 1, valorPago: 12000 },
-      { etapa: "expresso", gerados: 0, pagos: 0, valorPago: 0 },
+      { etapa: "pilhas", gerados: 2, pagos: 1, valorGerado: 13980, valorPago: 8990 },
+      { etapa: "ofertas", gerados: 1, pagos: 1, valorGerado: 12000, valorPago: 12000 },
+      { etapa: "expresso", gerados: 0, pagos: 0, valorGerado: 0, valorPago: 0 },
     ]);
+    expect(r.valorGerado).toBe(25980);
     expect(r.valorPago).toBe(20990);
   });
 
