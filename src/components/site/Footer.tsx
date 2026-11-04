@@ -133,7 +133,7 @@ export function Footer() {
 
       <div className="border-t border-[var(--night)]/10">
         <p className="container-edge py-4 text-center text-[12px] text-[var(--ink)]/55">
-          © {year} {brand.name} · CNPJ {brand.cnpj}
+          © {year} {brand.name}
         </p>
       </div>
     </footer>
