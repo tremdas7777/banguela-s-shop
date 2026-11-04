@@ -20,6 +20,8 @@ type Props = {
   /** Demais produtos do carrinho. */
   itens?: CartLine[];
   variant?: string;
+  /** Cupom de frete grátis aplicado no checkout. */
+  freeShippingCoupon?: boolean;
 };
 
 const productsOf = ({ bundle, bumps = [], pantufas = [], itens = [] }: Props) =>
@@ -34,7 +36,11 @@ function Body(p: Props) {
   const total = totalOf(p);
   return (
     <>
-      <FreeShippingProgress subtotal={productsOf(p)} className="mb-5" />
+      <FreeShippingProgress
+        subtotal={productsOf(p)}
+        coupon={p.freeShippingCoupon}
+        className="mb-5"
+      />
       <div className="space-y-2 text-[13px]">
         <div className="flex justify-between">
           <span>Produtos</span>

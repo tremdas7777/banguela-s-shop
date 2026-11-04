@@ -85,6 +85,11 @@ export const FREE_SHIPPING_LABEL = `Frete grátis em compras acima de R$ ${FREE_
 
 export const isFreeShippingEligible = (subtotal: number) => subtotal >= FREE_SHIPPING_MIN;
 
+/** Cupom que libera o frete grátis sem exigir o mínimo em produtos. */
+export const FREE_SHIPPING_COUPON = "FRETEGRATIS";
+export const isFreeShippingCoupon = (code?: string | null): boolean =>
+  !!code && code.trim().toUpperCase() === FREE_SHIPPING_COUPON;
+
 /** Selo de frete do produto: grátis quando ele sozinho já passa do mínimo. */
 export const bundleShippingLabel = (b: { price: number }) =>
   isFreeShippingEligible(b.price) ? "Frete grátis para todo o Brasil" : FREE_SHIPPING_LABEL;

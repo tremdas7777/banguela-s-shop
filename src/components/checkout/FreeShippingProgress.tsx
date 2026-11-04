@@ -3,16 +3,19 @@ import { FREE_SHIPPING_MIN, isFreeShippingEligible } from "@/lib/bundles";
 import { cn } from "@/lib/utils";
 import { brl } from "./parts";
 
-/** Barra "faltam R$ X para frete grátis". */
+/** Barra "faltam R$ X para frete grátis". `coupon` força a liberação quando um cupom já foi aplicado. */
 export function FreeShippingProgress({
   subtotal,
+  coupon = false,
   className,
 }: {
   subtotal: number;
+  coupon?: boolean;
   className?: string;
 }) {
-  const eligible = isFreeShippingEligible(subtotal);
-  const pct = Math.min(100, Math.round((subtotal / FREE_SHIPPING_MIN) * 100));
+  const eligibleBySubtotal = isFreeShippingEligible(subtotal);
+  const eligible = eligibleBySubtotal || coupon;
+  const pct = coupon ? 100 : Math.min(100, Math.round((subtotal / FREE_SHIPPING_MIN) * 100));
 
   return (
     <div
@@ -26,7 +29,12 @@ export function FreeShippingProgress({
         <Truck
           className={cn("h-4 w-4 shrink-0", eligible ? "text-[var(--ck-ok)]" : "text-amber-600")}
         />
-        {eligible ? (
+        {coupon ? (
+          <span>
+            Cupom <b>FRETEGRATIS</b> aplicado · <b className="text-[var(--ck-ok)]">FRETE GRÁTIS</b>{" "}
+            liberado
+          </span>
+        ) : eligibleBySubtotal ? (
           <span>
             Parabéns! Você ganhou <b className="text-[var(--ck-ok)]">FRETE GRÁTIS</b>
           </span>

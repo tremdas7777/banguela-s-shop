@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   getBundle,
   isFreeShippingEligible,
+  isFreeShippingCoupon,
   parseBundleId,
   parseVariant,
   productLabel,
@@ -98,6 +99,8 @@ const customerSchema = z.object({
     .max(20)
     .default([]),
   utm: utmSchema,
+  /** Cupom opcional (ex.: FRETEGRATIS libera o frete grátis sem o mínimo em produtos). */
+  cupom: z.string().trim().max(40).optional(),
 });
 
 type Extras = {
@@ -166,7 +169,11 @@ export const createPixCharge = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<PixCharge> => {
     // Preço sempre definido no servidor — nunca confiar no cliente.
     const { bundle, itemName } = resolveProduct(data);
-    if (data.frete === "gratis" && !isFreeShippingEligible(bundle.price + extrasTotal(data))) {
+    if (
+      data.frete === "gratis" &&
+      !isFreeShippingEligible(bundle.price + extrasTotal(data)) &&
+      !isFreeShippingCoupon(data.cupom)
+    ) {
       throw new Error(
         `Frete grátis disponível apenas para compras acima de R$ ${FREE_SHIPPING_MIN}.`,
       );
@@ -269,7 +276,11 @@ export const createCardCharge = createServerFn({ method: "POST" })
     if (!isAdmin(data.adminPassword) && !(await isCardEnabled()))
       throw new Error("Pagamento com cartão indisponível. Pague com Pix.");
     const { bundle, itemName } = resolveProduct(data);
-    if (data.frete === "gratis" && !isFreeShippingEligible(bundle.price + extrasTotal(data))) {
+    if (
+      data.frete === "gratis" &&
+      !isFreeShippingEligible(bundle.price + extrasTotal(data)) &&
+      !isFreeShippingCoupon(data.cupom)
+    ) {
       throw new Error(
         `Frete grátis disponível apenas para compras acima de R$ ${FREE_SHIPPING_MIN}.`,
       );

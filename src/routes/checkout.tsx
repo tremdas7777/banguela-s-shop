@@ -7,6 +7,7 @@ import logo from "@/assets/logo.webp";
 import {
   getBundle,
   isFreeShippingEligible,
+  isFreeShippingCoupon,
   FREE_SHIPPING_MIN,
   encodeVariant,
   parseVariant,
@@ -212,17 +213,38 @@ function Page() {
   const [installments, setInstallments] = useState(1);
   // Frete grátis só a partir de FREE_SHIPPING_MIN em produtos (validado também no servidor).
   const subtotal = bundle.price + bumpsTotal(bumps) + pantufasTotal(pantufas) + itensTotal;
-  const freeEligible = isFreeShippingEligible(subtotal);
+  // Cupom "FRETEGRATIS" libera a opção de frete grátis sem o mínimo em produtos.
+  const [cupomInput, setCupomInput] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState<string | null>(null);
+  const [cupomErro, setCupomErro] = useState<string | null>(null);
+  const freeByCoupon = isFreeShippingCoupon(cupomAplicado);
+  const freeEligible = isFreeShippingEligible(subtotal) || freeByCoupon;
   const [frete, setFrete] = useState<FreteId>(() =>
     isFreeShippingEligible(subtotal) ? "gratis" : "padrao",
   );
   const wasEligible = useRef(freeEligible);
   useEffect(() => {
     if (!freeEligible && frete === "gratis") setFrete("padrao");
-    // Acabou de liberar o frete grátis (ex.: trocou de plano): já seleciona para o cliente.
+    // Acabou de liberar o frete grátis (ex.: trocou de plano ou aplicou cupom): já seleciona.
     if (freeEligible && !wasEligible.current) setFrete("gratis");
     wasEligible.current = freeEligible;
   }, [freeEligible, frete]);
+  const aplicarCupom = () => {
+    const code = cupomInput.trim();
+    if (!code) return;
+    if (isFreeShippingCoupon(code)) {
+      setCupomAplicado(code.toUpperCase());
+      setCupomErro(null);
+    } else {
+      setCupomAplicado(null);
+      setCupomErro("Cupom inválido.");
+    }
+  };
+  const removerCupom = () => {
+    setCupomAplicado(null);
+    setCupomInput("");
+    setCupomErro(null);
+  };
   const createFn = useServerFn(createPixCharge);
   const cardFn = useServerFn(createCardCharge);
   const cardConfigFn = useServerFn(getCardConfig);
@@ -354,6 +376,7 @@ function Page() {
     utm: getStoredUtms(),
     endereco: `${addr.rua}, ${addr.numero} ${addr.complemento} - ${addr.bairro}, ${addr.cidade}/${addr.uf} ${addr.cep}`,
     address: structuredAddress(),
+    ...(cupomAplicado ? { cupom: cupomAplicado } : {}),
   });
   const sessionBase = () => ({
     email: id.email,
@@ -602,8 +625,60 @@ function Page() {
             value={addr.complemento}
             onChange={(e) => setAddr({ ...addr, complemento: e.target.value })}
           />
+          <div className="pt-2">
+            <p className="text-[13px] font-medium">Cupom de desconto</p>
+            {freeByCoupon ? (
+              <div className="mt-2 flex items-center justify-between rounded-lg border border-[var(--ck-ok)] bg-[var(--ck-badge)]/40 px-4 py-3 text-[13px]">
+                <span>
+                  Cupom <b>{cupomAplicado}</b> aplicado · frete grátis liberado
+                </span>
+                <button
+                  type="button"
+                  onClick={removerCupom}
+                  className="text-[12px] text-muted-foreground underline"
+                >
+                  remover
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="text"
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    placeholder="Digite seu cupom"
+                    value={cupomInput}
+                    onChange={(e) => {
+                      setCupomInput(e.target.value.toUpperCase());
+                      if (cupomErro) setCupomErro(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        aplicarCupom();
+                      }
+                    }}
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-[13px] uppercase outline-none focus:border-[var(--ck-blue)]"
+                  />
+                  <button
+                    type="button"
+                    onClick={aplicarCupom}
+                    disabled={!cupomInput.trim()}
+                    className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+                {cupomErro && (
+                  <p className="mt-1 text-[12px] text-red-600">{cupomErro}</p>
+                )}
+              </>
+            )}
+          </div>
           <p className="pt-2 text-base font-medium">Escolha o frete:</p>
-          <FreeShippingProgress subtotal={subtotal} />
+          <FreeShippingProgress subtotal={subtotal} coupon={freeByCoupon} />
           {FRETES.map(({ id: v, name: t, eta: d, price }) => {
             const locked = v === "gratis" && !freeEligible;
             const p = locked ? `Acima de ${brl(FREE_SHIPPING_MIN)}` : price ? brl(price) : "Grátis";
@@ -908,6 +983,7 @@ function Page() {
         onRemovePantufas={() => setPantufas([])}
         itens={itemLines}
         variant={variant}
+        freeShippingCoupon={freeByCoupon}
       />
       <main className="mx-auto grid w-full max-w-[1160px] gap-4 px-3 pb-24 pt-2 md:px-4 lg:grid-cols-3 lg:gap-4">
         <div className="space-y-5">
@@ -924,6 +1000,7 @@ function Page() {
           onRemovePantufas={() => setPantufas([])}
           itens={itemLines}
           variant={variant}
+          freeShippingCoupon={freeByCoupon}
         />
       </main>
       <CheckoutFooter />
