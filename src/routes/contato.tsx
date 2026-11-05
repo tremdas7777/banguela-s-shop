@@ -50,7 +50,7 @@ function Page() {
               <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
                 <div className="eyebrow text-[var(--ink)]/40 mb-2">Empresa</div>
                 <div>
-                  {brand.name} · CNPJ {brand.cnpj}
+                  {brand.name}
                 </div>
               </li>
               <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
