@@ -48,12 +48,6 @@ function Page() {
                 </a>
               </li>
               <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
-                <div className="eyebrow text-[var(--ink)]/40 mb-2">Empresa</div>
-                <div>
-                  {brand.name} · CNPJ {brand.cnpj}
-                </div>
-              </li>
-              <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
                 <div className="eyebrow text-[var(--ink)]/40 mb-2">Atendimento</div>
                 <div>Online, para todo o Brasil</div>
               </li>
