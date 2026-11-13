@@ -26,7 +26,6 @@ import {
   type FreteId,
 } from "@/lib/pix.functions";
 import { CARD_MAX_INSTALLMENTS, checkoutTotals, PIX_DISCOUNT } from "@/lib/payment-pricing";
-import { loadHypercash, tokenizeCard } from "@/lib/hypercash-sdk";
 import { savePixSession } from "@/lib/pix-session";
 import { getSessionId, getStoredUtms } from "@/lib/tracking";
 import { trackCheckoutStep, type CheckoutStep } from "@/lib/checkout-tracking.functions";
@@ -269,8 +268,6 @@ function Page() {
 
   // Cartão pode ser desativado no admin: a opção só aparece se estiver ativa.
   const [cardEnabled, setCardEnabled] = useState(false);
-  // HyperCash (chave pública no navegador) quando a Legacy não está cadastrada.
-  const [cardKey, setCardKey] = useState<string | null>(null);
   // Legacy Ecom: com a chave cadastrada no /admin, o cartão passa pelo SDK dela (tokeniza e resolve o 3DS).
   const [legacyCfg, setLegacyCfg] = useState<{
     publicKey: string;
@@ -285,16 +282,10 @@ function Page() {
         if (!c.enabled) setPay("pix");
         if (c.provider === "legacy" && c.publicKey && c.sdkUrl && c.apiBaseUrl) {
           setLegacyCfg({ publicKey: c.publicKey, sdkUrl: c.sdkUrl, apiBaseUrl: c.apiBaseUrl });
-        } else {
-          setCardKey(c.publicKey);
         }
       })
       .catch(() => setPay("pix"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  // Carrega o SDK assim que o cliente escolhe cartão (o 3DS precisa do script antes do envio).
-  useEffect(() => {
-    if (pay === "card" && cardKey) loadHypercash(cardKey).catch(() => undefined);
-  }, [pay, cardKey]);
   useEffect(() => {
     if (pay === "card" && legacyCfg) {
       import("@/lib/legacy-sdk").then(({ loadLegacy }) =>
@@ -515,50 +506,14 @@ function Page() {
         setThreeDS(false);
       }
     }
-    return { ...res, cardHash: null as string | null };
+    return res;
   };
   const cardMutation = useMutation({
     mutationFn: async () => {
       const address = structuredAddress();
       if (!address) throw new Error("Confira o CEP e o endereço de entrega.");
-      if (legacyCfg) return legacyCardPay(legacyCfg);
-      if (!cardKey) throw new Error("Cartão indisponível no momento. Tente o Pix.");
-      const [mm, yy] = card.exp.split("/");
-      const cardHash = await tokenizeCard(
-        cardKey,
-        {
-          number: digits(card.number),
-          holderName: card.name.trim().toUpperCase(),
-          expMonth: mm!,
-          expYear: `20${yy}`,
-          cvv: digits(card.cvv),
-        },
-        {
-          amount: cardT.total,
-          installments,
-          customer: { name: id.name, email: id.email, phoneNumber: digits(id.phone) },
-          address: {
-            street: address.street,
-            streetNumber: address.number,
-            complement: address.complement || "Sem complemento",
-            zipCode: address.zipcode,
-            neighborhood: address.neighborhood,
-            city: address.city,
-            state: address.state,
-            country: "BR",
-          },
-        },
-        setThreeDS,
-      ).catch((e) => {
-        const reason = e instanceof Error && e.message ? `: ${e.message}` : "";
-        throw new Error(
-          `Não foi possível validar o cartão${reason}. Confira os dados e tente novamente.`,
-        );
-      });
-      const res = await cardFn({
-        data: { ...orderPayload(), cardHash, installments, adminPassword: adminPwd() },
-      });
-      return { ...res, cardHash: cardHash as string | null };
+      if (!legacyCfg) throw new Error("Cartão indisponível no momento. Tente o Pix.");
+      return legacyCardPay(legacyCfg);
     },
     onSuccess: (c) => {
       savePixSession({
@@ -569,9 +524,7 @@ function Page() {
         discount: 0,
         method: "card",
         installments,
-        // Token do gateway (não é o cartão): permite o upsell no mesmo cartão sem redigitar.
-        // HyperCash: cardHash. Legacy: cardToken (cvt_live_…) + CPF do dono, pro payWithSavedCard.
-        ...(c.cardHash ? { cardHash: c.cardHash } : {}),
+        // Token do cartão (cvt_live_…) + CPF do dono: só nesta aba, pro upsell no mesmo cartão.
         ...(c.cardToken ? { cardToken: c.cardToken, cardOwnerDocument: digits(id.cpf) } : {}),
       });
       metaTrack("AddPaymentInfo", { value: cardTotal, contentName: bundle.name });
@@ -877,7 +830,9 @@ function Page() {
               </span>
               <span className="flex-1 text-[15px]">PIX</span>
               <span className="rounded bg-[var(--ck-badge)] px-2 py-0.5 text-[11px] font-bold uppercase text-[var(--ck-ok)]">
-                {pay === "pix" && pixDiscountOn ? `${Math.round(PIX_DISCOUNT * 100)}% OFF` : "Oferta"}
+                {pay === "pix" && pixDiscountOn
+                  ? `${Math.round(PIX_DISCOUNT * 100)}% OFF`
+                  : "Oferta"}
               </span>
             </button>
             {pay === "pix" && (
@@ -1019,7 +974,7 @@ function Page() {
                   )}
                   <GreenButton
                     type="button"
-                    disabled={!cardValid || (!cardKey && !legacyCfg) || cardMutation.isPending}
+                    disabled={!cardValid || !legacyCfg || cardMutation.isPending}
                     onClick={() => cardMutation.mutate()}
                   >
                     {cardMutation.isPending ? (

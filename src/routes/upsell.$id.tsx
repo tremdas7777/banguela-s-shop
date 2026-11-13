@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { CircleCheck, Loader2, ShieldCheck } from "lucide-react";
 import { getBundle } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
-import { createCardFollowUpCharge, createUpsellCharge } from "@/lib/pix.functions";
+import { createUpsellCharge } from "@/lib/pix.functions";
 import { loadPixSession, savePixSession, type PixSession } from "@/lib/pix-session";
 import { useLegacyFollowUp } from "@/lib/legacy-followup";
 import {
@@ -36,7 +36,6 @@ function Page() {
   const navigate = useNavigate();
   const [session, setSession] = useState<PixSession | null | undefined>(undefined);
   const createFn = useServerFn(createUpsellCharge);
-  const cardFn = useServerFn(createCardFollowUpCharge);
   const [usePix, setUsePix] = useState(false);
   const [chosen, setChosen] = useState<UpsellProduct[]>([]);
 
@@ -54,32 +53,18 @@ function Page() {
   const withKit = sel.products.includes("kit");
 
   const legacy = useLegacyFollowUp(session);
-  // Mesmo cartão: Legacy (token cvt_live_…) ou HyperCash (cardHash). Sem nenhum, cai no Pix.
-  const isCard =
-    session?.method === "card" &&
-    !usePix &&
-    (legacy.ready || (!legacy.waiting && !!session.cardHash));
+  // Mesmo cartão pela Legacy (token cvt_live_… da compra). Sem token, cai no Pix.
+  const isCard = session?.method === "card" && !usePix && legacy.ready;
   const toggle = (p: UpsellProduct) =>
     setChosen((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (isCard && legacy.ready) {
+      if (isCard) {
         const r = await legacy.pay({
           parentId: id,
           amountCents: Math.round(sel.total * 100),
           products: sel.products,
-        });
-        return { ...r, qrcode: "", method: "card" as const };
-      }
-      if (isCard) {
-        const r = await cardFn({
-          data: {
-            parentId: id,
-            origin: window.location.origin,
-            cardHash: session!.cardHash!,
-            products: sel.products,
-          },
         });
         return { ...r, qrcode: "", method: "card" as const };
       }
