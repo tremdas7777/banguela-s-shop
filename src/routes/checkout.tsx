@@ -828,11 +828,17 @@ function Page() {
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                 <PixIcon className="h-5 w-5" />
               </span>
-              <span className="flex-1 text-[15px]">PIX</span>
+              <span className="flex-1">
+                <span className="block text-[15px]">PIX</span>
+                {/* Desconto visível antes da escolha; o total só muda quando o cliente escolhe Pix. */}
+                {pixDiscountOn && (
+                  <span className="block text-[12px] font-semibold text-[var(--ck-ok)]">
+                    {brl(pixTotal)} · {Math.round(PIX_DISCOUNT * 100)}% de desconto
+                  </span>
+                )}
+              </span>
               <span className="rounded bg-[var(--ck-badge)] px-2 py-0.5 text-[11px] font-bold uppercase text-[var(--ck-ok)]">
-                {pay === "pix" && pixDiscountOn
-                  ? `${Math.round(PIX_DISCOUNT * 100)}% OFF`
-                  : "Oferta"}
+                {pixDiscountOn ? `${Math.round(PIX_DISCOUNT * 100)}% OFF` : "Oferta"}
               </span>
             </button>
             {pay === "pix" && (
@@ -882,7 +888,14 @@ function Page() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                   <CreditCard className="h-5 w-5 text-muted-foreground" />
                 </span>
-                <span className="text-[15px]">Cartão de crédito</span>
+                <span className="flex-1">
+                  <span className="block text-[15px]">Cartão de crédito</span>
+                  {pixDiscountOn && (
+                    <span className="block text-[12px] text-muted-foreground">
+                      {brl(cardTotal)}
+                    </span>
+                  )}
+                </span>
               </button>
               {pay === "card" && (
                 <div className="space-y-4 px-3 pb-3">
