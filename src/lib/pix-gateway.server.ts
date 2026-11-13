@@ -70,7 +70,7 @@ const DEFAULT_GATEWAY: PixGateway = "pixgate";
  * gateways continuam sendo conferidos pelo prefixo do id. null = volta a escolha do /admin
  * com o gateway reserva.
  */
-const GATEWAY_UNICO: PixGateway | null = "pixblack";
+const GATEWAY_UNICO: PixGateway | null = null;
 
 async function db() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
