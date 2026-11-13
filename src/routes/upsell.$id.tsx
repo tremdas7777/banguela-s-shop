@@ -7,6 +7,7 @@ import { getBundle } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
 import { createCardFollowUpCharge, createUpsellCharge } from "@/lib/pix.functions";
 import { loadPixSession, savePixSession, type PixSession } from "@/lib/pix-session";
+import { useLegacyFollowUp } from "@/lib/legacy-followup";
 import {
   SHIPPING_INSURANCE,
   UPSELL_DISCOUNT,
@@ -52,12 +53,25 @@ function Page() {
   const sel = upsellSelection(bundle, chosen);
   const withKit = sel.products.includes("kit");
 
-  const isCard = session?.method === "card" && !!session.cardHash && !usePix;
+  const legacy = useLegacyFollowUp(session);
+  // Mesmo cartão: Legacy (token cvt_live_…) ou HyperCash (cardHash). Sem nenhum, cai no Pix.
+  const isCard =
+    session?.method === "card" &&
+    !usePix &&
+    (legacy.ready || (!legacy.waiting && !!session.cardHash));
   const toggle = (p: UpsellProduct) =>
     setChosen((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (isCard && legacy.ready) {
+        const r = await legacy.pay({
+          parentId: id,
+          amountCents: Math.round(sel.total * 100),
+          products: sel.products,
+        });
+        return { ...r, qrcode: "", method: "card" as const };
+      }
       if (isCard) {
         const r = await cardFn({
           data: {
@@ -211,7 +225,7 @@ function Page() {
 
         <button
           type="button"
-          disabled={mutation.isPending || sel.products.length === 0}
+          disabled={mutation.isPending || legacy.waiting || sel.products.length === 0}
           onClick={() => mutation.mutate()}
           className="mt-6 flex w-full flex-col items-center justify-center rounded-lg bg-[var(--ck-green)] px-6 py-4 text-white shadow-lg transition hover:opacity-90 disabled:opacity-50"
         >

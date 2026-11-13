@@ -247,6 +247,8 @@ export type CardCharge = {
   threeDSecurePending?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- resposta do gateway sem tipo
   threeDSecure?: any;
+  /** Token do cartão (cvt_live_…) da Legacy: só na aba do cliente, pro upsell no mesmo cartão. */
+  cardToken?: string;
 };
 
 /** Liga/desliga do cartão no admin (site_settings.card_enabled). DESLIGADO até ativar no painel. */
@@ -331,6 +333,8 @@ const cardMetaSchema = z
       .regex(/^\d{4}$/)
       .optional(),
     brand: z.string().max(40).optional(),
+    /** Token do cartão salvo (cvt_live_…) vindo de `prepared.card.token`: volta ao navegador pro upsell. */
+    token: z.string().min(5).max(300).optional(),
   })
   .optional();
 
@@ -527,6 +531,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
       paid,
       threeDSecurePending: outcome.threeDSecurePending,
       threeDSecure: outcome.threeDSecure,
+      ...(data.cardMeta?.token ? { cardToken: data.cardMeta.token } : {}),
     };
   });
 
@@ -654,6 +659,137 @@ export const createCardFollowUpCharge = createServerFn({ method: "POST" })
     const paid = isPaidStatus(tx.status);
     if (!paid) await reportPendingToUtmify(orderData);
     return { id, amount, status: tx.status, paid, refusedReason: tx.refusedReason };
+  });
+
+/**
+ * Upsell no mesmo cartão da compra pela Legacy (payWithSavedCard), igual à Petit. O navegador prepara
+ * o payload com `client.payWithSavedCard({ token, amount, referenceId, installments, customer })` e o
+ * servidor só repassa à /payin. Token e CVV não são guardados no banco.
+ */
+export const createLegacyCardFollowUpCharge = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        parentId: z.string().regex(/^le_[\w-]{1,64}$/),
+        origin: z.string().url(),
+        cardPrepared: payinCardSchema,
+        antifraudSessionId: z.string().min(1).max(300).optional().nullable(),
+        cardMeta: cardMetaSchema,
+        products: z
+          .array(z.enum(UPSELL_PRODUCTS))
+          .min(1)
+          .max(UPSELL_PRODUCTS.length)
+          .default(["kit"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }): Promise<CardCharge> => {
+    if (!(await getLegacyKey().catch(() => null))) {
+      throw new Error("Pagamento com cartão indisponível. Pague com Pix.");
+    }
+    const parent = await getOrder(data.parentId);
+    if (
+      !parent ||
+      parent.customer?.upsellOf ||
+      parent.customer?.testOf ||
+      parent.customer?.method !== "card"
+    )
+      throw new Error("Pedido não encontrado.");
+    if (!parent.customer.address) throw new Error("Pedido sem endereço.");
+    if (!isPaidStatus(parent.status)) {
+      const { status } = await fetchGatewayStatus(parent.id);
+      if (!isPaidStatus(status)) throw new Error("Pedido ainda não foi pago.");
+    }
+    const { existing } = await upsellStep(parent.id, data.products);
+    if (existing) {
+      return {
+        id: existing.id,
+        amount: existing.amount_cents,
+        status: existing.status,
+        paid: isPaidStatus(existing.status),
+      };
+    }
+
+    const bundle = getBundle(parent.bundle_id);
+    const sel = upsellSelection(bundle, data.products);
+    if (!sel.products.length) throw new Error("Escolha uma oferta.");
+    const amount = Math.round(sel.total * 100);
+    const c = parent.customer;
+    const a = c.address!;
+    const { ip, ua } = requestMeta();
+    const address: LegacyAddress = {
+      street: a.street,
+      number: a.number,
+      zipCode: a.zipcode,
+      city: a.city,
+      state: a.state.toUpperCase(),
+      ...(a.complement ? { complement: a.complement } : {}),
+      neighborhood: a.neighborhood,
+    };
+    let tx;
+    try {
+      tx = await legacyCardCharge({
+        amountCents: amount,
+        payinCard: data.cardPrepared as Record<string, unknown>,
+        antifraudSessionId: data.antifraudSessionId ?? null,
+        customer: { name: c.name, email: c.email, phone: c.phone, cpf: c.cpf },
+        address,
+        description: brand.gatewayName,
+        referenceId: crypto.randomUUID(),
+        payerIp: ip ?? "0.0.0.0",
+        items: sel.items.map((i) => ({
+          title: i.title,
+          unitPrice: Math.round(i.price * 100),
+          quantity: 1,
+        })),
+      });
+    } catch (e) {
+      if (e instanceof PayerDataError) throw new Error(e.message);
+      throw e;
+    }
+    if (tx.threeDSecurePending) {
+      throw new Error("Este cartão exige nova autenticação. Pague essa oferta com Pix.");
+    }
+    if (LEGACY_BAD_STATUSES.includes(tx.status)) {
+      throw new Error("O banco não aprovou a cobrança neste cartão.");
+    }
+    const txCard = data.cardMeta?.last4
+      ? {
+          lastDigits: data.cardMeta.last4,
+          ...(data.cardMeta.brand ? { brand: data.cardMeta.brand } : {}),
+        }
+      : null;
+    const id = `${LEGACY_ORDER_PREFIX}${tx.id}`;
+    const orderData = {
+      createdAt: Date.now(),
+      id,
+      amountCents: amount,
+      customer: {
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        cpf: c.cpf,
+        endereco: c.endereco,
+        address: c.address,
+        frete: { id: "junto", name: `Junto com o pedido ${parent.id}`, price: 0 },
+        method: "card" as const,
+        installments: parent.customer.installments ?? 1,
+        ...(txCard ? { card: txCard } : {}),
+        upsellOf: parent.id,
+        upsellItems: sel.products,
+      },
+      bundleId: bundle.id,
+      bundleName: `Upsell: ${sel.label}`,
+      utm: parent.utm ?? undefined,
+      ip,
+      ua,
+      fbp: parent.fbp,
+      fbc: parent.fbc,
+    };
+    await saveOrder(orderData);
+    const paid = isPaidStatus(tx.status);
+    if (!paid) await reportPendingToUtmify(orderData);
+    return { id, amount, status: tx.status, paid };
   });
 
 /**

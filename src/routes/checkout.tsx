@@ -487,6 +487,7 @@ function Page() {
         cardMeta: {
           ...(prepared.card?.last4 ? { last4: prepared.card.last4 } : {}),
           ...(prepared.card?.brand ? { brand: prepared.card.brand } : {}),
+          ...(prepared.card?.token ? { token: prepared.card.token } : {}),
         },
         antifraudSessionId: prepared.antifraud?.sessionId ?? null,
         installments,
@@ -569,8 +570,9 @@ function Page() {
         method: "card",
         installments,
         // Token do gateway (não é o cartão): permite o upsell no mesmo cartão sem redigitar.
-        // Pela Legacy não há token guardado aqui: o upsell cai no Pix.
+        // HyperCash: cardHash. Legacy: cardToken (cvt_live_…) + CPF do dono, pro payWithSavedCard.
         ...(c.cardHash ? { cardHash: c.cardHash } : {}),
+        ...(c.cardToken ? { cardToken: c.cardToken, cardOwnerDocument: digits(id.cpf) } : {}),
       });
       metaTrack("AddPaymentInfo", { value: cardTotal, contentName: bundle.name });
       trackCheckoutClick({
