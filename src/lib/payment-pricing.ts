@@ -23,3 +23,6 @@ export function checkoutTotals(o: {
   const discount = o.method === "pix" && o.pixDiscount ? Math.round(products * PIX_DISCOUNT) : 0;
   return { products, frete, discount, total: products - discount + frete };
 }
+
+/** Preço no Pix de um produto (tabela − PIX_DISCOUNT), em reais. Só vale quando o cartão é ofertado. */
+export const pixPrice = (p: number) => Math.round(p * (1 - PIX_DISCOUNT) * 100) / 100;

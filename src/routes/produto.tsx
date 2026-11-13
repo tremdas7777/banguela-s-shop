@@ -12,6 +12,9 @@ import {
   Truck,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
+import { useServerFn } from "@tanstack/react-start";
+import { getCardConfig } from "@/lib/pix.functions";
+import { PIX_DISCOUNT, pixPrice } from "@/lib/payment-pricing";
 import { ComboExtras } from "@/components/shop/ComboExtras";
 import { OfertaPantufas } from "@/components/shop/OfertaPantufas";
 import { OptionCards } from "@/components/shop/OptionCards";
@@ -125,6 +128,14 @@ function Page() {
   const [crocsOfferQty, setCrocsOfferQty] = useState<1 | 2>(1);
   const [crocsOfferSel, setCrocsOfferSel] = useState<Record<string, string>>({});
   const [crocsOfferAction, setCrocsOfferAction] = useState<"comprar" | "carrinho">("comprar");
+  // Desconto do Pix só aparece quando o cartão é ofertado no checkout (mesmo flag do servidor).
+  const [pixOn, setPixOn] = useState(false);
+  const cardConfigFn = useServerFn(getCardConfig);
+  useEffect(() => {
+    cardConfigFn({ data: {} })
+      .then((c) => setPixOn(c.pixDiscount))
+      .catch(() => setPixOn(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const optionsRef = useRef<HTMLDivElement>(null);
 
   // Troca de produto (ex.: pelos relacionados): zera as escolhas e a foto.
@@ -587,9 +598,15 @@ function Page() {
                 </span>
               )}
             </div>
-            <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">
-              Pix com desconto ou cartão de crédito
-            </p>
+            {pixOn && !seloOferta ? (
+              <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">
+                No Pix <b className="text-[var(--night)]">{brl(pixPrice(p.price))}</b> ({Math.round(PIX_DISCOUNT * 100)}% de desconto) · ou {brl(p.price)} no cartão
+              </p>
+            ) : (
+              <p className="mt-2 text-[13.5px] text-[var(--ink)]/65">
+                Pix ou cartão de crédito
+              </p>
+            )}
 
             <ul className="mt-5 space-y-2.5">
               {p.benefits.map((b) => (
