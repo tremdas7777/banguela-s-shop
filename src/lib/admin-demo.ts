@@ -307,6 +307,13 @@ function responder(nome: string, dados: Record<string, unknown>): unknown {
       return { ok: true, status: 404 };
     case "approveOrderFn":
       return { approved: true, manual: false, gatewayStatus: "paid" };
+    case "getSecurityAdmin":
+      return {
+        siteKey: "",
+        secretHint: "",
+        limitOn: true,
+        blocked24h: { "limite pix (ip)": 37, "limite pix (cpf)": 12, robo: 5, celular: 2 },
+      };
     default:
       return { ok: true };
   }

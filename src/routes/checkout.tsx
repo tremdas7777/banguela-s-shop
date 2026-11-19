@@ -16,12 +16,14 @@ import {
   UMIDIFICADOR_IDS,
 } from "@/lib/bundles";
 import { brand } from "@/lib/brand";
+import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 import { bundleIdFromSearch, planSearchSchema } from "@/lib/plan-search";
 import {
   createCardCharge,
   createPixCharge,
   FRETES,
   getCardConfig,
+  getCheckoutGuard,
   getFrete,
   type FreteId,
 } from "@/lib/pix.functions";
@@ -194,6 +196,23 @@ function Page() {
   }, [bundle.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const [step, setStep] = useState<Step>(1);
   const [id, setId] = useState({ name: "", email: "", cpf: "", phone: "" });
+  // Proteção contra robôs: campo escondido (gente não vê), hora que abriu o checkout e captcha.
+  const [hp, setHp] = useState("");
+  const startedAt = useRef(Date.now());
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string | null>(null);
+  const guardFn = useServerFn(getCheckoutGuard);
+  useEffect(() => {
+    guardFn()
+      .then((g) => setTurnstileSiteKey(g.turnstileSiteKey))
+      .catch(() => undefined);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const guardFields = async () => ({
+    ...(hp ? { hp } : {}),
+    fillMs: Math.min(Date.now() - startedAt.current, 86_400_000),
+    ...(turnstileSiteKey ? { captcha: (await turnstileRef.current?.getToken()) || undefined } : {}),
+    adminPassword: adminPwd(),
+  });
   const [addr, setAddr] = useState<Addr>({
     cep: "",
     rua: "",
@@ -411,7 +430,9 @@ function Page() {
   });
 
   const mutation = useMutation({
-    mutationFn: () => createFn({ data: orderPayload() }),
+    mutationFn: async () => createFn({ data: { ...orderPayload(), ...(await guardFields()) } }),
+    // Token do captcha vale uma vez: prepara outro para a próxima tentativa.
+    onError: () => turnstileRef.current?.reset(),
     onSuccess: (c) => {
       savePixSession({
         ...sessionBase(),
@@ -482,7 +503,7 @@ function Page() {
         },
         antifraudSessionId: prepared.antifraud?.sessionId ?? null,
         installments,
-        adminPassword: adminPwd(),
+        ...(await guardFields()),
       },
     });
     // 3DS pós-ordem: o SDK abre o desafio do banco. Depois, a página do pedido confirma o status real
@@ -515,6 +536,7 @@ function Page() {
       if (!legacyCfg) throw new Error("Cartão indisponível no momento. Tente o Pix.");
       return legacyCardPay(legacyCfg);
     },
+    onError: () => turnstileRef.current?.reset(),
     onSuccess: (c) => {
       savePixSession({
         ...sessionBase(),
@@ -600,6 +622,20 @@ function Page() {
             ok={digits(id.phone).length >= 10}
             onChange={(e) => setId({ ...id, phone: maskPhone(e.target.value) })}
           />
+          {/* Isca para robôs: fora da tela, sem foco pelo teclado e ignorada por leitores de tela. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+            <label>
+              Site
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+              />
+            </label>
+          </div>
           <GreenButton type="submit" disabled={!idValid}>
             Ir Para Entrega
           </GreenButton>
@@ -800,6 +836,7 @@ function Page() {
           sub="Todas as transações são seguras e criptografadas."
         />
         <div className="mt-6 space-y-6">
+          {turnstileSiteKey && <Turnstile ref={turnstileRef} siteKey={turnstileSiteKey} />}
           {temUmidificador && <EssenciaBump escolha={essencia} onChange={setEssencia} />}
           {bundle.group !== "mascara" && (
             <MascaraBump estampas={mascaras} onChange={setMascaras} reveal={temUmidificador} />

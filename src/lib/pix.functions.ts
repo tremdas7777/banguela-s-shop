@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { senhaAdminOk } from "@/lib/admin-guard.server";
 import { GIFT } from "@/lib/gift";
 import { z } from "zod";
 import {
@@ -43,6 +42,7 @@ import { isPaidStatus } from "@/lib/pix-status";
 import { UPSELL_PRODUCTS, upsellSelection } from "@/lib/upsell";
 import { getRequest } from "@tanstack/react-start/server";
 import { checkoutTotals, CARD_MAX_INSTALLMENTS } from "@/lib/payment-pricing";
+import { guardAttempt, guardCheckout, getTurnstileKeys } from "@/lib/security.server";
 
 const utmSchema = z.record(z.string(), z.string().max(300).nullable()).optional().default({});
 
@@ -110,6 +110,11 @@ const customerSchema = z.object({
   utm: utmSchema,
   /** Cupom opcional (ex.: FRETEGRATIS libera o frete grátis sem o mínimo em produtos). */
   cupom: z.string().trim().max(40).optional(),
+  /** Proteção contra robôs: campo escondido, tempo de preenchimento e token do captcha. */
+  hp: z.string().max(200).optional(),
+  fillMs: z.number().int().min(0).max(86_400_000).optional(),
+  captcha: z.string().max(4096).optional(),
+  adminPassword: z.string().max(200).optional(),
 });
 
 type Extras = {
@@ -168,10 +173,22 @@ export type PixCharge = { id: string; qrcode: string; amount: number; status: st
 function requestMeta() {
   const h = getRequest()?.headers;
   return {
-    ip: h?.get("cf-connecting-ip") ?? h?.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+    // x-real-ip é escrito pela própria Vercel (o cliente não consegue inventar); cf-connecting-ip
+    // qualquer um manda, já que o site não passa pela Cloudflare: vem só como reserva.
+    ip:
+      h?.get("x-real-ip") ??
+      h?.get("cf-connecting-ip") ??
+      h?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      null,
     ua: h?.get("user-agent") ?? null,
   };
 }
+
+/** Público: chave do site do captcha (Turnstile), se estiver configurada no /admin. */
+export const getCheckoutGuard = createServerFn({ method: "GET" }).handler(async () => {
+  const keys = await getTurnstileKeys();
+  return { turnstileSiteKey: keys?.siteKey ?? null };
+});
 
 export const createPixCharge = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => customerSchema.parse(d))
@@ -197,6 +214,7 @@ export const createPixCharge = createServerFn({ method: "POST" })
     });
     const amount = totals.total;
     const { ip, ua } = requestMeta();
+    await guardCheckout("pix", data, ip);
     // Gateway escolhido no /admin (Umbrella ou PixGate).
     const charge = await createPix({
       amount,
@@ -279,9 +297,6 @@ async function pixDiscountOn(): Promise<boolean> {
   return !!(await legacyCardKey());
 }
 
-/** Com o cartão desligado, quem está logado no admin (mesmo navegador) ainda consegue testar. */
-const isAdmin = (pwd?: string) => senhaAdminOk(pwd);
-
 /**
  * Config do cartão para o checkout. Regra: com a chave da Legacy Ecom cadastrada, o cartão passa
  * pela Legacy (o SDK dela tokeniza e resolve o 3DS no navegador) e fica sempre no ar. Sem ela, não
@@ -349,7 +364,6 @@ const cardSchema = customerSchema.extend({
   cardMeta: cardMetaSchema,
   antifraudSessionId: z.string().min(1).max(300).optional().nullable(),
   installments: z.number().int().min(1).max(CARD_MAX_INSTALLMENTS),
-  adminPassword: z.string().max(200).optional(),
 });
 
 /** Resultado de uma cobrança no cartão pela Legacy. */
@@ -403,6 +417,7 @@ export const createCardCharge = createServerFn({ method: "POST" })
       pixDiscount: false,
     });
     const { ip, ua } = requestMeta();
+    await guardCheckout("card", data, ip);
     const a = data.address;
     const itemsCents = [
       { title: brand.gatewayName, unitPrice: Math.round(bundle.price * 100), quantity: 1 },
@@ -772,6 +787,7 @@ export const enviarComprovantePix = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }): Promise<{ ok: true }> => {
+    await guardAttempt({ kind: "comprovante", ip: requestMeta().ip });
     const bytes = Buffer.from(data.base64, "base64");
     if (bytes.length === 0 || bytes.length > 3 * 1024 * 1024) {
       throw new Error("Arquivo inválido. Envie até 3 MB.");

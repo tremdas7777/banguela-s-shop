@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { MetaPixelCard } from "./MetaPixelCard";
 import { PixGatewayCard } from "./PixGatewayCard";
 import { RotasyncCard } from "./RotasyncCard";
+import { SecurityCard } from "./SecurityCard";
 import { UtmifyCard } from "./UtmifyCard";
 import { WhatsappCard } from "./WhatsappCard";
 import { PageHeader } from "./kit";
@@ -39,6 +40,12 @@ export function SettingsTab({ password }: { password: string }) {
         description="Quem gera o Pix dos pedidos e se o cartão de crédito aparece no checkout."
       >
         <PixGatewayCard password={password} />
+      </Grupo>
+      <Grupo
+        title="Segurança"
+        description="Trava contra robôs e ataques de pedidos em massa no checkout."
+      >
+        <SecurityCard password={password} />
       </Grupo>
       <Grupo
         title="Anúncios e rastreamento"
